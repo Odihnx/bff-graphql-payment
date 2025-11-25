@@ -5,22 +5,22 @@ import (
 	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
 )
 
-// PaymentInfraGRPCMapper handles mapping between domain models and gRPC DTOs
+// PaymentInfraGRPCMapper maneja el mapeo entre modelos de dominio y DTOs de gRPC
 type PaymentInfraGRPCMapper struct{}
 
-// NewPaymentInfraGRPCMapper creates a new mapper instance
+// NewPaymentInfraGRPCMapper crea una nueva instancia del mapper
 func NewPaymentInfraGRPCMapper() *PaymentInfraGRPCMapper {
 	return &PaymentInfraGRPCMapper{}
 }
 
-// ToCreateRequest maps domain input to gRPC request
+// ToCreateRequest mapea la entrada de dominio a solicitud gRPC
 func (m *PaymentInfraGRPCMapper) ToCreateRequest(paymentRackID string) *dto.GetPaymentInfraByIDRequest {
 	return &dto.GetPaymentInfraByIDRequest{
 		PaymentRackId: paymentRackID,
 	}
 }
 
-// ToDomain maps gRPC response to domain model
+// ToDomain mapea la respuesta gRPC al modelo de dominio
 func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByIDResponse) *model.PaymentInfra {
 	if response == nil {
 		return nil
@@ -28,14 +28,14 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByIDRespo
 
 	paymentInfra := &model.PaymentInfra{}
 
-	// Map response metadata
+	// Mapear metadatos de respuesta
 	if response.Response != nil {
 		paymentInfra.TransactionID = response.Response.TransactionId
 		paymentInfra.Message = response.Response.Message
 		paymentInfra.Status = m.mapResponseStatus(response.Response.Status)
 	}
 
-	// Map payment rack
+	// Mapear rack de pagos
 	if response.PaymentRack != nil {
 		paymentInfra.PaymentRack = &model.PaymentRack{
 			ID:          int(response.PaymentRack.Id),
@@ -44,7 +44,7 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByIDRespo
 		}
 	}
 
-	// Map installation
+	// Mapear instalación
 	if response.Installation != nil {
 		paymentInfra.Installation = &model.PaymentInstallation{
 			ID:       int(response.Installation.Id),
@@ -56,7 +56,7 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByIDRespo
 		}
 	}
 
-	// Map booking times
+	// Mapear tiempos de reserva
 	if response.BookingTimes != nil {
 		paymentInfra.BookingTimes = make([]model.PaymentBookingTime, len(response.BookingTimes))
 		for i, bt := range response.BookingTimes {
@@ -72,7 +72,7 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByIDRespo
 	return paymentInfra
 }
 
-// mapResponseStatus converts gRPC response status to domain status
+// mapResponseStatus convierte el estado de respuesta gRPC a estado de dominio
 func (m *PaymentInfraGRPCMapper) mapResponseStatus(status dto.PaymentManagerResponseStatus) model.ResponseStatus {
 	switch status {
 	case dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK:
@@ -84,7 +84,7 @@ func (m *PaymentInfraGRPCMapper) mapResponseStatus(status dto.PaymentManagerResp
 	}
 }
 
-// mapUnitMeasurement converts gRPC unit measurement to domain unit measurement
+// mapUnitMeasurement convierte la unidad de medida gRPC a unidad de medida de dominio
 func (m *PaymentInfraGRPCMapper) mapUnitMeasurement(unit dto.UnitMeasurement) model.UnitMeasurement {
 	switch unit {
 	case dto.UnitMeasurement_HOUR:
@@ -98,4 +98,111 @@ func (m *PaymentInfraGRPCMapper) mapUnitMeasurement(unit dto.UnitMeasurement) mo
 	default:
 		return model.UnitMeasurementUnspecified
 	}
+}
+
+// ToGetAvailableLockersRequest mapea a solicitud gRPC para lockers disponibles
+func (m *PaymentInfraGRPCMapper) ToGetAvailableLockersRequest(paymentRackID int, bookingTimeID int) *dto.GetAvailableLockersRequest {
+	return &dto.GetAvailableLockersRequest{
+		PaymentRackId: int32(paymentRackID),
+		BookingTimeId: int32(bookingTimeID),
+	}
+}
+
+// ToAvailableLockersDomain mapea la respuesta gRPC al modelo de dominio de lockers disponibles
+func (m *PaymentInfraGRPCMapper) ToAvailableLockersDomain(response *dto.GetAvailableLockersResponse) *model.AvailableLockers {
+	if response == nil {
+		return nil
+	}
+
+	lockers := &model.AvailableLockers{
+		AvailableGroups: make([]model.AvailablePaymentGroup, 0),
+	}
+
+	if response.Response != nil {
+		lockers.TransactionID = response.Response.TransactionId
+		lockers.Message = response.Response.Message
+		lockers.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	for _, group := range response.AvailableGroups {
+		lockers.AvailableGroups = append(lockers.AvailableGroups, model.AvailablePaymentGroup{
+			GroupID:     int(group.GroupId),
+			Name:        group.Name,
+			Price:       float64(group.Price),
+			Description: group.Description,
+			ImageURL:    group.ImageUrl,
+		})
+	}
+
+	return lockers
+}
+
+// ToValidateCouponRequest mapea a solicitud gRPC para validación de cupón
+func (m *PaymentInfraGRPCMapper) ToValidateCouponRequest(couponCode string) *dto.ValidateDiscountCouponRequest {
+	return &dto.ValidateDiscountCouponRequest{
+		CouponCode: couponCode,
+	}
+}
+
+// ToCouponValidationDomain mapea la respuesta gRPC al modelo de dominio de validación de cupón
+func (m *PaymentInfraGRPCMapper) ToCouponValidationDomain(response *dto.ValidateDiscountCouponResponse) *model.DiscountCouponValidation {
+	if response == nil {
+		return nil
+	}
+
+	validation := &model.DiscountCouponValidation{
+		IsValid:            response.IsValid,
+		DiscountPercentage: float64(response.DiscountPercentage),
+	}
+
+	if response.Response != nil {
+		validation.TransactionID = response.Response.TransactionId
+		validation.Message = response.Response.Message
+		validation.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	return validation
+}
+
+// ToGeneratePurchaseOrderRequest mapea a solicitud gRPC para orden de compra
+func (m *PaymentInfraGRPCMapper) ToGeneratePurchaseOrderRequest(groupID int, couponCode *string, userEmail string, userPhone string) *dto.GeneratePurchaseOrderRequest {
+	req := &dto.GeneratePurchaseOrderRequest{
+		GroupId:   int32(groupID),
+		UserEmail: userEmail,
+		UserPhone: userPhone,
+	}
+
+	if couponCode != nil {
+		req.CouponCode = *couponCode
+	}
+
+	return req
+}
+
+// ToPurchaseOrderDomain mapea la respuesta gRPC al modelo de dominio de orden de compra
+func (m *PaymentInfraGRPCMapper) ToPurchaseOrderDomain(response *dto.GeneratePurchaseOrderResponse) *model.PurchaseOrder {
+	if response == nil {
+		return nil
+	}
+
+	order := &model.PurchaseOrder{
+		OC:                 response.Oc,
+		Email:              response.Email,
+		Phone:              response.Phone,
+		Discount:           float64(response.Discount),
+		ProductPrice:       int(response.ProductPrice),
+		FinalProductPrice:  int(response.FinalProductPrice),
+		ProductName:        response.ProductName,
+		ProductDescription: response.ProductDescription,
+		LockerPosition:     int(response.LockerPosition),
+		InstallationName:   response.InstallationName,
+	}
+
+	if response.Response != nil {
+		order.TransactionID = response.Response.TransactionId
+		order.Message = response.Response.Message
+		order.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	return order
 }
