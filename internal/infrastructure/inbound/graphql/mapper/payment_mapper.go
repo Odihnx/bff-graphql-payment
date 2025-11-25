@@ -5,15 +5,15 @@ import (
 	domainModel "graphql-payment-bff/internal/domain/model"
 )
 
-// PaymentInfraGraphQLMapper handles mapping between domain models and GraphQL DTOs
+// PaymentInfraGraphQLMapper maneja el mapeo entre modelos de dominio y DTOs de GraphQL
 type PaymentInfraGraphQLMapper struct{}
 
-// NewPaymentInfraGraphQLMapper creates a new mapper instance
+// NewPaymentInfraGraphQLMapper crea una nueva instancia del mapper
 func NewPaymentInfraGraphQLMapper() *PaymentInfraGraphQLMapper {
 	return &PaymentInfraGraphQLMapper{}
 }
 
-// ToGraphQLResponse maps domain model to GraphQL response model
+// ToGraphQLResponse mapea el modelo de dominio al modelo de respuesta GraphQL
 func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.PaymentInfra) *model.PaymentInfraResponse {
 	if paymentInfra == nil {
 		return nil
@@ -47,7 +47,7 @@ func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.
 		}
 	}
 
-	// Map booking times
+	// Mapear tiempos de reserva
 	for _, bt := range paymentInfra.BookingTimes {
 		response.BookingTimes = append(response.BookingTimes, &model.PaymentBookingTime{
 			ID:              bt.ID,
@@ -60,7 +60,7 @@ func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.
 	return response
 }
 
-// mapResponseStatus converts domain response status to GraphQL status
+// mapResponseStatus convierte el estado de respuesta de dominio a estado GraphQL
 func (m *PaymentInfraGraphQLMapper) mapResponseStatus(status domainModel.ResponseStatus) model.ResponseStatus {
 	switch status {
 	case domainModel.ResponseStatusOK:
@@ -72,7 +72,7 @@ func (m *PaymentInfraGraphQLMapper) mapResponseStatus(status domainModel.Respons
 	}
 }
 
-// mapUnitMeasurement converts domain unit measurement to GraphQL unit measurement
+// mapUnitMeasurement convierte la unidad de medida de dominio a unidad de medida GraphQL
 func (m *PaymentInfraGraphQLMapper) mapUnitMeasurement(unit domainModel.UnitMeasurement) model.UnitMeasurement {
 	switch unit {
 	case domainModel.UnitMeasurementHour:
@@ -85,5 +85,69 @@ func (m *PaymentInfraGraphQLMapper) mapUnitMeasurement(unit domainModel.UnitMeas
 		return model.UnitMeasurementMonth
 	default:
 		return model.UnitMeasurementUnspecified
+	}
+}
+
+// ToAvailableLockersResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToAvailableLockersResponse(lockers *domainModel.AvailableLockers) *model.AvailableLockersResponse {
+	if lockers == nil {
+		return nil
+	}
+
+	response := &model.AvailableLockersResponse{
+		TransactionID:   lockers.TransactionID,
+		Message:         lockers.Message,
+		Status:          m.mapResponseStatus(lockers.Status),
+		AvailableGroups: []*model.AvailablePaymentGroup{},
+	}
+
+	for _, group := range lockers.AvailableGroups {
+		response.AvailableGroups = append(response.AvailableGroups, &model.AvailablePaymentGroup{
+			GroupID:     group.GroupID,
+			Name:        group.Name,
+			Price:       group.Price,
+			Description: group.Description,
+			ImageURL:    group.ImageURL,
+		})
+	}
+
+	return response
+}
+
+// ToValidateCouponResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToValidateCouponResponse(validation *domainModel.DiscountCouponValidation) *model.ValidateDiscountCouponResponse {
+	if validation == nil {
+		return nil
+	}
+
+	return &model.ValidateDiscountCouponResponse{
+		TransactionID:      validation.TransactionID,
+		Message:            validation.Message,
+		Status:             m.mapResponseStatus(validation.Status),
+		IsValid:            validation.IsValid,
+		DiscountPercentage: validation.DiscountPercentage,
+	}
+}
+
+// ToPurchaseOrderResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderResponse(order *domainModel.PurchaseOrder) *model.GeneratePurchaseOrderResponse {
+	if order == nil {
+		return nil
+	}
+
+	return &model.GeneratePurchaseOrderResponse{
+		TransactionID:      order.TransactionID,
+		Message:            order.Message,
+		Status:             m.mapResponseStatus(order.Status),
+		Oc:                 order.OC,
+		Email:              order.Email,
+		Phone:              order.Phone,
+		Discount:           order.Discount,
+		ProductPrice:       order.ProductPrice,
+		FinalProductPrice:  order.FinalProductPrice,
+		ProductName:        order.ProductName,
+		ProductDescription: order.ProductDescription,
+		LockerPosition:     order.LockerPosition,
+		InstallationName:   order.InstallationName,
 	}
 }
