@@ -1,6 +1,6 @@
 package model
 
-// PaymentInfra represents the aggregate of payment infrastructure data
+// PaymentInfra representa el agregado de datos de infraestructura de pagos
 type PaymentInfra struct {
 	TransactionID string
 	Message       string
@@ -10,14 +10,14 @@ type PaymentInfra struct {
 	BookingTimes  []PaymentBookingTime
 }
 
-// PaymentRack represents a payment rack entity
+// PaymentRack representa una entidad de rack de pagos
 type PaymentRack struct {
 	ID          int
 	Description string
 	Address     string
 }
 
-// PaymentInstallation represents an installation entity
+// PaymentInstallation representa una entidad de instalación
 type PaymentInstallation struct {
 	ID       int
 	Name     string
@@ -27,7 +27,7 @@ type PaymentInstallation struct {
 	ImageURL string
 }
 
-// PaymentBookingTime represents booking time configuration
+// PaymentBookingTime representa la configuración de tiempo de reserva
 type PaymentBookingTime struct {
 	ID              int
 	Name            string
@@ -35,7 +35,7 @@ type PaymentBookingTime struct {
 	Amount          int
 }
 
-// ResponseStatus enum
+// ResponseStatus enumeración de estados de respuesta
 type ResponseStatus string
 
 const (
@@ -44,7 +44,7 @@ const (
 	ResponseStatusError       ResponseStatus = "RESPONSE_STATUS_ERROR"
 )
 
-// UnitMeasurement enum
+// UnitMeasurement enumeración de unidades de medida
 type UnitMeasurement string
 
 const (
@@ -54,3 +54,46 @@ const (
 	UnitMeasurementWeek        UnitMeasurement = "WEEK"
 	UnitMeasurementMonth       UnitMeasurement = "MONTH"
 )
+
+// AvailableLockers representa grupos de lockers disponibles
+type AvailableLockers struct {
+	TransactionID   string
+	Message         string
+	Status          ResponseStatus
+	AvailableGroups []AvailablePaymentGroup
+}
+
+// AvailablePaymentGroup representa un grupo de lockers disponibles
+type AvailablePaymentGroup struct {
+	GroupID     int
+	Name        string
+	Price       float64
+	Description string
+	ImageURL    string
+}
+
+// DiscountCouponValidation representa el resultado de la validación de un cupón de descuento
+type DiscountCouponValidation struct {
+	TransactionID      string
+	Message            string
+	Status             ResponseStatus
+	IsValid            bool
+	DiscountPercentage float64
+}
+
+// PurchaseOrder representa una orden de compra generada
+type PurchaseOrder struct {
+	TransactionID      string
+	Message            string
+	Status             ResponseStatus
+	OC                 string
+	Email              string
+	Phone              string
+	Discount           float64
+	ProductPrice       int
+	FinalProductPrice  int
+	ProductName        string
+	ProductDescription string
+	LockerPosition     int
+	InstallationName   string
+}
