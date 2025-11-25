@@ -3,9 +3,9 @@ package exception
 import "errors"
 
 var (
-	// ErrValidationFailed is returned when input validation fails
+	// ErrValidationFailed se devuelve cuando falla la validación de entrada
 	ErrValidationFailed = errors.New("validation failed")
 
-	// ErrServiceUnavailable is returned when a required service is unavailable
+	// ErrServiceUnavailable se devuelve cuando un servicio requerido no está disponible
 	ErrServiceUnavailable = errors.New("service unavailable")
 )
