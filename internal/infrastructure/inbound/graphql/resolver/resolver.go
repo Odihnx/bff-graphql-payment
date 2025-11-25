@@ -14,7 +14,7 @@ type Resolver struct {
 	mapper              *mapper.PaymentInfraGraphQLMapper
 }
 
-// NewResolver creates a new resolver with dependencies
+// NewResolver crea un nuevo resolver con dependencias
 func NewResolver(paymentInfraService ports.PaymentInfraService) *Resolver {
 	return &Resolver{
 		paymentInfraService: paymentInfraService,

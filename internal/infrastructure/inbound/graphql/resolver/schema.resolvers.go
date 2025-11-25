@@ -11,21 +11,52 @@ import (
 	"graphql-payment-bff/graph/model"
 )
 
-// Empty is the resolver for the _empty field.
-func (r *mutationResolver) Empty(ctx context.Context) (*string, error) {
-	panic(fmt.Errorf("not implemented: Empty - _empty"))
+// GeneratePurchaseOrder is the resolver for the generatePurchaseOrder field.
+func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error) {
+	// Llamar al caso de uso
+	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate purchase order: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToPurchaseOrderResponse(order), nil
 }
 
 // GetPaymentInfraByID is the resolver for the getPaymentInfraByID field.
 func (r *queryResolver) GetPaymentInfraByID(ctx context.Context, input model.GetPaymentInfraByIDInput) (*model.PaymentInfraResponse, error) {
-	// Call the use case
+	// Llamar al caso de uso
 	paymentInfra, err := r.paymentInfraService.GetPaymentInfraByID(ctx, input.PaymentRackID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get payment infrastructure: %w", err)
 	}
 
-	// Map to GraphQL response
+	// Mapear a respuesta GraphQL
 	return r.mapper.ToGraphQLResponse(paymentInfra), nil
+}
+
+// GetAvailableLockers is the resolver for the getAvailableLockers field.
+func (r *queryResolver) GetAvailableLockers(ctx context.Context, input model.GetAvailableLockersInput) (*model.AvailableLockersResponse, error) {
+	// Llamar al caso de uso
+	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get available lockers: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToAvailableLockersResponse(lockers), nil
+}
+
+// ValidateDiscountCoupon is the resolver for the validateDiscountCoupon field.
+func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.ValidateDiscountCouponInput) (*model.ValidateDiscountCouponResponse, error) {
+	// Llamar al caso de uso
+	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate discount coupon: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToValidateCouponResponse(validation), nil
 }
 
 // Empty is the resolver for the _empty field.
@@ -33,15 +64,27 @@ func (r *subscriptionResolver) Empty(ctx context.Context) (<-chan *string, error
 	panic(fmt.Errorf("not implemented: Empty - _empty"))
 }
 
-// Mutation returns generated.MutationResolver implementation.
+// Mutation devuelve la implementación de generated.MutationResolver.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Query returns generated.QueryResolver implementation.
+// Query devuelve la implementación de generated.QueryResolver.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Subscription returns generated.SubscriptionResolver implementation.
+// Subscription devuelve la implementación de generated.SubscriptionResolver.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *mutationResolver) Empty(ctx context.Context) (*string, error) {
+	panic(fmt.Errorf("not implemented: Empty - _empty"))
+}
+*/
