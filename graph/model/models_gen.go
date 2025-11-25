@@ -2,6 +2,49 @@
 
 package model
 
+type AvailableLockersResponse struct {
+	TransactionID   string                   `json:"transactionId"`
+	Message         string                   `json:"message"`
+	Status          ResponseStatus           `json:"status"`
+	AvailableGroups []*AvailablePaymentGroup `json:"availableGroups"`
+}
+
+type AvailablePaymentGroup struct {
+	GroupID     int     `json:"groupId"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+	ImageURL    string  `json:"imageUrl"`
+}
+
+type GeneratePurchaseOrderInput struct {
+	GroupID    int     `json:"groupId"`
+	CouponCode *string `json:"couponCode,omitempty"`
+	UserEmail  string  `json:"userEmail"`
+	UserPhone  string  `json:"userPhone"`
+}
+
+type GeneratePurchaseOrderResponse struct {
+	TransactionID      string         `json:"transactionId"`
+	Message            string         `json:"message"`
+	Status             ResponseStatus `json:"status"`
+	Oc                 string         `json:"oc"`
+	Email              string         `json:"email"`
+	Phone              string         `json:"phone"`
+	Discount           float64        `json:"discount"`
+	ProductPrice       int            `json:"productPrice"`
+	FinalProductPrice  int            `json:"finalProductPrice"`
+	ProductName        string         `json:"productName"`
+	ProductDescription string         `json:"productDescription"`
+	LockerPosition     int            `json:"lockerPosition"`
+	InstallationName   string         `json:"installationName"`
+}
+
+type GetAvailableLockersInput struct {
+	PaymentRackID int `json:"paymentRackId"`
+	BookingTimeID int `json:"bookingTimeId"`
+}
+
 type GetPaymentInfraByIDInput struct {
 	PaymentRackID string `json:"paymentRackId"`
 }
@@ -44,4 +87,16 @@ type Query struct {
 }
 
 type Subscription struct {
+}
+
+type ValidateDiscountCouponInput struct {
+	CouponCode string `json:"couponCode"`
+}
+
+type ValidateDiscountCouponResponse struct {
+	TransactionID      string         `json:"transactionId"`
+	Message            string         `json:"message"`
+	Status             ResponseStatus `json:"status"`
+	IsValid            bool           `json:"isValid"`
+	DiscountPercentage float64        `json:"discountPercentage"`
 }
