@@ -35,4 +35,19 @@ var (
 
 	// ErrPurchaseOrderFailed se devuelve cuando falla la generación de la orden de compra
 	ErrPurchaseOrderFailed = errors.New("purchase order generation failed")
+
+	// ErrInvalidTraceID se devuelve cuando el trace ID es inválido
+	ErrInvalidTraceID = errors.New("invalid trace ID")
+
+	// ErrInvalidGatewayName se devuelve cuando el nombre del gateway es inválido
+	ErrInvalidGatewayName = errors.New("invalid gateway name")
+
+	// ErrInvalidPurchaseOrder se devuelve cuando el número de orden de compra es inválido
+	ErrInvalidPurchaseOrder = errors.New("invalid purchase order")
+
+	// ErrBookingGenerationFailed se devuelve cuando falla la generación de la reserva
+	ErrBookingGenerationFailed = errors.New("booking generation failed")
+
+	// ErrPurchaseOrderNotFound se devuelve cuando no se encuentra la orden de compra
+	ErrPurchaseOrderNotFound = errors.New("purchase order not found")
 )
