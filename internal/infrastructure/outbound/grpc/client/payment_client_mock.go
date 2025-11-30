@@ -186,7 +186,7 @@ func (c *PaymentServiceGRPCClient) mockGenerateBooking(request *dto.GenerateBook
 		return &dto.GenerateBookingResponse{
 			Response: &dto.PaymentManagerGenericResponse{
 				TransactionId: time.Now().Format("20060102150405"),
-				Message:       "Purchase order inválido",
+				Message:       "Orden de compra inválido",
 				Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR,
 			},
 			TraceId: request.TraceId,
@@ -196,7 +196,7 @@ func (c *PaymentServiceGRPCClient) mockGenerateBooking(request *dto.GenerateBook
 	return &dto.GenerateBookingResponse{
 		Response: &dto.PaymentManagerGenericResponse{
 			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "Booking generado exitosamente",
+			Message:       "Reserva generado exitosamente",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
 		TraceId: request.TraceId,
@@ -219,7 +219,7 @@ func (c *PaymentServiceGRPCClient) mockGetPurchaseOrderByPo(request *dto.GetPurc
 		return &dto.GetPurchaseOrderByPoResponse{
 			Response: &dto.PaymentManagerGenericResponse{
 				TransactionId: time.Now().Format("20060102150405"),
-				Message:       "Purchase order inválido",
+				Message:       "Orden de compra inválida",
 				Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR,
 			},
 			TraceId: request.TraceId,
@@ -229,13 +229,13 @@ func (c *PaymentServiceGRPCClient) mockGetPurchaseOrderByPo(request *dto.GetPurc
 	return &dto.GetPurchaseOrderByPoResponse{
 		Response: &dto.PaymentManagerGenericResponse{
 			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "Purchase order encontrada",
+			Message:       "Orden de compra encontrada",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
 		TraceId: request.TraceId,
 		PurchaseOrderData: &dto.PurchaseOrderRecord{
 			Oc:                 request.PurchaseOrder,
-			Email:              "user@example.com",
+			Email:              "user@odihnx.com",
 			Phone:              "+56912345678",
 			Discount:           0.0,
 			ProductPrice:       5000,
@@ -263,13 +263,13 @@ func (c *PaymentServiceGRPCClient) mockCheckBookingStatus(request *dto.CheckBook
 			ConfigurationBookingId: 456,
 			InitBooking:            time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
 			FinishBooking:          time.Now().Add(24 * time.Hour).Format(time.RFC3339),
-			InstallationName:       "Locker Centro",
+			InstallationName:       "installation-name",
 			NumberLocker:           15,
-			DeviceId:               "device-789",
+			DeviceId:               "device-id",
 			CurrentCode:            request.CurrentCode,
 			Openings:               2,
 			ServiceName:            request.ServiceName,
-			EmailRecipient:         "usuario@example.com",
+			EmailRecipient:         "usuario@odihnx.com",
 			CreatedAt:              time.Now().Add(-48 * time.Hour).Format(time.RFC3339),
 			UpdatedAt:              time.Now().Format(time.RFC3339),
 		},
