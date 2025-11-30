@@ -50,4 +50,16 @@ var (
 
 	// ErrPurchaseOrderNotFound se devuelve cuando no se encuentra la orden de compra
 	ErrPurchaseOrderNotFound = errors.New("purchase order not found")
+
+	// ErrInvalidServiceName se devuelve cuando el nombre del servicio es inválido
+	ErrInvalidServiceName = errors.New("invalid service name")
+
+	// ErrInvalidCurrentCode se devuelve cuando el código actual es inválido
+	ErrInvalidCurrentCode = errors.New("invalid current code")
+
+	// ErrBookingNotFound se devuelve cuando no se encuentra la reserva
+	ErrBookingNotFound = errors.New("booking not found")
+
+	// ErrExecuteOpenFailed se devuelve cuando falla la ejecución de apertura
+	ErrExecuteOpenFailed = errors.New("execute open failed")
 )
