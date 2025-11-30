@@ -16,14 +16,14 @@ resolver:
   filename_template: "{name}.resolvers.go"
 
 autobind:
-  - "graphql-payment-bff/graph/model"
+  - "bff-graphql-payment/graph/model"
 
 models:
   Int:
     model: github.com/99designs/gqlgen/graphql.Int
   ResponseStatus:
-    model: graphql-payment-bff/graph/model.ResponseStatus
+    model: bff-graphql-payment/graph/model.ResponseStatus
   UnitMeasurement:
-    model: graphql-payment-bff/graph/model.UnitMeasurement
+    model: bff-graphql-payment/graph/model.UnitMeasurement
 
 omit_slice_element_pointers: false
