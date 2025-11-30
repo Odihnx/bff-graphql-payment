@@ -39,3 +39,6 @@ docker-compose.override.yml
 tmp/
 temp/
 legacy/
+
+# Local scripts (distributed separately)
+scripts/
