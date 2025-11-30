@@ -23,6 +23,7 @@ func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.
 		TransactionID: paymentInfra.TransactionID,
 		Message:       paymentInfra.Message,
 		Status:        m.mapResponseStatus(paymentInfra.Status),
+		TraceID:       paymentInfra.TraceID,
 		BookingTimes:  []*model.PaymentBookingTime{},
 	}
 
