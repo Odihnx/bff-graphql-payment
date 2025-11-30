@@ -150,3 +150,43 @@ func (s *PaymentInfraService) GetPurchaseOrderByPo(ctx context.Context, purchase
 
 	return orderData, nil
 }
+
+// CheckBookingStatus verifica el estado de una reserva
+func (s *PaymentInfraService) CheckBookingStatus(ctx context.Context, serviceName string, currentCode string) (*model.BookingStatusCheck, error) {
+	// Validar entrada
+	if strings.TrimSpace(serviceName) == "" {
+		return nil, exception.ErrInvalidServiceName
+	}
+
+	if strings.TrimSpace(currentCode) == "" {
+		return nil, exception.ErrInvalidCurrentCode
+	}
+
+	// Llamar al repositorio
+	bookingStatus, err := s.repo.CheckBookingStatus(ctx, serviceName, currentCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return bookingStatus, nil
+}
+
+// ExecuteOpen ejecuta la apertura de un locker
+func (s *PaymentInfraService) ExecuteOpen(ctx context.Context, serviceName string, currentCode string) (*model.ExecuteOpenResult, error) {
+	// Validar entrada
+	if strings.TrimSpace(serviceName) == "" {
+		return nil, exception.ErrInvalidServiceName
+	}
+
+	if strings.TrimSpace(currentCode) == "" {
+		return nil, exception.ErrInvalidCurrentCode
+	}
+
+	// Llamar al repositorio
+	openResult, err := s.repo.ExecuteOpen(ctx, serviceName, currentCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return openResult, nil
+}
