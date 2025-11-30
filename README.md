@@ -52,46 +52,6 @@ go run cmd/server/main.go
 - **GraphQL Endpoint**: http://localhost:8080/query
 - **Health Check**: http://localhost:8080/ping
 
-## 📊 Funcionalidades Disponibles
-
-### GraphQL Queries
-
-#### 1. Health Check
-```graphql
-query {
-  ping
-}
-```
-
-#### 2. Obtener Información de Infraestructura de Pago
-```graphql
-query GetPaymentInfra {
-  getPaymentInfraByID(input: { paymentRackId: "rack-001" }) {
-    transactionId
-    message
-    status
-    paymentRack {
-      id
-      description
-      address
-    }
-    installation {
-      id
-      name
-      region
-      city
-      address
-      imageUrl
-    }
-    bookingTimes {
-      id
-      name
-      unitMeasurement
-      amount
-    }
-  }
-}
-```
 
 ## 🛠️ Desarrollo
 
@@ -106,7 +66,6 @@ graphql-payment-bff/
 │   ├── domain/             # CAPA DOMINIO (CORE)
 │   ├── application/        # CAPA APLICACIÓN
 │   └── infrastructure/     # CAPA INFRAESTRUCTURA
-├── proto/payment/          # Archivos .proto
 ├── scripts/                # Scripts de automatización
 ├── docker-compose.yml      # Para desarrollo local
 ├── Dockerfile              # Para contenerización
@@ -132,18 +91,9 @@ scripts\gen_graphql.bat
 scripts\gen_proto.bat
 ```
 
-## 🐳 Docker
-
-### Desarrollo con Docker Compose
 
 ```bash
-docker-compose up --build
-```
-
-### Build individual
-
-```bash
-docker build -t graphql-payment-bff .
+docker build -t bff-graphql-payment
 docker run -p 8080:8080 graphql-payment-bff
 ```
 
