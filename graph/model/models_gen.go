@@ -6,6 +6,7 @@ type AvailableLockersResponse struct {
 	TransactionID   string                   `json:"transactionId"`
 	Message         string                   `json:"message"`
 	Status          ResponseStatus           `json:"status"`
+	TraceID         string                   `json:"traceId"`
 	AvailableGroups []*AvailablePaymentGroup `json:"availableGroups"`
 }
 
@@ -17,17 +18,44 @@ type AvailablePaymentGroup struct {
 	ImageURL    string  `json:"imageUrl"`
 }
 
+type Booking struct {
+	ID               int    `json:"id"`
+	PurchaseOrder    string `json:"purchaseOrder"`
+	CurrentCode      string `json:"currentCode"`
+	InitBooking      string `json:"initBooking"`
+	FinishBooking    string `json:"finishBooking"`
+	LockerPosition   int    `json:"lockerPosition"`
+	InstallationName string `json:"installationName"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+type GenerateBookingInput struct {
+	PurchaseOrder string `json:"purchaseOrder"`
+	TraceID       string `json:"traceId"`
+}
+
+type GenerateBookingResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+	Booking       *Booking       `json:"booking"`
+}
+
 type GeneratePurchaseOrderInput struct {
-	GroupID    int     `json:"groupId"`
-	CouponCode *string `json:"couponCode,omitempty"`
-	UserEmail  string  `json:"userEmail"`
-	UserPhone  string  `json:"userPhone"`
+	GroupID     int     `json:"groupId"`
+	CouponCode  *string `json:"couponCode,omitempty"`
+	UserEmail   string  `json:"userEmail"`
+	UserPhone   string  `json:"userPhone"`
+	TraceID     string  `json:"traceId"`
+	GatewayName string  `json:"gatewayName"`
 }
 
 type GeneratePurchaseOrderResponse struct {
 	TransactionID      string         `json:"transactionId"`
 	Message            string         `json:"message"`
 	Status             ResponseStatus `json:"status"`
+	TraceID            string         `json:"traceId"`
 	Oc                 string         `json:"oc"`
 	Email              string         `json:"email"`
 	Phone              string         `json:"phone"`
@@ -41,12 +69,18 @@ type GeneratePurchaseOrderResponse struct {
 }
 
 type GetAvailableLockersInput struct {
-	PaymentRackID int `json:"paymentRackId"`
-	BookingTimeID int `json:"bookingTimeId"`
+	PaymentRackID int    `json:"paymentRackId"`
+	BookingTimeID int    `json:"bookingTimeId"`
+	TraceID       string `json:"traceId"`
 }
 
 type GetPaymentInfraByQRValueInput struct {
 	QRValue string `json:"qrValue"`
+}
+
+type GetPurchaseOrderByPoInput struct {
+	PurchaseOrder string `json:"purchaseOrder"`
+	TraceID       string `json:"traceId"`
 }
 
 type Mutation struct {
@@ -84,20 +118,43 @@ type PaymentRack struct {
 	Address     string `json:"address"`
 }
 
-type Query struct {
+type PurchaseOrderData struct {
+	Oc                 string  `json:"oc"`
+	Email              string  `json:"email"`
+	Phone              string  `json:"phone"`
+	Discount           float64 `json:"discount"`
+	ProductPrice       int     `json:"productPrice"`
+	FinalProductPrice  int     `json:"finalProductPrice"`
+	ProductName        string  `json:"productName"`
+	ProductDescription string  `json:"productDescription"`
+	LockerPosition     int     `json:"lockerPosition"`
+	InstallationName   string  `json:"installationName"`
+	Status             string  `json:"status"`
+	CreatedAt          string  `json:"createdAt"`
 }
 
-type Subscription struct {
+type PurchaseOrderResponse struct {
+	TransactionID     string             `json:"transactionId"`
+	Message           string             `json:"message"`
+	Status            ResponseStatus     `json:"status"`
+	TraceID           string             `json:"traceId"`
+	PurchaseOrderData *PurchaseOrderData `json:"purchaseOrderData"`
+}
+
+type Query struct {
 }
 
 type ValidateDiscountCouponInput struct {
 	CouponCode string `json:"couponCode"`
+	RackID     int    `json:"rackId"`
+	TraceID    string `json:"traceId"`
 }
 
 type ValidateDiscountCouponResponse struct {
 	TransactionID      string         `json:"transactionId"`
 	Message            string         `json:"message"`
 	Status             ResponseStatus `json:"status"`
+	TraceID            string         `json:"traceId"`
 	IsValid            bool           `json:"isValid"`
 	DiscountPercentage float64        `json:"discountPercentage"`
 }
