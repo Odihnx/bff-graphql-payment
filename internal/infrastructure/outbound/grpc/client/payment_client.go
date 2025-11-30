@@ -63,11 +63,11 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 }
 
 // GetAvailableLockers implementa PaymentInfraRepository.GetAvailableLockers
-func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int) (*model.AvailableLockers, error) {
+func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int, traceID string) (*model.AvailableLockers, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToGetAvailableLockersRequest(paymentRackID, bookingTimeID)
+	request := c.mapper.ToGetAvailableLockersRequest(paymentRackID, bookingTimeID, traceID)
 
 	// Mock por ahora
 	response := c.mockGetAvailableLockers(request)
@@ -84,11 +84,11 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 }
 
 // ValidateDiscountCoupon implementa PaymentInfraRepository.ValidateDiscountCoupon
-func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, couponCode string) (*model.DiscountCouponValidation, error) {
+func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToValidateCouponRequest(couponCode)
+	request := c.mapper.ToValidateCouponRequest(couponCode, rackID, traceID)
 
 	// Mock por ahora
 	response := c.mockValidateCoupon(request)
@@ -101,11 +101,11 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 }
 
 // GeneratePurchaseOrder implementa PaymentInfraRepository.GeneratePurchaseOrder
-func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string) (*model.PurchaseOrder, error) {
+func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToGeneratePurchaseOrderRequest(groupID, couponCode, userEmail, userPhone)
+	request := c.mapper.ToGeneratePurchaseOrderRequest(groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 
 	// Mock por ahora
 	response := c.mockGeneratePurchaseOrder(request)
@@ -119,6 +119,48 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, gr
 	}
 
 	return c.mapper.ToPurchaseOrderDomain(response), nil
+}
+
+// GenerateBooking implementa PaymentInfraRepository.GenerateBooking
+func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, purchaseOrder string, traceID string) (*model.Booking, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	request := c.mapper.ToGenerateBookingRequest(purchaseOrder, traceID)
+
+	// Mock por ahora
+	response := c.mockGenerateBooking(request)
+
+	if response == nil {
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		return nil, exception.ErrBookingGenerationFailed
+	}
+
+	return c.mapper.ToBookingDomain(response), nil
+}
+
+// GetPurchaseOrderByPo implementa PaymentInfraRepository.GetPurchaseOrderByPo
+func (c *PaymentServiceGRPCClient) GetPurchaseOrderByPo(ctx context.Context, purchaseOrder string, traceID string) (*model.PurchaseOrderData, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	request := c.mapper.ToGetPurchaseOrderByPoRequest(purchaseOrder, traceID)
+
+	// Mock por ahora
+	response := c.mockGetPurchaseOrderByPo(request)
+
+	if response == nil {
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		return nil, exception.ErrPurchaseOrderNotFound
+	}
+
+	return c.mapper.ToPurchaseOrderDataDomain(response), nil
 }
 
 // Close cierra la conexión gRPC
@@ -187,6 +229,7 @@ func (c *PaymentServiceGRPCClient) mockGetAvailableLockers(request *dto.GetAvail
 			Message:       "Success",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
+		TraceId: request.TraceId,
 		AvailableGroups: []*dto.AvailablePaymentGroupRecord{
 			{
 				GroupId:     1,
@@ -231,6 +274,7 @@ func (c *PaymentServiceGRPCClient) mockValidateCoupon(request *dto.ValidateDisco
 			Message:       "Coupon validation completed",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
+		TraceId:            request.TraceId,
 		IsValid:            isValid,
 		DiscountPercentage: discount,
 	}
@@ -283,6 +327,7 @@ func (c *PaymentServiceGRPCClient) mockGeneratePurchaseOrder(request *dto.Genera
 			Message:       "Purchase order generated successfully",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
+		TraceId:            request.TraceId,
 		Oc:                 "OC-" + time.Now().Format("20060102150405"),
 		Email:              request.UserEmail,
 		Phone:              request.UserPhone,
@@ -293,6 +338,76 @@ func (c *PaymentServiceGRPCClient) mockGeneratePurchaseOrder(request *dto.Genera
 		ProductDescription: productDescription,
 		LockerPosition:     request.GroupId, // Posición simulada
 		InstallationName:   "DEV PAGO - Chicureo",
+	}
+}
+
+// mockGenerateBooking simula la generación de una reserva
+func (c *PaymentServiceGRPCClient) mockGenerateBooking(request *dto.GenerateBookingRequest) *dto.GenerateBookingResponse {
+	if request.PurchaseOrder == "" {
+		return &dto.GenerateBookingResponse{
+			Response: &dto.PaymentManagerGenericResponse{
+				TransactionId: time.Now().Format("20060102150405"),
+				Message:       "Purchase order inválido",
+				Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR,
+			},
+			TraceId: request.TraceId,
+		}
+	}
+
+	return &dto.GenerateBookingResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Booking generado exitosamente",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+		},
+		TraceId: request.TraceId,
+		Booking: &dto.BookingRecord{
+			Id:               1,
+			PurchaseOrder:    request.PurchaseOrder,
+			CurrentCode:      "ABC123",
+			InitBooking:      time.Now().Format(time.RFC3339),
+			FinishBooking:    time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+			LockerPosition:   15,
+			InstallationName: "DEV PAGO",
+			CreatedAt:        time.Now().Format(time.RFC3339),
+		},
+	}
+}
+
+// mockGetPurchaseOrderByPo simula la obtención de una orden de compra por PO
+func (c *PaymentServiceGRPCClient) mockGetPurchaseOrderByPo(request *dto.GetPurchaseOrderByPoRequest) *dto.GetPurchaseOrderByPoResponse {
+	if request.PurchaseOrder == "" {
+		return &dto.GetPurchaseOrderByPoResponse{
+			Response: &dto.PaymentManagerGenericResponse{
+				TransactionId: time.Now().Format("20060102150405"),
+				Message:       "Purchase order inválido",
+				Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR,
+			},
+			TraceId: request.TraceId,
+		}
+	}
+
+	return &dto.GetPurchaseOrderByPoResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Purchase order encontrada",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+		},
+		TraceId: request.TraceId,
+		PurchaseOrderData: &dto.PurchaseOrderRecord{
+			Oc:                 request.PurchaseOrder,
+			Email:              "user@example.com",
+			Phone:              "+56912345678",
+			Discount:           0.0,
+			ProductPrice:       5000,
+			FinalProductPrice:  5000,
+			ProductName:        "Locker 1 día",
+			ProductDescription: "Arriendo de locker por 1 día",
+			LockerPosition:     15,
+			InstallationName:   "DEV PAGO",
+			Status:             "PAID",
+			CreatedAt:          time.Now().Format(time.RFC3339),
+		},
 	}
 }
 
