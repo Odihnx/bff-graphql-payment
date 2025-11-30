@@ -96,6 +96,7 @@ type ComplexityRoot struct {
 		Message       func(childComplexity int) int
 		PaymentRack   func(childComplexity int) int
 		Status        func(childComplexity int) int
+		TraceID       func(childComplexity int) int
 		TransactionID func(childComplexity int) int
 	}
 
@@ -115,9 +116,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAvailableLockers    func(childComplexity int, input model.GetAvailableLockersInput) int
-		GetPaymentInfraByID    func(childComplexity int, input model.GetPaymentInfraByIDInput) int
-		ValidateDiscountCoupon func(childComplexity int, input model.ValidateDiscountCouponInput) int
+		GetAvailableLockers      func(childComplexity int, input model.GetAvailableLockersInput) int
+		GetPaymentInfraByQRValue func(childComplexity int, input model.GetPaymentInfraByQRValueInput) int
+		ValidateDiscountCoupon   func(childComplexity int, input model.ValidateDiscountCouponInput) int
 	}
 
 	Subscription struct {
@@ -137,7 +138,7 @@ type MutationResolver interface {
 	GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error)
 }
 type QueryResolver interface {
-	GetPaymentInfraByID(ctx context.Context, input model.GetPaymentInfraByIDInput) (*model.PaymentInfraResponse, error)
+	GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error)
 	GetAvailableLockers(ctx context.Context, input model.GetAvailableLockersInput) (*model.AvailableLockersResponse, error)
 	ValidateDiscountCoupon(ctx context.Context, input model.ValidateDiscountCouponInput) (*model.ValidateDiscountCouponResponse, error)
 }
@@ -393,6 +394,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PaymentInfraResponse.Status(childComplexity), true
 
+	case "PaymentInfraResponse.traceId":
+		if e.complexity.PaymentInfraResponse.TraceID == nil {
+			break
+		}
+
+		return e.complexity.PaymentInfraResponse.TraceID(childComplexity), true
+
 	case "PaymentInfraResponse.transactionId":
 		if e.complexity.PaymentInfraResponse.TransactionID == nil {
 			break
@@ -475,17 +483,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Query.GetAvailableLockers(childComplexity, args["input"].(model.GetAvailableLockersInput)), true
 
-	case "Query.getPaymentInfraByID":
-		if e.complexity.Query.GetPaymentInfraByID == nil {
+	case "Query.getPaymentInfraByQrValue":
+		if e.complexity.Query.GetPaymentInfraByQRValue == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getPaymentInfraByID_args(ctx, rawArgs)
+		args, err := ec.field_Query_getPaymentInfraByQrValue_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetPaymentInfraByID(childComplexity, args["input"].(model.GetPaymentInfraByIDInput)), true
+		return e.complexity.Query.GetPaymentInfraByQRValue(childComplexity, args["input"].(model.GetPaymentInfraByQRValueInput)), true
 
 	case "Query.validateDiscountCoupon":
 		if e.complexity.Query.ValidateDiscountCoupon == nil {
@@ -551,7 +559,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputGeneratePurchaseOrderInput,
 		ec.unmarshalInputGetAvailableLockersInput,
-		ec.unmarshalInputGetPaymentInfraByIDInput,
+		ec.unmarshalInputGetPaymentInfraByQrValueInput,
 		ec.unmarshalInputValidateDiscountCouponInput,
 	)
 	first := true
@@ -668,8 +676,8 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `type Query {
-  # Payment Infrastructure
-  getPaymentInfraByID(input: GetPaymentInfraByIDInput!): PaymentInfraResponse!
+  # Payment Infrastructure by QR Value
+  getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
   
   # Available Lockers
   getAvailableLockers(input: GetAvailableLockersInput!): AvailableLockersResponse!
@@ -690,8 +698,8 @@ type Subscription {
 
 # ========== INPUT TYPES ==========
 
-input GetPaymentInfraByIDInput {
-  paymentRackId: String!
+input GetPaymentInfraByQrValueInput {
+  qrValue: String!
 }
 
 input GetAvailableLockersInput {
@@ -716,6 +724,7 @@ type PaymentInfraResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
+  traceId: String!
   paymentRack: PaymentRack
   installation: PaymentInstallation
   bookingTimes: [PaymentBookingTime!]!
@@ -839,10 +848,10 @@ func (ec *executionContext) field_Query_getAvailableLockers_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getPaymentInfraByID_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Query_getPaymentInfraByQrValue_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGetPaymentInfraByIDInput2graphqlᚑpaymentᚑbffᚋgraphᚋmodelᚐGetPaymentInfraByIDInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGetPaymentInfraByQrValueInput2graphqlᚑpaymentᚑbffᚋgraphᚋmodelᚐGetPaymentInfraByQRValueInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2284,6 +2293,50 @@ func (ec *executionContext) fieldContext_PaymentInfraResponse_status(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _PaymentInfraResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.PaymentInfraResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentInfraResponse_traceId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentInfraResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentInfraResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaymentInfraResponse_paymentRack(ctx context.Context, field graphql.CollectedField, obj *model.PaymentInfraResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaymentInfraResponse_paymentRack(ctx, field)
 	if err != nil {
@@ -2838,8 +2891,8 @@ func (ec *executionContext) fieldContext_PaymentRack_address(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getPaymentInfraByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getPaymentInfraByID(ctx, field)
+func (ec *executionContext) _Query_getPaymentInfraByQrValue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getPaymentInfraByQrValue(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2852,7 +2905,7 @@ func (ec *executionContext) _Query_getPaymentInfraByID(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPaymentInfraByID(rctx, fc.Args["input"].(model.GetPaymentInfraByIDInput))
+		return ec.resolvers.Query().GetPaymentInfraByQRValue(rctx, fc.Args["input"].(model.GetPaymentInfraByQRValueInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2869,7 +2922,7 @@ func (ec *executionContext) _Query_getPaymentInfraByID(ctx context.Context, fiel
 	return ec.marshalNPaymentInfraResponse2ᚖgraphqlᚑpaymentᚑbffᚋgraphᚋmodelᚐPaymentInfraResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getPaymentInfraByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getPaymentInfraByQrValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2883,6 +2936,8 @@ func (ec *executionContext) fieldContext_Query_getPaymentInfraByID(ctx context.C
 				return ec.fieldContext_PaymentInfraResponse_message(ctx, field)
 			case "status":
 				return ec.fieldContext_PaymentInfraResponse_status(ctx, field)
+			case "traceId":
+				return ec.fieldContext_PaymentInfraResponse_traceId(ctx, field)
 			case "paymentRack":
 				return ec.fieldContext_PaymentInfraResponse_paymentRack(ctx, field)
 			case "installation":
@@ -2900,7 +2955,7 @@ func (ec *executionContext) fieldContext_Query_getPaymentInfraByID(ctx context.C
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getPaymentInfraByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_getPaymentInfraByQrValue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5478,27 +5533,27 @@ func (ec *executionContext) unmarshalInputGetAvailableLockersInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputGetPaymentInfraByIDInput(ctx context.Context, obj any) (model.GetPaymentInfraByIDInput, error) {
-	var it model.GetPaymentInfraByIDInput
+func (ec *executionContext) unmarshalInputGetPaymentInfraByQrValueInput(ctx context.Context, obj any) (model.GetPaymentInfraByQRValueInput, error) {
+	var it model.GetPaymentInfraByQRValueInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"paymentRackId"}
+	fieldsInOrder := [...]string{"qrValue"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "paymentRackId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paymentRackId"))
+		case "qrValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qrValue"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.PaymentRackID = data
+			it.QRValue = data
 		}
 	}
 
@@ -5881,6 +5936,11 @@ func (ec *executionContext) _PaymentInfraResponse(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "traceId":
+			out.Values[i] = ec._PaymentInfraResponse_traceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "paymentRack":
 			out.Values[i] = ec._PaymentInfraResponse_paymentRack(ctx, field, obj)
 		case "installation":
@@ -6045,7 +6105,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "getPaymentInfraByID":
+		case "getPaymentInfraByQrValue":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -6054,7 +6114,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getPaymentInfraByID(ctx, field)
+				res = ec._Query_getPaymentInfraByQrValue(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -6680,8 +6740,8 @@ func (ec *executionContext) unmarshalNGetAvailableLockersInput2graphqlᚑpayment
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNGetPaymentInfraByIDInput2graphqlᚑpaymentᚑbffᚋgraphᚋmodelᚐGetPaymentInfraByIDInput(ctx context.Context, v any) (model.GetPaymentInfraByIDInput, error) {
-	res, err := ec.unmarshalInputGetPaymentInfraByIDInput(ctx, v)
+func (ec *executionContext) unmarshalNGetPaymentInfraByQrValueInput2graphqlᚑpaymentᚑbffᚋgraphᚋmodelᚐGetPaymentInfraByQRValueInput(ctx context.Context, v any) (model.GetPaymentInfraByQRValueInput, error) {
+	res, err := ec.unmarshalInputGetPaymentInfraByQrValueInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
