@@ -8,7 +8,6 @@ on:
 env:
   ENVIRONMENT: dev
   ECR_REGISTRY: 590184058323.dkr.ecr.us-east-1.amazonaws.com
-  # IMAGE_NAME tambien sera el nombre de la app
   IMAGE_NAME: bff-graphql-payment
   REPO_OWNER: Odihnx
   PROTO_BUF_REGISTRY_PAYMENT_API: buf.build/odihnx-prod/service-payment-manager
@@ -56,13 +55,14 @@ jobs:
           echo "${{ secrets.BUF_TOKEN }}" | buf registry login buf.build --token-stdin
 
       # ------------------------
-      # Paso 4: Generar código Go
+      # Paso 4: Generar código Go desde registros remotos
       # ------------------------
       - name: Generate Go code with Buf
         run: |
-          buf generate ${{ ENV.PROTO_BUF_REGISTRY_PAYMENT_API }}
-          buf generate ${{ ENV.PROTO_BUF_REGISTRY_BOOKING_API }}
-          ls -R
+          buf generate ${{ env.PROTO_BUF_REGISTRY_PAYMENT_API }}
+          buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }}
+          echo "📦 Generated proto files:"
+          ls -R gen/
 
       # ------------------------
       # Paso 5: Configurar credenciales AWS
@@ -88,12 +88,10 @@ jobs:
           docker build \
             --build-arg ENV=${{ env.ENVIRONMENT }} \
             --build-arg PORT=${{ vars.PORT }} \
-            --build-arg HOST_API_BOOKING=${{ vars.HOST_API_BOOKING }} \
-            --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
             --build-arg HOST_API_PAYMENT=${{ vars.HOST_API_PAYMENT }} \
             --build-arg PORT_API_PAYMENT=${{ vars.PORT_API_PAYMENT }} \
-            --build-arg HOST_API_AUTH=${{ vars.HOST_API_AUTH }} \
-            --build-arg PORT_API_AUTH=${{ vars.PORT_API_AUTH }} \
+            --build-arg HOST_API_BOOKING=${{ vars.HOST_API_BOOKING }} \
+            --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
             --build-arg JWKS_COGNITO=${{ vars.JWKS_COGNITO }} \
             -t $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
           

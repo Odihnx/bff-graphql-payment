@@ -31,7 +31,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize container: %v", err)
 	}
-	defer container.Close()
+
+	// Inicializar gestor de ciclo de vida
+	lifecycle := config.NewLifecycle(container)
+	defer func() {
+		if err := lifecycle.Shutdown(); err != nil {
+			log.Printf("Error during shutdown: %v", err)
+		}
+	}()
 
 	// Crear servidor GraphQL
 	srv := handler.NewDefaultServer(
@@ -76,8 +83,7 @@ func main() {
 	// Iniciar servidor en goroutine
 	go func() {
 		log.Printf("🚀 GraphQL Payment BFF Server ready at http://localhost:%s/", cfg.Server.Port)
-		log.Printf("📊 GraphQL Playground available at http://localhost:%s/", cfg.Server.Port)
-		log.Printf("❤️ Health check available at http://localhost:%s/ping", cfg.Server.Port)
+		log.Printf("❤️  Health check available at http://localhost:%s/ping", cfg.Server.Port)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
@@ -107,13 +113,40 @@ func getConfig() config.Config {
 	cfg := config.DefaultConfig()
 
 	// Sobrescribir con variables de entorno si están presentes
-	if port := os.Getenv("SERVER_PORT"); port != "" {
+	if port := os.Getenv("PORT"); port != "" {
 		cfg.Server.Port = port
 	}
 
-	if grpcAddr := os.Getenv("PAYMENT_SERVICE_GRPC_ADDRESS"); grpcAddr != "" {
-		cfg.GRPC.PaymentServiceAddress = grpcAddr
+	if env := os.Getenv("ENV"); env != "" {
+		cfg.General.Environment = env
 	}
+
+	// Mock configuration
+	if useMock := os.Getenv("USE_MOCK"); useMock == "false" {
+		cfg.General.UseMock = false
+	}
+
+	// Payment Service gRPC configuration (concatenate HOST:PORT like legacy)
+	hostPayment := os.Getenv("HOST_API_PAYMENT")
+	portPayment := os.Getenv("PORT_API_PAYMENT")
+	if hostPayment != "" && portPayment != "" {
+		cfg.GRPC.PaymentServiceAddress = hostPayment + ":" + portPayment
+	}
+
+	// Booking Service gRPC configuration (concatenate HOST:PORT like legacy)
+	hostBooking := os.Getenv("HOST_API_BOOKING")
+	portBooking := os.Getenv("PORT_API_BOOKING")
+	if hostBooking != "" && portBooking != "" {
+		cfg.GRPC.BookingServiceAddress = hostBooking + ":" + portBooking
+	}
+
+	// Log configuration
+	log.Printf("🔧 Configuration loaded:")
+	log.Printf("   Environment: %s", cfg.General.Environment)
+	log.Printf("   Use Mock: %v", cfg.General.UseMock)
+	log.Printf("   Server Port: %s", cfg.Server.Port)
+	log.Printf("   Payment Service: %s", cfg.GRPC.PaymentServiceAddress)
+	log.Printf("   Booking Service: %s", cfg.GRPC.BookingServiceAddress)
 
 	return cfg
 }

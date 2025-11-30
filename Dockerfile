@@ -3,35 +3,58 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Instalar dependencias necesarias
 RUN apk add --no-cache git ca-certificates tzdata
 
-# Copy go mod files
+# Copiar go mod y sum
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
+    # Copy source code (including generated proto files)
 COPY . .
 
-# Build the application
+# Compilar la aplicación
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
 
 # Final stage
 FROM alpine:latest
 
+# Instalar ca-certificates para conexiones HTTPS
 RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /root/
 
-# Copy the binary from builder stage
+# Copiar el binario compilado
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env.example .env
+
+# -------------------------
+# Variables de entorno 
+# -------------------------
+
+# --- Build args ---
+ARG ENV
+ARG PORT
+ARG HOST_API_PAYMENT
+ARG PORT_API_PAYMENT
+ARG HOST_API_BOOKING
+ARG PORT_API_BOOKING
+ARG JWKS_COGNITO
+
+# --- Environment vars ---
+ENV ENV=${ENV}
+ENV PORT=${PORT}
+ENV HOST_API_PAYMENT=${HOST_API_PAYMENT}
+ENV PORT_API_PAYMENT=${PORT_API_PAYMENT}
+ENV HOST_API_BOOKING=${HOST_API_BOOKING}
+ENV PORT_API_BOOKING=${PORT_API_BOOKING}
+ENV JWKS_COGNITO=${JWKS_COGNITO}
+ENV USE_MOCK=false
 
 # Expose port
-EXPOSE 8080
+EXPOSE ${PORT}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ping || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/ping || exit 1
 
-# Run the application
+# Comando para ejecutar la aplicación
 CMD ["./main"]

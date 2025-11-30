@@ -4,9 +4,9 @@ plugins:
     out: gen/go/v1
     opt:
       - paths=source_relative
-      - module=graphql-payment-bff
+      - module=bff-graphql-payment
   - plugin: buf.build/grpc/go
     out: gen/go/v1
     opt:
       - paths=source_relative
-      - module=graphql-payment-bff
+      - module=bff-graphql-payment

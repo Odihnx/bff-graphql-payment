@@ -8,14 +8,18 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SERVER_PORT=8080
-      - PAYMENT_SERVICE_GRPC_ADDRESS=payment-service:50051
-      - ENVIRONMENT=development
-      - LOG_LEVEL=debug
+      - ENV=development
+      - PORT=8080
+      - HOST_API_PAYMENT=payment-service-mock
+      - PORT_API_PAYMENT=50051
+      - HOST_API_BOOKING=booking-service-mock
+      - PORT_API_BOOKING=50052
+      - USE_MOCK=true
     networks:
       - payment-network
     depends_on:
       - payment-service-mock
+      - booking-service-mock
 
   # Mock Payment Service for development/testing
   payment-service-mock:
@@ -24,6 +28,17 @@ services:
       - "50051:50051"
     command: >
       sh -c "echo 'Mock Payment Service running on :50051' && 
+             while true; do sleep 30; done"
+    networks:
+      - payment-network
+
+  # Mock Booking Service for development/testing
+  booking-service-mock:
+    image: golang:1.21-alpine
+    ports:
+      - "50052:50052"
+    command: >
+      sh -c "echo 'Mock Booking Service running on :50052' && 
              while true; do sleep 30; done"
     networks:
       - payment-network

@@ -1,13 +1,17 @@
-# 🪙 ODIHNX GraphQL Payment
+# 🪙 ODIHNX GraphQL Payment BFF
 
-Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura Hexagonal** para servicio de flujo de pago
+Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura Hexagonal** para servicio de flujo de pago y reservas.
 
 ## 📋 Características
 
 - ✅ **Clean Architecture** con separación clara de capas
 - ✅ **Arquitectura Hexagonal** con puertos e interfaces bien definidos
-- ✅ **gRPC Client** para comunicación con microservicios
+- ✅ **gRPC Clients** para Payment Manager y Booking Manager
+- ✅ **Mock/Real API Switch** para desarrollo local y producción
+- ✅ **Buf Registry Integration** para protos remotos
 - ✅ **Health Check** endpoint `/ping`
+- ✅ **CI/CD Pipeline** con GitHub Actions y AWS ECR
+- ✅ **GraphQL API** con 8 operaciones (5 queries, 3 mutations)
 
 ## 🏗️ Arquitectura
 
@@ -23,27 +27,43 @@ Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura
 │   └── exception/   # Excepciones de aplicación
 └── Infrastructure - Adaptadores y frameworks
     ├── inbound/     # Adaptadores de entrada (GraphQL)
-    └── outbound/    # Adaptadores de salida (gRPC, Cache)
+    │   ├── graphql/ # Resolvers, DTOs, Mappers
+    │   └── websocket/ # (Futuro)
+    └── outbound/    # Adaptadores de salida
+        ├── grpc/    # Clientes gRPC (Payment, Booking)
+        ├── cache/   # (Futuro)
+        └── notification/ # (Futuro)
 ```
----
+
 ## 🚀 Inicio Rápido
 
+### Prerequisitos
 
-### Instalación
+- Go 1.21+
+- Buf CLI (para generación de protos)
+- Docker (opcional)
 
-1. **Setup inicial del proyecto:**
+### Desarrollo Local (con Mocks)
+
+1. **Setup inicial:**
 ```bash
-scripts\setup.bat
+scripts\dev_local.bat
 ```
 
-2. **Ejecutar en modo desarrollo:**
-```bash
-scripts\run_dev.bat
-```
+Este script:
+- Copia `.env.example` a `.env` (con `USE_MOCK=true`)
+- Genera código GraphQL
+- Genera protos locales
+- Compila el proyecto
 
-3. **O ejecutar manualmente:**
+2. **Ejecutar servidor:**
 ```bash
 go run cmd/server/main.go
+```
+
+O usando el binario compilado:
+```bash
+.\main.exe
 ```
 
 ### URLs Importantes
@@ -52,50 +72,70 @@ go run cmd/server/main.go
 - **GraphQL Endpoint**: http://localhost:8080/query
 - **Health Check**: http://localhost:8080/ping
 
+## 🔌 APIs y Servicios
+
+### Conexión a APIs Reales
+
+Para conectar a las APIs reales (modo AWS), edita `.env`:
+
+```env
+# Cambiar a false para usar APIs reales
+USE_MOCK=false
+
+# Configurar endpoints reales
+PAYMENT_SERVICE_GRPC_ADDRESS=payment-manager-service.default.svc.cluster.local:50051
+BOOKING_SERVICE_GRPC_ADDRESS=booking-manager-service.default.svc.cluster.local:50052
+```
+
+### Servicios gRPC Conectados
+
+| Servicio | Buf Registry | Puerto Mock | Puerto AWS |
+|----------|--------------|-------------|------------|
+| Payment Manager | `buf.build/odihnx-prod/service-payment-manager` | 50051 | Variable |
+| Booking Manager | `buf.build/odihnx-prod/service-booking-manager` | 50052 | Variable |
 
 ## 🛠️ Desarrollo
 
 ### Estructura del Proyecto
 
 ```
-graphql-payment-bff/
-├── cmd/server/              # Entry point
-├── config/                  # Configuración e inyección dependencias
-├── graph/                   # GraphQL schemas y generados
+bff-graphql-payment/
+├── cmd/server/              # Entry point (main.go)
+├── config/                  # Config e inyección de dependencias
+├── graph/                   # GraphQL schemas y código generado
+│   ├── schema.graphqls     # ← Schema GraphQL (editable)
+│   ├── generated/          # ← Código autogenerado (NO EDITAR)
+│   └── model/              # ← Modelos GraphQL (autogenerados)
 ├── internal/
 │   ├── domain/             # CAPA DOMINIO (CORE)
-│   ├── application/        # CAPA APLICACIÓN
+│   ├── application/        # CAPA APLICACIÓN (Use Cases)
 │   └── infrastructure/     # CAPA INFRAESTRUCTURA
+│       ├── inbound/graphql/   # GraphQL Resolvers
+│       └── outbound/grpc/     # Clientes gRPC
+├── proto/                  # Protos locales (solo para desarrollo)
+├── gen/                    # Código Go generado desde protos
 ├── scripts/                # Scripts de automatización
+├── docs/                   # Documentación
+│   └── DEPLOYMENT.md       # Guía de deployment y secretos
+├── .github/workflows/      # CI/CD Pipelines
 ├── docker-compose.yml      # Para desarrollo local
-├── Dockerfile              # Para contenerización
-└── README.md
+├── Dockerfile              # Imagen de producción
+└── README.md               # Este archivo
 ```
 
-### Scripts Disponibles
+## 📦 GraphQL Operations
 
-- `scripts\setup.bat` - Setup inicial del proyecto
-- `scripts\run_dev.bat` - Ejecutar en modo desarrollo
-- `scripts\gen_graphql.bat` - Regenerar código GraphQL
-- `scripts\gen_proto.bat` - Regenerar código protobuf
+### Queries (5)
+- `getPaymentInfraByQrValue` - Obtener infraestructura de pago por QR
+- `getAvailableLockers` - Obtener lockers disponibles
+- `validateDiscountCoupon` - Validar cupón de descuento
+- `getPurchaseOrderByPo` - Obtener orden de compra por PO
+- `checkBookingStatus` - Verificar estado de reserva
 
-### Regenerar Código
-
-**GraphQL:**
-```bash
-scripts\gen_graphql.bat
-```
-
-**Protobuf:**
-```bash
-scripts\gen_proto.bat
-```
-
-
-```bash
-docker build -t bff-graphql-payment
-docker run -p 8080:8080 graphql-payment-bff
-```
+### Mutations (3)
+- `generatePurchaseOrder` - Generar orden de compra
+- `generateBooking` - Generar reserva de locker
+- `executeOpen` - Ejecutar apertura de locker
 
 ## 🧪 Testing
 
