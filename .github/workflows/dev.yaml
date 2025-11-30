@@ -3,7 +3,7 @@ name: Build & Deploy to GitOps (DEV)
 on:
   push:
     branches:
-      - dev
+      - develop
 
 env:
   ENVIRONMENT: dev
@@ -92,7 +92,6 @@ jobs:
             --build-arg PORT_API_PAYMENT=${{ vars.PORT_API_PAYMENT }} \
             --build-arg HOST_API_BOOKING=${{ vars.HOST_API_BOOKING }} \
             --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
-            --build-arg JWKS_COGNITO=${{ vars.JWKS_COGNITO }} \
             -t $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
           
           docker push $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG
