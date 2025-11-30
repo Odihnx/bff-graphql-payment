@@ -37,7 +37,7 @@ func (s *PaymentInfraService) GetPaymentInfraByQrValue(ctx context.Context, qrVa
 }
 
 // GetAvailableLockers obtiene los lockers disponibles por ID de rack y tiempo de reserva
-func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int) (*model.AvailableLockers, error) {
+func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int, traceID string) (*model.AvailableLockers, error) {
 	// Validar entrada
 	if paymentRackID <= 0 {
 		return nil, exception.ErrInvalidPaymentRackID
@@ -47,8 +47,12 @@ func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRa
 		return nil, exception.ErrInvalidBookingTimeID
 	}
 
+	if strings.TrimSpace(traceID) == "" {
+		return nil, exception.ErrInvalidTraceID
+	}
+
 	// Llamar al repositorio
-	lockers, err := s.repo.GetAvailableLockers(ctx, paymentRackID, bookingTimeID)
+	lockers, err := s.repo.GetAvailableLockers(ctx, paymentRackID, bookingTimeID, traceID)
 	if err != nil {
 		return nil, err
 	}
@@ -57,23 +61,26 @@ func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRa
 }
 
 // ValidateDiscountCoupon valida un cupón de descuento
-func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, couponCode string) (*model.DiscountCouponValidation, error) {
+func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
 	// Validar entrada
 	if strings.TrimSpace(couponCode) == "" {
 		return nil, exception.ErrInvalidCouponCode
 	}
 
-	// Llamar al repositorio
-	validation, err := s.repo.ValidateDiscountCoupon(ctx, couponCode)
-	if err != nil {
-		return nil, err
+	if rackID <= 0 {
+		return nil, exception.ErrInvalidPaymentRackID
 	}
 
-	return validation, nil
+	if strings.TrimSpace(traceID) == "" {
+		return nil, exception.ErrInvalidTraceID
+	}
+
+	// Llamar al repositorio
+	return s.repo.ValidateDiscountCoupon(ctx, couponCode, rackID, traceID)
 }
 
 // GeneratePurchaseOrder genera una orden de compra
-func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string) (*model.PurchaseOrder, error) {
+func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
 	// Validar entrada
 	if groupID <= 0 {
 		return nil, exception.ErrInvalidGroupID
@@ -87,11 +94,99 @@ func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID
 		return nil, exception.ErrInvalidPhone
 	}
 
+	if strings.TrimSpace(traceID) == "" {
+		return nil, exception.ErrInvalidTraceID
+	}
+
+	if strings.TrimSpace(gatewayName) == "" {
+		return nil, exception.ErrInvalidGatewayName
+	}
+
 	// Llamar al repositorio
-	order, err := s.repo.GeneratePurchaseOrder(ctx, groupID, couponCode, userEmail, userPhone)
+	order, err := s.repo.GeneratePurchaseOrder(ctx, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 	if err != nil {
 		return nil, err
 	}
 
 	return order, nil
+}
+
+// GenerateBooking genera una reserva de locker
+func (s *PaymentInfraService) GenerateBooking(ctx context.Context, purchaseOrder string, traceID string) (*model.Booking, error) {
+	// Validar entrada
+	if strings.TrimSpace(purchaseOrder) == "" {
+		return nil, exception.ErrInvalidPurchaseOrder
+	}
+
+	if strings.TrimSpace(traceID) == "" {
+		return nil, exception.ErrInvalidTraceID
+	}
+
+	// Llamar al repositorio
+	booking, err := s.repo.GenerateBooking(ctx, purchaseOrder, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return booking, nil
+}
+
+// GetPurchaseOrderByPo obtiene una orden de compra por su PO
+func (s *PaymentInfraService) GetPurchaseOrderByPo(ctx context.Context, purchaseOrder string, traceID string) (*model.PurchaseOrderData, error) {
+	// Validar entrada
+	if strings.TrimSpace(purchaseOrder) == "" {
+		return nil, exception.ErrInvalidPurchaseOrder
+	}
+
+	if strings.TrimSpace(traceID) == "" {
+		return nil, exception.ErrInvalidTraceID
+	}
+
+	// Llamar al repositorio
+	orderData, err := s.repo.GetPurchaseOrderByPo(ctx, purchaseOrder, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return orderData, nil
+}
+
+// CheckBookingStatus verifica el estado de una reserva
+func (s *PaymentInfraService) CheckBookingStatus(ctx context.Context, serviceName string, currentCode string) (*model.BookingStatusCheck, error) {
+	// Validar entrada
+	if strings.TrimSpace(serviceName) == "" {
+		return nil, exception.ErrInvalidServiceName
+	}
+
+	if strings.TrimSpace(currentCode) == "" {
+		return nil, exception.ErrInvalidCurrentCode
+	}
+
+	// Llamar al repositorio
+	bookingStatus, err := s.repo.CheckBookingStatus(ctx, serviceName, currentCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return bookingStatus, nil
+}
+
+// ExecuteOpen ejecuta la apertura de un locker
+func (s *PaymentInfraService) ExecuteOpen(ctx context.Context, serviceName string, currentCode string) (*model.ExecuteOpenResult, error) {
+	// Validar entrada
+	if strings.TrimSpace(serviceName) == "" {
+		return nil, exception.ErrInvalidServiceName
+	}
+
+	if strings.TrimSpace(currentCode) == "" {
+		return nil, exception.ErrInvalidCurrentCode
+	}
+
+	// Llamar al repositorio
+	openResult, err := s.repo.ExecuteOpen(ctx, serviceName, currentCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return openResult, nil
 }

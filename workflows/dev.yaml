@@ -1,0 +1,149 @@
+name: Build & Deploy to GitOps (DEV) 
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  ENVIRONMENT: dev
+  ECR_REGISTRY: 590184058323.dkr.ecr.us-east-1.amazonaws.com
+  # IMAGE_NAME tambien sera el nombre de la app
+  IMAGE_NAME: bff-graphql-payment
+  REPO_OWNER: Odihnx
+  PROTO_BUF_REGISTRY_PAYMENT_API: buf.build/odihnx-prod/service-payment-manager
+  PROTO_BUF_REGISTRY_BOOKING_API: buf.build/odihnx-prod/service-booking-manager
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+
+    steps:
+      # ------------------------
+      # Paso 0: Checkout código
+      # ------------------------
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ------------------------
+      # Paso 1: Instalar Buf
+      # ------------------------
+      - name: Install Buf
+        run: |
+          curl -sSL \
+            "https://github.com/bufbuild/buf/releases/latest/download/buf-Linux-x86_64.tar.gz" \
+            -o buf.tar.gz
+          tar -xvzf buf.tar.gz
+          sudo mv buf/bin/buf /usr/local/bin/
+          buf --version
+
+      # ------------------------
+      # Paso 2: Instalar plugins Go
+      # ------------------------
+      - name: Install Go Plugins for Buf
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+        env:
+          GOBIN: /usr/local/bin   # instala directamente en /usr/local/bin (ya está en $PATH)
+
+      # ------------------------
+      # Paso 3: Login en Buf Registry
+      # ------------------------
+      - name: Buf Registry Login
+        run: |
+          echo "${{ secrets.BUF_TOKEN }}" | buf registry login buf.build --token-stdin
+
+      # ------------------------
+      # Paso 4: Generar código Go
+      # ------------------------
+      - name: Generate Go code with Buf
+        run: |
+          buf generate ${{ ENV.PROTO_BUF_REGISTRY_PAYMENT_API }}
+          buf generate ${{ ENV.PROTO_BUF_REGISTRY_BOOKING_API }}
+          ls -R
+
+      # ------------------------
+      # Paso 5: Configurar credenciales AWS
+      # ------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # ------------------------
+      # Paso 6: Login en Amazon ECR
+      # ------------------------
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # ------------------------
+      # Paso 7: Build & Push Docker image
+      # ------------------------
+      - name: Build and Push Docker image
+        run: |
+          docker build \
+            --build-arg ENV=${{ env.ENVIRONMENT }} \
+            --build-arg PORT=${{ vars.PORT }} \
+            --build-arg HOST_API_BOOKING=${{ vars.HOST_API_BOOKING }} \
+            --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
+            --build-arg HOST_API_PAYMENT=${{ vars.HOST_API_PAYMENT }} \
+            --build-arg PORT_API_PAYMENT=${{ vars.PORT_API_PAYMENT }} \
+            --build-arg HOST_API_AUTH=${{ vars.HOST_API_AUTH }} \
+            --build-arg PORT_API_AUTH=${{ vars.PORT_API_AUTH }} \
+            --build-arg JWKS_COGNITO=${{ vars.JWKS_COGNITO }} \
+            -t $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
+          
+          docker push $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+
+
+      # ------------------------
+      # Paso 8: Checkout GitOps repo
+      # ------------------------
+      - name: Checkout GitOps Repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO_OWNER }}/odihnx-k8s-apps
+          token: ${{ secrets.PAT_GITHUB }}
+          # elegir rama para hacer commit
+          ref: ${{ env.ENVIRONMENT == 'prod' && 'main' || 'dev' }}
+          path: gitops
+
+      # ------------------------
+      # Paso 9: Instalar yq
+      # ------------------------
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      # ------------------------
+      # Paso 10: Actualizar values.yaml
+      # ------------------------
+      - name: Update values.yaml
+        run: |
+          cd gitops/apps/$IMAGE_NAME
+          yq e '.image.repository = strenv(ECR_REGISTRY) + "/" + strenv(IMAGE_NAME)' -i values.yaml
+          yq e '.image.tag = strenv(GITHUB_SHA)' -i values.yaml
+        env:
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          GITHUB_SHA: ${{ github.sha }}
+
+      # ------------------------
+      # Paso 11: Commit & Push cambios a GitOps
+      # ------------------------
+      - name: Commit and Push to GitOps
+        run: |
+          cd gitops
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update ${{ env.IMAGE_NAME }} image to ${{ github.sha }}" || echo "No changes to commit"
+          git push origin HEAD:${{ env.ENVIRONMENT == 'prod' && 'main' || 'dev' }}

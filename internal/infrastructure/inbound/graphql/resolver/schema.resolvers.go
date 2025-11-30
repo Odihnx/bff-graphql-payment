@@ -14,13 +14,37 @@ import (
 // GeneratePurchaseOrder is the resolver for the generatePurchaseOrder field.
 func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error) {
 	// Llamar al caso de uso
-	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone)
+	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate purchase order: %w", err)
 	}
 
 	// Mapear a respuesta GraphQL
 	return r.mapper.ToPurchaseOrderResponse(order), nil
+}
+
+// GenerateBooking is the resolver for the generateBooking field.
+func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error) {
+	// Llamar al caso de uso
+	booking, err := r.paymentInfraService.GenerateBooking(ctx, input.PurchaseOrder, input.TraceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate booking: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToBookingResponse(booking), nil
+}
+
+// ExecuteOpen is the resolver for the executeOpen field.
+func (r *mutationResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (*model.ExecuteOpenResponse, error) {
+	// Llamar al caso de uso
+	openResult, err := r.paymentInfraService.ExecuteOpen(ctx, input.ServiceName, input.CurrentCode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute open: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToExecuteOpenResponse(openResult), nil
 }
 
 // GetPaymentInfraByQRValue is the resolver for the getPaymentInfraByQrValue field.
@@ -38,7 +62,7 @@ func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input mode
 // GetAvailableLockers is the resolver for the getAvailableLockers field.
 func (r *queryResolver) GetAvailableLockers(ctx context.Context, input model.GetAvailableLockersInput) (*model.AvailableLockersResponse, error) {
 	// Llamar al caso de uso
-	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID)
+	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID, input.TraceID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get available lockers: %w", err)
 	}
@@ -50,7 +74,7 @@ func (r *queryResolver) GetAvailableLockers(ctx context.Context, input model.Get
 // ValidateDiscountCoupon is the resolver for the validateDiscountCoupon field.
 func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.ValidateDiscountCouponInput) (*model.ValidateDiscountCouponResponse, error) {
 	// Llamar al caso de uso
-	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode)
+	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode, input.RackID, input.TraceID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate discount coupon: %w", err)
 	}
@@ -59,9 +83,28 @@ func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.
 	return r.mapper.ToValidateCouponResponse(validation), nil
 }
 
-// Empty is the resolver for the _empty field.
-func (r *subscriptionResolver) Empty(ctx context.Context) (<-chan *string, error) {
-	panic(fmt.Errorf("not implemented: Empty - _empty"))
+// GetPurchaseOrderByPo is the resolver for the getPurchaseOrderByPo field.
+func (r *queryResolver) GetPurchaseOrderByPo(ctx context.Context, input model.GetPurchaseOrderByPoInput) (*model.PurchaseOrderResponse, error) {
+	// Llamar al caso de uso
+	orderData, err := r.paymentInfraService.GetPurchaseOrderByPo(ctx, input.PurchaseOrder, input.TraceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get purchase order: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToPurchaseOrderDataResponse(orderData), nil
+}
+
+// CheckBookingStatus is the resolver for the checkBookingStatus field.
+func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.CheckBookingStatusInput) (*model.CheckBookingStatusResponse, error) {
+	// Llamar al caso de uso
+	bookingStatus, err := r.paymentInfraService.CheckBookingStatus(ctx, input.ServiceName, input.CurrentCode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check booking status: %w", err)
+	}
+
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToBookingStatusResponse(bookingStatus), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -70,9 +113,5 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Subscription returns generated.SubscriptionResolver implementation.
-func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type subscriptionResolver struct{ *Resolver }

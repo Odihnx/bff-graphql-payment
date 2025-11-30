@@ -2,10 +2,18 @@
 
 package model
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type AvailableLockersResponse struct {
 	TransactionID   string                   `json:"transactionId"`
 	Message         string                   `json:"message"`
 	Status          ResponseStatus           `json:"status"`
+	TraceID         string                   `json:"traceId"`
 	AvailableGroups []*AvailablePaymentGroup `json:"availableGroups"`
 }
 
@@ -17,17 +25,84 @@ type AvailablePaymentGroup struct {
 	ImageURL    string  `json:"imageUrl"`
 }
 
+type Booking struct {
+	ID               int    `json:"id"`
+	PurchaseOrder    string `json:"purchaseOrder"`
+	CurrentCode      string `json:"currentCode"`
+	InitBooking      string `json:"initBooking"`
+	FinishBooking    string `json:"finishBooking"`
+	LockerPosition   int    `json:"lockerPosition"`
+	InstallationName string `json:"installationName"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+type BookingStatusData struct {
+	ID                     int    `json:"id"`
+	ConfigurationBookingID int    `json:"configurationBookingId"`
+	InitBooking            string `json:"initBooking"`
+	FinishBooking          string `json:"finishBooking"`
+	InstallationName       string `json:"installationName"`
+	NumberLocker           int    `json:"numberLocker"`
+	DeviceID               string `json:"deviceId"`
+	CurrentCode            string `json:"currentCode"`
+	Openings               int    `json:"openings"`
+	ServiceName            string `json:"serviceName"`
+	EmailRecipient         string `json:"emailRecipient"`
+	CreatedAt              string `json:"createdAt"`
+	UpdatedAt              string `json:"updatedAt"`
+}
+
+type CheckBookingStatusInput struct {
+	ServiceName string `json:"serviceName"`
+	CurrentCode string `json:"currentCode"`
+}
+
+type CheckBookingStatusResponse struct {
+	TransactionID string             `json:"transactionId"`
+	Message       string             `json:"message"`
+	Status        ResponseStatus     `json:"status"`
+	Booking       *BookingStatusData `json:"booking,omitempty"`
+}
+
+type ExecuteOpenInput struct {
+	ServiceName string `json:"serviceName"`
+	CurrentCode string `json:"currentCode"`
+}
+
+type ExecuteOpenResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	OpenStatus    OpenStatus     `json:"openStatus"`
+}
+
+type GenerateBookingInput struct {
+	PurchaseOrder string `json:"purchaseOrder"`
+	TraceID       string `json:"traceId"`
+}
+
+type GenerateBookingResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+	Booking       *Booking       `json:"booking"`
+}
+
 type GeneratePurchaseOrderInput struct {
-	GroupID    int     `json:"groupId"`
-	CouponCode *string `json:"couponCode,omitempty"`
-	UserEmail  string  `json:"userEmail"`
-	UserPhone  string  `json:"userPhone"`
+	GroupID     int     `json:"groupId"`
+	CouponCode  *string `json:"couponCode,omitempty"`
+	UserEmail   string  `json:"userEmail"`
+	UserPhone   string  `json:"userPhone"`
+	TraceID     string  `json:"traceId"`
+	GatewayName string  `json:"gatewayName"`
 }
 
 type GeneratePurchaseOrderResponse struct {
 	TransactionID      string         `json:"transactionId"`
 	Message            string         `json:"message"`
 	Status             ResponseStatus `json:"status"`
+	TraceID            string         `json:"traceId"`
 	Oc                 string         `json:"oc"`
 	Email              string         `json:"email"`
 	Phone              string         `json:"phone"`
@@ -41,12 +116,18 @@ type GeneratePurchaseOrderResponse struct {
 }
 
 type GetAvailableLockersInput struct {
-	PaymentRackID int `json:"paymentRackId"`
-	BookingTimeID int `json:"bookingTimeId"`
+	PaymentRackID int    `json:"paymentRackId"`
+	BookingTimeID int    `json:"bookingTimeId"`
+	TraceID       string `json:"traceId"`
 }
 
 type GetPaymentInfraByQRValueInput struct {
 	QRValue string `json:"qrValue"`
+}
+
+type GetPurchaseOrderByPoInput struct {
+	PurchaseOrder string `json:"purchaseOrder"`
+	TraceID       string `json:"traceId"`
 }
 
 type Mutation struct {
@@ -84,20 +165,106 @@ type PaymentRack struct {
 	Address     string `json:"address"`
 }
 
-type Query struct {
+type PurchaseOrderData struct {
+	Oc                 string  `json:"oc"`
+	Email              string  `json:"email"`
+	Phone              string  `json:"phone"`
+	Discount           float64 `json:"discount"`
+	ProductPrice       int     `json:"productPrice"`
+	FinalProductPrice  int     `json:"finalProductPrice"`
+	ProductName        string  `json:"productName"`
+	ProductDescription string  `json:"productDescription"`
+	LockerPosition     int     `json:"lockerPosition"`
+	InstallationName   string  `json:"installationName"`
+	Status             string  `json:"status"`
+	CreatedAt          string  `json:"createdAt"`
 }
 
-type Subscription struct {
+type PurchaseOrderResponse struct {
+	TransactionID     string             `json:"transactionId"`
+	Message           string             `json:"message"`
+	Status            ResponseStatus     `json:"status"`
+	TraceID           string             `json:"traceId"`
+	PurchaseOrderData *PurchaseOrderData `json:"purchaseOrderData"`
+}
+
+type Query struct {
 }
 
 type ValidateDiscountCouponInput struct {
 	CouponCode string `json:"couponCode"`
+	RackID     int    `json:"rackId"`
+	TraceID    string `json:"traceId"`
 }
 
 type ValidateDiscountCouponResponse struct {
 	TransactionID      string         `json:"transactionId"`
 	Message            string         `json:"message"`
 	Status             ResponseStatus `json:"status"`
+	TraceID            string         `json:"traceId"`
 	IsValid            bool           `json:"isValid"`
 	DiscountPercentage float64        `json:"discountPercentage"`
+}
+
+type OpenStatus string
+
+const (
+	OpenStatusOpenStatusUnspecified OpenStatus = "OPEN_STATUS_UNSPECIFIED"
+	OpenStatusOpenStatusReceived    OpenStatus = "OPEN_STATUS_RECEIVED"
+	OpenStatusOpenStatusRequested   OpenStatus = "OPEN_STATUS_REQUESTED"
+	OpenStatusOpenStatusExecuted    OpenStatus = "OPEN_STATUS_EXECUTED"
+	OpenStatusOpenStatusError       OpenStatus = "OPEN_STATUS_ERROR"
+	OpenStatusOpenStatusSuccess     OpenStatus = "OPEN_STATUS_SUCCESS"
+)
+
+var AllOpenStatus = []OpenStatus{
+	OpenStatusOpenStatusUnspecified,
+	OpenStatusOpenStatusReceived,
+	OpenStatusOpenStatusRequested,
+	OpenStatusOpenStatusExecuted,
+	OpenStatusOpenStatusError,
+	OpenStatusOpenStatusSuccess,
+}
+
+func (e OpenStatus) IsValid() bool {
+	switch e {
+	case OpenStatusOpenStatusUnspecified, OpenStatusOpenStatusReceived, OpenStatusOpenStatusRequested, OpenStatusOpenStatusExecuted, OpenStatusOpenStatusError, OpenStatusOpenStatusSuccess:
+		return true
+	}
+	return false
+}
+
+func (e OpenStatus) String() string {
+	return string(e)
+}
+
+func (e *OpenStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OpenStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OpenStatus", str)
+	}
+	return nil
+}
+
+func (e OpenStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *OpenStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e OpenStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

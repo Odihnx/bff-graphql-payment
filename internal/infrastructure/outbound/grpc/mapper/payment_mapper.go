@@ -104,10 +104,11 @@ func (m *PaymentInfraGRPCMapper) mapUnitMeasurement(unit dto.UnitMeasurement) mo
 }
 
 // ToGetAvailableLockersRequest mapea a solicitud gRPC para lockers disponibles
-func (m *PaymentInfraGRPCMapper) ToGetAvailableLockersRequest(paymentRackID int, bookingTimeID int) *dto.GetAvailableLockersRequest {
+func (m *PaymentInfraGRPCMapper) ToGetAvailableLockersRequest(paymentRackID int, bookingTimeID int, traceID string) *dto.GetAvailableLockersRequest {
 	return &dto.GetAvailableLockersRequest{
 		PaymentRackId: int32(paymentRackID),
 		BookingTimeId: int32(bookingTimeID),
+		TraceId:       traceID,
 	}
 }
 
@@ -127,6 +128,8 @@ func (m *PaymentInfraGRPCMapper) ToAvailableLockersDomain(response *dto.GetAvail
 		lockers.Status = m.mapResponseStatus(response.Response.Status)
 	}
 
+	lockers.TraceID = response.TraceId
+
 	for _, group := range response.AvailableGroups {
 		lockers.AvailableGroups = append(lockers.AvailableGroups, model.AvailablePaymentGroup{
 			GroupID:     int(group.GroupId),
@@ -141,9 +144,11 @@ func (m *PaymentInfraGRPCMapper) ToAvailableLockersDomain(response *dto.GetAvail
 }
 
 // ToValidateCouponRequest mapea a solicitud gRPC para validación de cupón
-func (m *PaymentInfraGRPCMapper) ToValidateCouponRequest(couponCode string) *dto.ValidateDiscountCouponRequest {
+func (m *PaymentInfraGRPCMapper) ToValidateCouponRequest(couponCode string, rackID int, traceID string) *dto.ValidateDiscountCouponRequest {
 	return &dto.ValidateDiscountCouponRequest{
 		CouponCode: couponCode,
+		RackId:     int32(rackID),
+		TraceId:    traceID,
 	}
 }
 
@@ -164,15 +169,19 @@ func (m *PaymentInfraGRPCMapper) ToCouponValidationDomain(response *dto.Validate
 		validation.Status = m.mapResponseStatus(response.Response.Status)
 	}
 
+	validation.TraceID = response.TraceId
+
 	return validation
 }
 
 // ToGeneratePurchaseOrderRequest mapea a solicitud gRPC para orden de compra
-func (m *PaymentInfraGRPCMapper) ToGeneratePurchaseOrderRequest(groupID int, couponCode *string, userEmail string, userPhone string) *dto.GeneratePurchaseOrderRequest {
+func (m *PaymentInfraGRPCMapper) ToGeneratePurchaseOrderRequest(groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) *dto.GeneratePurchaseOrderRequest {
 	req := &dto.GeneratePurchaseOrderRequest{
-		GroupId:   int32(groupID),
-		UserEmail: userEmail,
-		UserPhone: userPhone,
+		GroupId:     int32(groupID),
+		UserEmail:   userEmail,
+		UserPhone:   userPhone,
+		TraceId:     traceID,
+		GatewayName: gatewayName,
 	}
 
 	if couponCode != nil {
@@ -207,5 +216,175 @@ func (m *PaymentInfraGRPCMapper) ToPurchaseOrderDomain(response *dto.GeneratePur
 		order.Status = m.mapResponseStatus(response.Response.Status)
 	}
 
+	order.TraceID = response.TraceId
+
 	return order
+}
+
+// ToGenerateBookingRequest mapea a solicitud gRPC para generar reserva
+func (m *PaymentInfraGRPCMapper) ToGenerateBookingRequest(purchaseOrder string, traceID string) *dto.GenerateBookingRequest {
+	return &dto.GenerateBookingRequest{
+		PurchaseOrder: purchaseOrder,
+		TraceId:       traceID,
+	}
+}
+
+// ToBookingDomain mapea la respuesta gRPC al modelo de dominio de reserva
+func (m *PaymentInfraGRPCMapper) ToBookingDomain(response *dto.GenerateBookingResponse) *model.Booking {
+	if response == nil {
+		return nil
+	}
+
+	booking := &model.Booking{}
+
+	if response.Response != nil {
+		booking.TransactionID = response.Response.TransactionId
+		booking.Message = response.Response.Message
+		booking.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	booking.TraceID = response.TraceId
+
+	if response.Booking != nil {
+		booking.ID = int(response.Booking.Id)
+		booking.PurchaseOrder = response.Booking.PurchaseOrder
+		booking.CurrentCode = response.Booking.CurrentCode
+		booking.InitBooking = response.Booking.InitBooking
+		booking.FinishBooking = response.Booking.FinishBooking
+		booking.LockerPosition = int(response.Booking.LockerPosition)
+		booking.InstallationName = response.Booking.InstallationName
+		booking.CreatedAt = response.Booking.CreatedAt
+	}
+
+	return booking
+}
+
+// ToGetPurchaseOrderByPoRequest mapea a solicitud gRPC para obtener orden de compra por PO
+func (m *PaymentInfraGRPCMapper) ToGetPurchaseOrderByPoRequest(purchaseOrder string, traceID string) *dto.GetPurchaseOrderByPoRequest {
+	return &dto.GetPurchaseOrderByPoRequest{
+		PurchaseOrder: purchaseOrder,
+		TraceId:       traceID,
+	}
+}
+
+// ToPurchaseOrderDataDomain mapea la respuesta gRPC al modelo de dominio de datos de orden de compra
+func (m *PaymentInfraGRPCMapper) ToPurchaseOrderDataDomain(response *dto.GetPurchaseOrderByPoResponse) *model.PurchaseOrderData {
+	if response == nil {
+		return nil
+	}
+
+	orderData := &model.PurchaseOrderData{}
+
+	if response.Response != nil {
+		orderData.TransactionID = response.Response.TransactionId
+		orderData.Message = response.Response.Message
+		orderData.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	orderData.TraceID = response.TraceId
+
+	if response.PurchaseOrderData != nil {
+		orderData.OC = response.PurchaseOrderData.Oc
+		orderData.Email = response.PurchaseOrderData.Email
+		orderData.Phone = response.PurchaseOrderData.Phone
+		orderData.Discount = float64(response.PurchaseOrderData.Discount)
+		orderData.ProductPrice = int(response.PurchaseOrderData.ProductPrice)
+		orderData.FinalProductPrice = int(response.PurchaseOrderData.FinalProductPrice)
+		orderData.ProductName = response.PurchaseOrderData.ProductName
+		orderData.ProductDescription = response.PurchaseOrderData.ProductDescription
+		orderData.LockerPosition = int(response.PurchaseOrderData.LockerPosition)
+		orderData.InstallationName = response.PurchaseOrderData.InstallationName
+		orderData.OrderStatus = response.PurchaseOrderData.Status
+		orderData.CreatedAt = response.PurchaseOrderData.CreatedAt
+	}
+
+	return orderData
+}
+
+// ToCheckBookingStatusRequest mapea a solicitud gRPC para verificar estado de booking
+func (m *PaymentInfraGRPCMapper) ToCheckBookingStatusRequest(serviceName string, currentCode string) *dto.CheckBookingStatusRequest {
+	return &dto.CheckBookingStatusRequest{
+		ServiceName: serviceName,
+		CurrentCode: currentCode,
+	}
+}
+
+// ToBookingStatusDomain mapea la respuesta gRPC al modelo de dominio de booking status
+func (m *PaymentInfraGRPCMapper) ToBookingStatusDomain(response *dto.CheckBookingStatusResponse) *model.BookingStatusCheck {
+	if response == nil {
+		return nil
+	}
+
+	bookingStatus := &model.BookingStatusCheck{}
+
+	if response.Response != nil {
+		bookingStatus.TransactionID = response.Response.TransactionId
+		bookingStatus.Message = response.Response.Message
+		bookingStatus.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	if response.Booking != nil {
+		bookingStatus.Booking = &model.BookingStatusData{
+			ID:                     int(response.Booking.Id),
+			ConfigurationBookingID: int(response.Booking.ConfigurationBookingId),
+			InitBooking:            response.Booking.InitBooking,
+			FinishBooking:          response.Booking.FinishBooking,
+			InstallationName:       response.Booking.InstallationName,
+			NumberLocker:           int(response.Booking.NumberLocker),
+			DeviceID:               response.Booking.DeviceId,
+			CurrentCode:            response.Booking.CurrentCode,
+			Openings:               int(response.Booking.Openings),
+			ServiceName:            response.Booking.ServiceName,
+			EmailRecipient:         response.Booking.EmailRecipient,
+			CreatedAt:              response.Booking.CreatedAt,
+			UpdatedAt:              response.Booking.UpdatedAt,
+		}
+	}
+
+	return bookingStatus
+}
+
+// ToExecuteOpenRequest mapea a solicitud gRPC para ejecutar apertura
+func (m *PaymentInfraGRPCMapper) ToExecuteOpenRequest(serviceName string, currentCode string) *dto.ExecuteOpenRequest {
+	return &dto.ExecuteOpenRequest{
+		ServiceName: serviceName,
+		CurrentCode: currentCode,
+	}
+}
+
+// ToExecuteOpenDomain mapea la respuesta gRPC al modelo de dominio de execute open
+func (m *PaymentInfraGRPCMapper) ToExecuteOpenDomain(response *dto.ExecuteOpenResponse) *model.ExecuteOpenResult {
+	if response == nil {
+		return nil
+	}
+
+	openResult := &model.ExecuteOpenResult{
+		OpenStatus: m.mapOpenStatus(response.Status),
+	}
+
+	if response.Response != nil {
+		openResult.TransactionID = response.Response.TransactionId
+		openResult.Message = response.Response.Message
+		openResult.Status = m.mapResponseStatus(response.Response.Status)
+	}
+
+	return openResult
+}
+
+// mapOpenStatus convierte el estado de apertura gRPC a estado de dominio
+func (m *PaymentInfraGRPCMapper) mapOpenStatus(status dto.OpenStatus) model.OpenStatus {
+	switch status {
+	case dto.OpenStatus_OPEN_STATUS_RECEIVED:
+		return model.OpenStatusReceived
+	case dto.OpenStatus_OPEN_STATUS_REQUESTED:
+		return model.OpenStatusRequested
+	case dto.OpenStatus_OPEN_STATUS_EXECUTED:
+		return model.OpenStatusExecuted
+	case dto.OpenStatus_OPEN_STATUS_ERROR:
+		return model.OpenStatusError
+	case dto.OpenStatus_OPEN_STATUS_SUCCESS:
+		return model.OpenStatusSuccess
+	default:
+		return model.OpenStatusUnspecified
+	}
 }
