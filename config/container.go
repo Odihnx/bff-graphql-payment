@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"graphql-payment-bff/internal/application/service"
 	"graphql-payment-bff/internal/domain/ports"
 	"graphql-payment-bff/internal/infrastructure/inbound/graphql/resolver"
@@ -10,8 +11,9 @@ import (
 
 // Config contiene toda la configuración de la aplicación
 type Config struct {
-	Server ServerConfig
-	GRPC   GRPCConfig
+	Server  ServerConfig
+	GRPC    GRPCConfig
+	General GeneralConfig
 }
 
 // ServerConfig contiene la configuración del servidor
@@ -22,10 +24,18 @@ type ServerConfig struct {
 	IdleTimeout  time.Duration
 }
 
-// GRPCConfig contiene la configuración del cliente gRPC
+// GRPCConfig contiene la configuración de los clientes gRPC
 type GRPCConfig struct {
 	PaymentServiceAddress string
-	Timeout               time.Duration
+	PaymentServiceTimeout time.Duration
+	BookingServiceAddress string
+	BookingServiceTimeout time.Duration
+}
+
+// GeneralConfig contiene configuración general de la aplicación
+type GeneralConfig struct {
+	Environment string
+	UseMock     bool
 }
 
 // Container contiene todas las dependencias de la aplicación
@@ -44,13 +54,14 @@ type Container struct {
 func NewContainer(config Config) (*Container, error) {
 	container := &Container{}
 
-	// Inicializar cliente gRPC
+	// Inicializar cliente gRPC (mock o real según configuración)
 	paymentClient, err := client.NewPaymentServiceGRPCClient(
 		config.GRPC.PaymentServiceAddress,
-		config.GRPC.Timeout,
+		config.GRPC.PaymentServiceTimeout,
+		config.General.UseMock,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create payment service client: %w", err)
 	}
 	container.PaymentServiceClient = paymentClient
 
@@ -82,7 +93,13 @@ func DefaultConfig() Config {
 		},
 		GRPC: GRPCConfig{
 			PaymentServiceAddress: "localhost:50051",
-			Timeout:               10 * time.Second,
+			PaymentServiceTimeout: 10 * time.Second,
+			BookingServiceAddress: "localhost:50052",
+			BookingServiceTimeout: 10 * time.Second,
+		},
+		General: GeneralConfig{
+			Environment: "development",
+			UseMock:     true,
 		},
 	}
 }
