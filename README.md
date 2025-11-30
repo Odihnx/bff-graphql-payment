@@ -74,25 +74,13 @@ O usando el binario compilado:
 
 ## 🔌 APIs y Servicios
 
-### Conexión a APIs Reales
-
-Para conectar a las APIs reales (modo AWS), edita `.env`:
-
-```env
-# Cambiar a false para usar APIs reales
-USE_MOCK=false
-
-# Configurar endpoints reales
-PAYMENT_SERVICE_GRPC_ADDRESS=payment-manager-service.default.svc.cluster.local:50051
-BOOKING_SERVICE_GRPC_ADDRESS=booking-manager-service.default.svc.cluster.local:50052
-```
 
 ### Servicios gRPC Conectados
 
-| Servicio | Buf Registry | Puerto Mock | Puerto AWS |
-|----------|--------------|-------------|------------|
-| Payment Manager | `buf.build/odihnx-prod/service-payment-manager` | 50051 | Variable |
-| Booking Manager | `buf.build/odihnx-prod/service-booking-manager` | 50052 | Variable |
+| Servicio | Buf Registry |
+|----------|--------------|
+| Payment Manager | `buf.build/odihnx-prod/service-payment-manager` |
+| Booking Manager | `buf.build/odihnx-prod/service-booking-manager` |
 
 ## 🛠️ Desarrollo
 
