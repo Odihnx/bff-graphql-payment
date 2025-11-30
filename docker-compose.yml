@@ -23,7 +23,7 @@ services:
 
   # Mock Payment Service for development/testing
   payment-service-mock:
-    image: golang:1.21-alpine
+    image: golang:1.24-alpine
     ports:
       - "50051:50051"
     command: >
@@ -34,7 +34,7 @@ services:
 
   # Mock Booking Service for development/testing
   booking-service-mock:
-    image: golang:1.21-alpine
+    image: golang:1.24-alpine
     ports:
       - "50052:50052"
     command: >
