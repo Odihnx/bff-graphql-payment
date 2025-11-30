@@ -1,6 +1,6 @@
 type Query {
-  # Payment Infrastructure
-  getPaymentInfraByID(input: GetPaymentInfraByIDInput!): PaymentInfraResponse!
+  # Payment Infrastructure by QR Value
+  getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
   
   # Available Lockers
   getAvailableLockers(input: GetAvailableLockersInput!): AvailableLockersResponse!
@@ -21,8 +21,8 @@ type Subscription {
 
 # ========== INPUT TYPES ==========
 
-input GetPaymentInfraByIDInput {
-  paymentRackId: String!
+input GetPaymentInfraByQrValueInput {
+  qrValue: String!
 }
 
 input GetAvailableLockersInput {
@@ -47,6 +47,7 @@ type PaymentInfraResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
+  traceId: String!
   paymentRack: PaymentRack
   installation: PaymentInstallation
   bookingTimes: [PaymentBookingTime!]!
