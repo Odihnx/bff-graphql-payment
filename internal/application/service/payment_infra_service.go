@@ -20,15 +20,15 @@ func NewPaymentInfraService(repo ports.PaymentInfraRepository) *PaymentInfraServ
 	}
 }
 
-// GetPaymentInfraByID obtiene la infraestructura de pagos por ID
-func (s *PaymentInfraService) GetPaymentInfraByID(ctx context.Context, paymentRackID string) (*model.PaymentInfra, error) {
+// GetPaymentInfraByQrValue obtiene la infraestructura de pagos por valor QR
+func (s *PaymentInfraService) GetPaymentInfraByQrValue(ctx context.Context, qrValue string) (*model.PaymentInfra, error) {
 	// Validar entrada
-	if strings.TrimSpace(paymentRackID) == "" {
+	if strings.TrimSpace(qrValue) == "" {
 		return nil, exception.ErrInvalidPaymentRackID
 	}
 
 	// Llamar al repositorio
-	paymentInfra, err := s.repo.GetPaymentInfraByID(ctx, paymentRackID)
+	paymentInfra, err := s.repo.GetPaymentInfraByQrValue(ctx, qrValue)
 	if err != nil {
 		return nil, err
 	}
