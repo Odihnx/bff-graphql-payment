@@ -45,8 +45,8 @@ type GetAvailableLockersInput struct {
 	BookingTimeID int `json:"bookingTimeId"`
 }
 
-type GetPaymentInfraByIDInput struct {
-	PaymentRackID string `json:"paymentRackId"`
+type GetPaymentInfraByQRValueInput struct {
+	QRValue string `json:"qrValue"`
 }
 
 type Mutation struct {
@@ -63,6 +63,7 @@ type PaymentInfraResponse struct {
 	TransactionID string                `json:"transactionId"`
 	Message       string                `json:"message"`
 	Status        ResponseStatus        `json:"status"`
+	TraceID       string                `json:"traceId"`
 	PaymentRack   *PaymentRack          `json:"paymentRack,omitempty"`
 	Installation  *PaymentInstallation  `json:"installation,omitempty"`
 	BookingTimes  []*PaymentBookingTime `json:"bookingTimes"`
