@@ -1,0 +1,13 @@
+@echo off
+echo Starting GraphQL Payment BFF in development mode...
+
+echo Loading environment variables...
+if exist .env (
+    echo Found .env file
+) else (
+    echo Creating .env from template...
+    copy .env.example .env
+)
+
+echo Starting server...
+go run cmd/server/main.go
