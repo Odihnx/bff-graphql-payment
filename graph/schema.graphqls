@@ -7,16 +7,17 @@ type Query {
   
   # Validate Discount Coupon
   validateDiscountCoupon(input: ValidateDiscountCouponInput!): ValidateDiscountCouponResponse!
+
+  # Get Purchase Order by PO
+  getPurchaseOrderByPo(input: GetPurchaseOrderByPoInput!): PurchaseOrderResponse!
 }
 
 type Mutation {
   # Generate Purchase Order
   generatePurchaseOrder(input: GeneratePurchaseOrderInput!): GeneratePurchaseOrderResponse!
-}
 
-type Subscription {
-  # Placeholder for future subscriptions  
-  _empty: String
+  # Generate Booking
+  generateBooking(input: GenerateBookingInput!): GenerateBookingResponse!
 }
 
 # ========== INPUT TYPES ==========
@@ -28,10 +29,13 @@ input GetPaymentInfraByQrValueInput {
 input GetAvailableLockersInput {
   paymentRackId: Int!
   bookingTimeId: Int!
+  traceId: String!
 }
 
 input ValidateDiscountCouponInput {
   couponCode: String!
+  rackId: Int!
+  traceId: String!
 }
 
 input GeneratePurchaseOrderInput {
@@ -39,6 +43,18 @@ input GeneratePurchaseOrderInput {
   couponCode: String
   userEmail: String!
   userPhone: String!
+  traceId: String!
+  gatewayName: String!
+}
+
+input GenerateBookingInput {
+  purchaseOrder: String!
+  traceId: String!
+}
+
+input GetPurchaseOrderByPoInput {
+  purchaseOrder: String!
+  traceId: String!
 }
 
 # ========== RESPONSE TYPES ==========
@@ -57,6 +73,7 @@ type AvailableLockersResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
+  traceId: String!
   availableGroups: [AvailablePaymentGroup!]!
 }
 
@@ -64,6 +81,7 @@ type ValidateDiscountCouponResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
+  traceId: String!
   isValid: Boolean!
   discountPercentage: Float!
 }
@@ -72,6 +90,7 @@ type GeneratePurchaseOrderResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
+  traceId: String!
   oc: String!
   email: String!
   phone: String!
@@ -82,6 +101,22 @@ type GeneratePurchaseOrderResponse {
   productDescription: String!
   lockerPosition: Int!
   installationName: String!
+}
+
+type GenerateBookingResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  booking: Booking!
+}
+
+type PurchaseOrderResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  purchaseOrderData: PurchaseOrderData!
 }
 
 # ========== DOMAIN TYPES ==========
@@ -114,6 +149,32 @@ type AvailablePaymentGroup {
   price: Float!
   description: String!
   imageUrl: String!
+}
+
+type Booking {
+  id: Int!
+  purchaseOrder: String!
+  currentCode: String!
+  initBooking: String!
+  finishBooking: String!
+  lockerPosition: Int!
+  installationName: String!
+  createdAt: String!
+}
+
+type PurchaseOrderData {
+  oc: String!
+  email: String!
+  phone: String!
+  discount: Float!
+  productPrice: Int!
+  finalProductPrice: Int!
+  productName: String!
+  productDescription: String!
+  lockerPosition: Int!
+  installationName: String!
+  status: String!
+  createdAt: String!
 }
 
 # ========== ENUMS ==========
