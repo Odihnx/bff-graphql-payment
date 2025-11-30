@@ -18,17 +18,31 @@ const (
 	PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR       PaymentManagerResponseStatus = 2
 )
 
-// GetPaymentInfraByIDRequest represents the request for getting payment infra by ID
+// GetPaymentInfraByIDRequest represents the request for getting payment infra by ID (DEPRECATED)
 type GetPaymentInfraByIDRequest struct {
 	PaymentRackId string `json:"payment_rack_id"`
 }
 
-// GetPaymentInfraByIDResponse represents the response for getting payment infra by ID
+// GetPaymentInfraByIDResponse represents the response for getting payment infra by ID (DEPRECATED)
 type GetPaymentInfraByIDResponse struct {
 	Response     *PaymentManagerGenericResponse `json:"response"`
 	PaymentRack  *PaymentRackRecord             `json:"payment_rack"`
 	Installation *PaymentInstallationRecord     `json:"installation"`
 	BookingTimes []*PaymentBookingTimeRecord    `json:"booking_times"`
+}
+
+// GetPaymentInfraByQrValueRequest represents the request for getting payment infra by QR value
+type GetPaymentInfraByQrValueRequest struct {
+	QrValue string `json:"qr_value"`
+}
+
+// GetPaymentInfraByQrValueResponse represents the response for getting payment infra by QR value
+type GetPaymentInfraByQrValueResponse struct {
+	Response     *PaymentManagerGenericResponse `json:"response"`
+	PaymentRack  *PaymentRackRecord             `json:"payment_rack"`
+	Installation *PaymentInstallationRecord     `json:"installation"`
+	BookingTimes []*PaymentBookingTimeRecord    `json:"booking_times"`
+	TraceId      string                         `json:"trace_id"`
 }
 
 // PaymentInstallationRecord represents installation data
