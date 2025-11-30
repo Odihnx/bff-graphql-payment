@@ -76,8 +76,7 @@ func main() {
 	// Iniciar servidor en goroutine
 	go func() {
 		log.Printf("🚀 GraphQL Payment BFF Server ready at http://localhost:%s/", cfg.Server.Port)
-		log.Printf("📊 GraphQL Playground available at http://localhost:%s/", cfg.Server.Port)
-		log.Printf("❤️ Health check available at http://localhost:%s/ping", cfg.Server.Port)
+		log.Printf("❤️  Health check available at http://localhost:%s/ping", cfg.Server.Port)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
