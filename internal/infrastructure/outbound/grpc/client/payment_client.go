@@ -36,14 +36,14 @@ func NewPaymentServiceGRPCClient(serverAddress string, timeout time.Duration) (*
 	}, nil
 }
 
-// GetPaymentInfraByID implementa PaymentInfraRepository.GetPaymentInfraByID
-func (c *PaymentServiceGRPCClient) GetPaymentInfraByID(ctx context.Context, paymentRackID string) (*model.PaymentInfra, error) {
+// GetPaymentInfraByQrValue implementa PaymentInfraRepository.GetPaymentInfraByQrValue
+func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context, qrValue string) (*model.PaymentInfra, error) {
 	// Crear contexto con timeout
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
 	// Crear request
-	request := c.mapper.ToCreateRequest(paymentRackID)
+	request := c.mapper.ToGetPaymentInfraByQrValueRequest(qrValue)
 
 	// Respuesta mock por ahora (ya que no tenemos el servidor gRPC real)
 	// En una implementación real, esto llamaría al servicio gRPC actual
@@ -128,32 +128,37 @@ func (c *PaymentServiceGRPCClient) Close() error {
 
 // mockGRPCCall simula una llamada gRPC para propósitos de desarrollo/testing
 // En producción, esto se reemplazaría con la llamada real al cliente gRPC
-func (c *PaymentServiceGRPCClient) mockGRPCCall(request *dto.GetPaymentInfraByIDRequest) *dto.GetPaymentInfraByIDResponse {
-	// Simular diferentes respuestas basadas en el ID del rack para testing
-	if request.PaymentRackId == "" {
-		return &dto.GetPaymentInfraByIDResponse{
+func (c *PaymentServiceGRPCClient) mockGRPCCall(request *dto.GetPaymentInfraByQrValueRequest) *dto.GetPaymentInfraByQrValueResponse {
+	// Simular diferentes respuestas basadas en el valor QR para testing
+	if request.QrValue == "" {
+		return &dto.GetPaymentInfraByQrValueResponse{
 			Response: &dto.PaymentManagerGenericResponse{
 				TransactionId: time.Now().Format("20060102150405"),
-				Message:       "ID de rack inválido",
+				Message:       "Valor QR inválido",
 				Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR,
 			},
+			TraceId: "trace-" + time.Now().Format("20060102150405"),
 		}
 	}
 
 	// Respuesta mock exitosa
-	return &dto.GetPaymentInfraByIDResponse{
+	return &dto.GetPaymentInfraByQrValueResponse{
 		Response: &dto.PaymentManagerGenericResponse{
 			TransactionId: time.Now().Format("20060102150405"),
 			Message:       "Success",
 			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
 		},
+		TraceId: "trace-" + time.Now().Format("20060102150405"),
 		PaymentRack: &dto.PaymentRackRecord{
-			Id:      1,
-			Address: "Chicureo",
+			Id:          1,
+			Description: "Rack Principal Chicureo",
+			Address:     "Chicureo",
 		},
 		Installation: &dto.PaymentInstallationRecord{
 			Id:       1,
 			Name:     "DEV PAGO",
+			Region:   "Metropolitana",
+			City:     "Colina",
 			Address:  "Chicureo",
 			ImageUrl: "https://www.image.cl/image.jpg",
 		},
