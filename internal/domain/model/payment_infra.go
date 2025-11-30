@@ -5,6 +5,7 @@ type PaymentInfra struct {
 	TransactionID string
 	Message       string
 	Status        ResponseStatus
+	TraceID       string
 	PaymentRack   *PaymentRack
 	Installation  *PaymentInstallation
 	BookingTimes  []PaymentBookingTime
