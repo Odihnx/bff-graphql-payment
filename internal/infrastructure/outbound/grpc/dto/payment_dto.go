@@ -185,3 +185,56 @@ type PurchaseOrderRecord struct {
 	Status             string  `json:"status"`
 	CreatedAt          string  `json:"created_at"`
 }
+
+// CheckBookingStatusRequest represents the request for checking booking status
+type CheckBookingStatusRequest struct {
+	ServiceName string `json:"service_name"`
+	CurrentCode string `json:"current_code"`
+}
+
+// CheckBookingStatusResponse represents the response for checking booking status
+type CheckBookingStatusResponse struct {
+	Booking  *BookingStatusRecord           `json:"booking"`
+	Response *PaymentManagerGenericResponse `json:"response"`
+}
+
+// BookingStatusRecord represents the complete booking status data
+type BookingStatusRecord struct {
+	Id                     int32  `json:"id"`
+	ConfigurationBookingId int32  `json:"configuration_booking_id"`
+	InitBooking            string `json:"init_booking"`
+	FinishBooking          string `json:"finish_booking"`
+	InstallationName       string `json:"installation_name"`
+	NumberLocker           int32  `json:"number_locker"`
+	DeviceId               string `json:"device_id"`
+	CurrentCode            string `json:"current_code"`
+	Openings               int32  `json:"openings"`
+	ServiceName            string `json:"service_name"`
+	EmailRecipient         string `json:"email_recipient"`
+	CreatedAt              string `json:"created_at"`
+	UpdatedAt              string `json:"updated_at"`
+}
+
+// ExecuteOpenRequest represents the request for executing locker opening
+type ExecuteOpenRequest struct {
+	ServiceName string `json:"service_name"`
+	CurrentCode string `json:"current_code"`
+}
+
+// ExecuteOpenResponse represents the response for executing locker opening
+type ExecuteOpenResponse struct {
+	Status   OpenStatus                     `json:"status"`
+	Response *PaymentManagerGenericResponse `json:"response"`
+}
+
+// OpenStatus enum
+type OpenStatus int32
+
+const (
+	OpenStatus_OPEN_STATUS_UNSPECIFIED OpenStatus = 0
+	OpenStatus_OPEN_STATUS_RECEIVED    OpenStatus = 1
+	OpenStatus_OPEN_STATUS_REQUESTED   OpenStatus = 2
+	OpenStatus_OPEN_STATUS_EXECUTED    OpenStatus = 3
+	OpenStatus_OPEN_STATUS_ERROR       OpenStatus = 4
+	OpenStatus_OPEN_STATUS_SUCCESS     OpenStatus = 5
+)
