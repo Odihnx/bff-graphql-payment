@@ -121,9 +121,12 @@ func getConfig() config.Config {
 		cfg.General.Environment = env
 	}
 
-	// Mock configuration
+	// Mock configuration - default is true, set to false if USE_MOCK explicitly set to "false"
+	cfg.General.UseMock = true // default
 	if useMock := os.Getenv("USE_MOCK"); useMock == "false" {
 		cfg.General.UseMock = false
+	} else if useMock == "true" {
+		cfg.General.UseMock = true
 	}
 
 	// Payment Service gRPC configuration (concatenate HOST:PORT like legacy)
