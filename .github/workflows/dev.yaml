@@ -56,12 +56,11 @@ jobs:
           echo "${{ secrets.BUF_TOKEN }}" | buf registry login buf.build --token-stdin
 
       # ------------------------
-      # Paso 4: Generar código Go desde registros remotos
+      # Paso 4: Generar código Go desde archivos proto locales
       # ------------------------
       - name: Generate Go code with Buf
         run: |
-          buf generate ${{ env.PROTO_BUF_REGISTRY_PAYMENT_API }}
-          buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }}
+          buf generate
           echo "📦 Generated proto files:"
           ls -R gen/
 
