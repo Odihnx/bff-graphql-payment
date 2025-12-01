@@ -60,8 +60,8 @@ jobs:
       # ------------------------
       - name: Generate Go code with Buf
         run: |
-          buf generate ${{ env.PROTO_BUF_REGISTRY_PAYMENT_API }}
-          buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }}
+          # Generate using local buf.yaml deps so paths/options apply
+          buf generate
           echo "📦 Generated proto files:"
           ls -R gen/
 
