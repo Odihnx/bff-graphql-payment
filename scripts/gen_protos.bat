@@ -12,21 +12,36 @@ IF EXIST gen\go (
   rmdir /S /Q gen\go
 )
 
-REM Ejecuta buf generate usando buf.gen.yaml y buf.yaml del proyecto
-buf generate
+REM Ejecuta buf generate para Payment Service
+echo.
+echo 📦 Generando archivos protobuf para Payment Service...
+buf generate buf.build/odihnx-prod/service-payment-manager --template buf.gen.payment.yaml
 IF ERRORLEVEL 1 (
-  echo Error al ejecutar buf generate
+  echo Error al generar protos para Payment Service
   exit /b 1
 )
 
-echo === Protos generados en gen\go ===
-
-REM Lista estructura básica generada
-IF EXIST gen\go\proto\payment (
-  echo - gen\go\proto\payment
+REM Ejecuta buf generate para Booking Service
+echo.
+echo 📦 Generando archivos protobuf para Booking Service...
+buf generate buf.build/odihnx-prod/service-booking-manager --template buf.gen.booking.yaml
+IF ERRORLEVEL 1 (
+  echo Error al generar protos para Booking Service
+  exit /b 1
 )
-IF EXIST gen\go\proto\booking (
-  echo - gen\go\proto\booking
+
+echo.
+echo === Protos generados exitosamente ===
+
+REM Lista estructura generada
+IF EXIST gen\go\proto\payment\v1 (
+  echo ✅ gen\go\proto\payment\v1
+  dir gen\go\proto\payment\v1 /b
+)
+echo.
+IF EXIST gen\go\proto\booking\v1 (
+  echo ✅ gen\go\proto\booking\v1
+  dir gen\go\proto\booking\v1 /b
 )
 
 ENDLOCAL
