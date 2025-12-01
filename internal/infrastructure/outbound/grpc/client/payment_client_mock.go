@@ -1,7 +1,7 @@
 package client
 
 import (
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/dto"
 	"time"
 )
 

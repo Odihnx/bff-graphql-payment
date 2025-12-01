@@ -3,11 +3,11 @@
 package generated
 
 import (
+	"bff-graphql-payment/graph/model"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"graphql-payment-bff/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"

@@ -1,15 +1,15 @@
 package client
 
 import (
+	bookingpb "bff-graphql-payment/gen/go/proto/booking"
+	paymentpb "bff-graphql-payment/gen/go/proto/payment"
+	"bff-graphql-payment/internal/application/ports"
+	"bff-graphql-payment/internal/domain/exception"
+	"bff-graphql-payment/internal/domain/model"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/dto"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/mapper"
 	"context"
 	"fmt"
-	bookingpb "graphql-payment-bff/gen/go/service_booking_manager/v1"
-	paymentpb "graphql-payment-bff/gen/go/service_payment_manager/v1"
-	"graphql-payment-bff/internal/application/ports"
-	"graphql-payment-bff/internal/domain/exception"
-	"graphql-payment-bff/internal/domain/model"
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/mapper"
 	"log"
 	"time"
 

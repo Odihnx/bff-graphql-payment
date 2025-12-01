@@ -1,10 +1,10 @@
 package mapper
 
 import (
-	bookingpb "graphql-payment-bff/gen/go/service_booking_manager/v1"
-	paymentpb "graphql-payment-bff/gen/go/service_payment_manager/v1"
-	"graphql-payment-bff/internal/domain/model"
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
+	bookingpb "bff-graphql-payment/gen/go/proto/booking"
+	paymentpb "bff-graphql-payment/gen/go/proto/payment"
+	"bff-graphql-payment/internal/domain/model"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/dto"
 )
 
 // PaymentInfraGRPCMapper maneja el mapeo entre modelos de dominio y DTOs de gRPC

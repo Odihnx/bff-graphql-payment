@@ -1,8 +1,8 @@
 package resolver
 
 import (
-	"graphql-payment-bff/internal/domain/ports"
-	"graphql-payment-bff/internal/infrastructure/inbound/graphql/mapper"
+	"bff-graphql-payment/internal/domain/ports"
+	"bff-graphql-payment/internal/infrastructure/inbound/graphql/mapper"
 )
 
 // This file will not be regenerated automatically.

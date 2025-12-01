@@ -1,8 +1,8 @@
 package ports
 
 import (
+	"bff-graphql-payment/internal/domain/model"
 	"context"
-	"graphql-payment-bff/internal/domain/model"
 )
 
 // PaymentInfraRepository define la interfaz del repositorio para datos de infraestructura de pagos

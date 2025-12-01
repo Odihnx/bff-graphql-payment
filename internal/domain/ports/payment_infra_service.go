@@ -1,8 +1,8 @@
 package ports
 
 import (
+	"bff-graphql-payment/internal/domain/model"
 	"context"
-	"graphql-payment-bff/internal/domain/model"
 )
 
 // PaymentInfraService define el caso de uso para operaciones de infraestructura de pagos

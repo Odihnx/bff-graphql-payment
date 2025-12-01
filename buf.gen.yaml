@@ -3,10 +3,10 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: graphql-payment-bff/gen/go
+      value: bff-graphql-payment/gen/go
       module: buf.build/odihnx-prod/service-payment-manager
     - file_option: go_package_prefix
-      value: graphql-payment-bff/gen/go
+      value: bff-graphql-payment/gen/go
       module: buf.build/odihnx-prod/service-booking-manager
 
 plugins:

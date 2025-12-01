@@ -1,10 +1,10 @@
 package service
 
 import (
+	"bff-graphql-payment/internal/application/ports"
+	"bff-graphql-payment/internal/domain/exception"
+	"bff-graphql-payment/internal/domain/model"
 	"context"
-	"graphql-payment-bff/internal/application/ports"
-	"graphql-payment-bff/internal/domain/exception"
-	"graphql-payment-bff/internal/domain/model"
 	"strings"
 )
 

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bff-graphql-payment/config"
+	"bff-graphql-payment/graph/generated"
 	"context"
-	"graphql-payment-bff/config"
-	"graphql-payment-bff/graph/generated"
 	"log"
 	"net/http"
 	"os"

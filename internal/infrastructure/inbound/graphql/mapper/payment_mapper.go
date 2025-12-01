@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"graphql-payment-bff/graph/model"
-	domainModel "graphql-payment-bff/internal/domain/model"
+	"bff-graphql-payment/graph/model"
+	domainModel "bff-graphql-payment/internal/domain/model"
 )
 
 // PaymentInfraGraphQLMapper maneja el mapeo entre modelos de dominio y DTOs de GraphQL
