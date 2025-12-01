@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	bookingpb "graphql-payment-bff/gen/go/proto/booking"
-	paymentpb "graphql-payment-bff/gen/go/proto/payment"
+	bookingpb "graphql-payment-bff/gen/go/service_booking_manager/v1"
+	paymentpb "graphql-payment-bff/gen/go/service_payment_manager/v1"
 	"graphql-payment-bff/internal/domain/model"
 	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
 )
