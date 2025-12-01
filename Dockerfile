@@ -8,16 +8,15 @@ RUN apk add --no-cache git ca-certificates tzdata curl && \
     curl -sSL "https://github.com/bufbuild/buf/releases/download/v1.47.2/buf-Linux-x86_64" -o /usr/local/bin/buf && \
     chmod +x /usr/local/bin/buf
 
-# Copiar archivos de configuración de buf y proto
-COPY buf.yaml buf.gen.yaml ./
-COPY proto ./proto
-
 # Instalar plugins de protobuf
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
+# Copiar archivos de configuración de buf
+COPY buf.yaml buf.gen.yaml ./
+
 # Generar código desde dependencias remotas de buf.build
-# Usar buf mod update para resolver dependencias y luego generar
+# buf mod update resuelve las dependencias y buf generate las genera
 RUN buf mod update && \
     buf generate buf.build/odihnx-prod/service-payment-manager && \
     buf generate buf.build/odihnx-prod/service-booking-manager
