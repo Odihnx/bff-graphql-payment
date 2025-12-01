@@ -25,7 +25,6 @@ gen/
 !README.md
 
 # Docker
-Dockerfile
 docker-compose.yml
 
 # Scripts

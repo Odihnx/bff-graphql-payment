@@ -17,8 +17,9 @@ RUN go mod download
 # Copiar el resto del código fuente
 COPY . .
 
-# Generar código desde protos remotos
-RUN buf generate
+# Generar código desde protos remotos de BSR
+RUN buf generate buf.build/odihnx-prod/service-payment-manager && \
+    buf generate buf.build/odihnx-prod/service-booking-manager
 
 # Compilar la aplicación
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
