@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	bookingpb "bff-graphql-payment/gen/go/proto/booking"
-	paymentpb "bff-graphql-payment/gen/go/proto/payment"
+	bookingpb "bff-graphql-payment/gen/go/proto/booking/v1"
+	paymentpb "bff-graphql-payment/gen/go/proto/payment/v1"
 	"bff-graphql-payment/internal/domain/model"
 	"bff-graphql-payment/internal/infrastructure/outbound/grpc/dto"
 )
@@ -398,7 +398,7 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPaymentInfraResponse(protoResp *paym
 	}
 
 	response := &dto.GetPaymentInfraByQrValueResponse{
-		TraceId: protoResp.TraceId,
+		TraceId: "", // TraceId no está en la respuesta del proto, se maneja en otro nivel
 	}
 
 	// Mapear response metadata

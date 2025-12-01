@@ -1,8 +1,8 @@
 package client
 
 import (
-	bookingpb "bff-graphql-payment/gen/go/proto/booking"
-	paymentpb "bff-graphql-payment/gen/go/proto/payment"
+	bookingpb "bff-graphql-payment/gen/go/proto/booking/v1"
+	paymentpb "bff-graphql-payment/gen/go/proto/payment/v1"
 	"bff-graphql-payment/internal/application/ports"
 	"bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
