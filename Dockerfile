@@ -2,6 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
+ENV GO111MODULE=on
 
 # Ensure Go modules mode is enabled inside the builder
 ENV GO111MODULE=on
