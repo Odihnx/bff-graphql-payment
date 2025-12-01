@@ -43,8 +43,8 @@ jobs:
       # ------------------------
       - name: Install Go Plugins for Buf
         run: |
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
         env:
           GOBIN: /usr/local/bin
 
@@ -64,6 +64,15 @@ jobs:
           buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }}
           echo "📦 Generated proto files:"
           ls -R gen/
+
+      # ------------------------
+      # Paso 4.1: Verificar estructura generada
+      # ------------------------
+      - name: Verify generated paths
+        run: |
+          test -d gen/go/proto/payment || (echo "missing gen/go/proto/payment" && exit 1)
+          test -d gen/go/proto/booking || (echo "missing gen/go/proto/booking" && exit 1)
+          echo "✅ gen/go/proto structure verified"
 
       # ------------------------
       # Paso 5: Configurar credenciales AWS
