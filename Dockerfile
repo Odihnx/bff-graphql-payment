@@ -3,14 +3,30 @@ FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-# Instalar dependencias necesarias
-RUN apk add --no-cache git ca-certificates tzdata
+# Instalar dependencias necesarias incluyendo buf
+RUN apk add --no-cache git ca-certificates tzdata curl && \
+    curl -sSL "https://github.com/bufbuild/buf/releases/download/v1.47.2/buf-Linux-x86_64" -o /usr/local/bin/buf && \
+    chmod +x /usr/local/bin/buf
+
+# Copiar archivos de configuración de buf y proto
+COPY buf.yaml buf.gen.yaml ./
+COPY proto ./proto
+
+# Instalar plugins de protobuf
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+# Generar código desde dependencias remotas de buf.build
+# Usar buf mod update para resolver dependencias y luego generar
+RUN buf mod update && \
+    buf generate buf.build/odihnx-prod/service-payment-manager && \
+    buf generate buf.build/odihnx-prod/service-booking-manager
 
 # Copiar go mod y sum
 COPY go.mod go.sum ./
 RUN go mod download
 
-    # Copy source code (including generated proto files)
+# Copiar el resto del código fuente
 COPY . .
 
 # Compilar la aplicación
