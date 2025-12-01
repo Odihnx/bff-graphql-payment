@@ -46,7 +46,7 @@ jobs:
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
         env:
-          GOBIN: /usr/local/bin   # instala directamente en /usr/local/bin (ya está en $PATH)
+          GOBIN: /usr/local/bin
 
       # ------------------------
       # Paso 3: Login en Buf Registry
@@ -98,7 +98,6 @@ jobs:
           docker push $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG
         env:
           IMAGE_TAG: ${{ github.sha }}
-
 
       # ------------------------
       # Paso 8: Checkout GitOps repo

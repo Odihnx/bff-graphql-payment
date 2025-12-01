@@ -9,9 +9,6 @@ build/
 *.so
 *.dylib
 
-# Generated code (se regenerará en Docker)
-gen/
-
 # IDE
 .vscode/
 .idea/

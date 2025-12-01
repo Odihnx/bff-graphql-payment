@@ -3,29 +3,15 @@ FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-# Instalar dependencias necesarias incluyendo buf
-RUN apk add --no-cache git ca-certificates tzdata curl && \
-    curl -sSL "https://github.com/bufbuild/buf/releases/download/v1.47.2/buf-Linux-x86_64" -o /usr/local/bin/buf && \
-    chmod +x /usr/local/bin/buf
+# Instalar dependencias necesarias
+RUN apk add --no-cache git ca-certificates tzdata
 
-# Argumento para token de BSR (opcional si los repos son públicos)
-ARG BUF_TOKEN
-
-# Copiar archivos de configuración de buf y go
-COPY buf.yaml buf.gen.yaml go.mod go.sum ./
-
-# Descargar dependencias de Go
+# Copiar go mod y sum
+COPY go.mod go.sum ./
 RUN go mod download
 
-# Copiar el resto del código fuente
+# Copiar código fuente (incluyendo gen/ generado previamente en workflow)
 COPY . .
-
-# Autenticar con BSR si se proporciona token y generar código
-RUN if [ -n "$BUF_TOKEN" ]; then \
-        echo "$BUF_TOKEN" | buf registry login buf.build --username _ --token-stdin; \
-    fi && \
-    buf generate buf.build/odihnx-prod/service-payment-manager && \
-    buf generate buf.build/odihnx-prod/service-booking-manager
 
 # Compilar la aplicación
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
