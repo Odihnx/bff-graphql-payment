@@ -120,7 +120,7 @@ func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, rackIdR
 func (s *PaymentInfraService) GenerateBooking(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string) (*model.Booking, error) {
 	// Validar entrada
 	if rackIdReference <= 0 {
-		return nil, exception.ErrInvalidRackID
+		return nil, domainException.ErrInvalidPaymentRackID
 	}
 
 	if groupID <= 0 {
