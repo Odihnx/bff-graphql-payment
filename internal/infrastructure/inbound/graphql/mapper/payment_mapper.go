@@ -3,6 +3,7 @@ package mapper
 import (
 	"bff-graphql-payment/graph/model"
 	domainModel "bff-graphql-payment/internal/domain/model"
+	"fmt"
 )
 
 // PaymentInfraGraphQLMapper maneja el mapeo entre modelos de dominio y DTOs de GraphQL
@@ -173,18 +174,20 @@ func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderDataResponse(orderData *domai
 		Status:        m.mapResponseStatus(orderData.Status),
 		TraceID:       orderData.TraceID,
 		PurchaseOrderData: &model.PurchaseOrderData{
+			CouponID:           orderData.CouponID,
+			BookingReference:   orderData.BookingReference,
 			Oc:                 orderData.OC,
 			Email:              orderData.Email,
 			Phone:              orderData.Phone,
-			Discount:           float64(orderData.Discount),
+			Discount:           orderData.Discount,
 			ProductPrice:       orderData.ProductPrice,
-			FinalProductPrice:  orderData.FinalProductPrice,
+			FinalProductPrice:  fmt.Sprintf("%d", orderData.FinalProductPrice),
 			ProductName:        orderData.ProductName,
 			ProductDescription: orderData.ProductDescription,
 			LockerPosition:     orderData.LockerPosition,
 			InstallationName:   orderData.InstallationName,
+			DeviceSerieNum:     orderData.DeviceSerieNum,
 			Status:             orderData.OrderStatus,
-			CreatedAt:          orderData.CreatedAt,
 		},
 	}
 }
