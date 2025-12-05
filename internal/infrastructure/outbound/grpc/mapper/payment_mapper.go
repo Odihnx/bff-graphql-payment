@@ -436,7 +436,6 @@ func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *b
 			TransactionId: protoResp.Response.TransactionId,
 			Message:       protoResp.Response.Message,
 			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
-			TraceId:       protoResp.Response.TraceId,
 		}
 	}
 
