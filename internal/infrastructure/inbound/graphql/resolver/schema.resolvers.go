@@ -14,7 +14,7 @@ import (
 // GeneratePurchaseOrder is the resolver for the generatePurchaseOrder field.
 func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error) {
 	// Llamar al caso de uso
-	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
+	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.RackIDReference, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate purchase order: %w", err)
 	}
@@ -26,7 +26,7 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 // GenerateBooking is the resolver for the generateBooking field.
 func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error) {
 	// Llamar al caso de uso
-	booking, err := r.paymentInfraService.GenerateBooking(ctx, input.PurchaseOrder, input.TraceID)
+	booking, err := r.paymentInfraService.GenerateBooking(ctx, input.RackIDReference, input.GroupID, input.CouponCode, input.UserEmail, input.UserPhone, input.TraceID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate booking: %w", err)
 	}
