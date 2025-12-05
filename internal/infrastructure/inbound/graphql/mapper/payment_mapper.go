@@ -157,16 +157,7 @@ func (m *PaymentInfraGraphQLMapper) ToBookingResponse(booking *domainModel.Booki
 		Message:       booking.Message,
 		Status:        m.mapResponseStatus(booking.Status),
 		TraceID:       booking.TraceID,
-		Booking: &model.Booking{
-			ID:               booking.ID,
-			PurchaseOrder:    booking.PurchaseOrder,
-			CurrentCode:      booking.CurrentCode,
-			InitBooking:      booking.InitBooking,
-			FinishBooking:    booking.FinishBooking,
-			LockerPosition:   booking.LockerPosition,
-			InstallationName: booking.InstallationName,
-			CreatedAt:        booking.CreatedAt,
-		},
+		Code:          booking.Code,
 	}
 }
 
@@ -185,7 +176,7 @@ func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderDataResponse(orderData *domai
 			Oc:                 orderData.OC,
 			Email:              orderData.Email,
 			Phone:              orderData.Phone,
-			Discount:           orderData.Discount,
+			Discount:           float64(orderData.Discount),
 			ProductPrice:       orderData.ProductPrice,
 			FinalProductPrice:  orderData.FinalProductPrice,
 			ProductName:        orderData.ProductName,

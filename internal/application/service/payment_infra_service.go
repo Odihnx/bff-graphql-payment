@@ -3,6 +3,7 @@ package service
 import (
 	"bff-graphql-payment/internal/application/ports"
 	"bff-graphql-payment/internal/domain/exception"
+	domainException "bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
 	"context"
 	"strings"
@@ -80,8 +81,12 @@ func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, coupon
 }
 
 // GeneratePurchaseOrder genera una orden de compra
-func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
+func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
 	// Validar entrada
+	if rackIdReference <= 0 {
+		return nil, domainException.ErrInvalidPaymentRackID
+	}
+
 	if groupID <= 0 {
 		return nil, exception.ErrInvalidGroupID
 	}
