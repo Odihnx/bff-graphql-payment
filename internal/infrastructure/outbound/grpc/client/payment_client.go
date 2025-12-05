@@ -172,11 +172,35 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 
 	request := c.mapper.ToValidateCouponRequest(couponCode, rackID, traceID)
 
-	// Mock por ahora
-	response := c.mockValidateCoupon(request)
+	var response *dto.ValidateDiscountCouponResponse
+
+	// Usar mock o llamada real según configuración
+	if c.useMock {
+		response = c.mockValidateCoupon(request)
+	} else {
+		// Llamada real al servicio gRPC
+		grpcRequest := &paymentpb.ValidateDiscountCouponRequest{
+			CouponCode: request.CouponCode,
+			RackId:     request.RackId,
+			TraceId:    request.TraceId,
+		}
+
+		grpcResponse, err := c.grpcClient.ValidateDiscountCoupon(ctx, grpcRequest)
+		if err != nil {
+			log.Printf("❌ ValidateDiscountCoupon gRPC call failed: %v", err)
+			return nil, c.mapGRPCError(err)
+		}
+
+		// Mapear respuesta de gRPC a DTO
+		response = c.mapper.FromGRPCValidateDiscountCouponResponse(grpcResponse)
+	}
 
 	if response == nil {
 		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		return nil, exception.ErrInvalidCoupon
 	}
 
 	return c.mapper.ToCouponValidationDomain(response), nil

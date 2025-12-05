@@ -24,6 +24,9 @@ var (
 	// ErrCouponNotFound se devuelve cuando no se encuentra el cupón
 	ErrCouponNotFound = errors.New("coupon not found")
 
+	// ErrInvalidCoupon se devuelve cuando el cupón es inválido
+	ErrInvalidCoupon = errors.New("invalid coupon")
+
 	// ErrInvalidGroupID se devuelve cuando el ID del grupo es inválido
 	ErrInvalidGroupID = errors.New("invalid group ID")
 

@@ -100,7 +100,7 @@ type ValidateDiscountCouponRequest struct {
 // ValidateDiscountCouponResponse represents the response for validating a discount coupon
 type ValidateDiscountCouponResponse struct {
 	Response           *PaymentManagerGenericResponse `json:"response"`
-	DiscountPercentage float64                        `json:"discount_percentage"`
+	DiscountPercentage float64                        `json:"discount_percentage"` // double in proto, float64 in Go
 }
 
 // GeneratePurchaseOrderRequest represents the request for generating a purchase order
