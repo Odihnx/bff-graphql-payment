@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type AvailableLockersResponse struct {
+type AvailableLockersByRackIDAndBookingTimeResponse struct {
 	TransactionID   string                   `json:"transactionId"`
 	Message         string                   `json:"message"`
 	Status          ResponseStatus           `json:"status"`
@@ -100,7 +100,7 @@ type GeneratePurchaseOrderResponse struct {
 	URL           string         `json:"url"`
 }
 
-type GetAvailableLockersInput struct {
+type GetAvailableLockersByRackIDAndBookingTimeInput struct {
 	PaymentRackID int    `json:"paymentRackId"`
 	BookingTimeID int    `json:"bookingTimeId"`
 	TraceID       string `json:"traceId"`

@@ -59,8 +59,8 @@ func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input mode
 	return r.mapper.ToGraphQLResponse(paymentInfra), nil
 }
 
-// GetAvailableLockers is the resolver for the getAvailableLockers field.
-func (r *queryResolver) GetAvailableLockers(ctx context.Context, input model.GetAvailableLockersInput) (*model.AvailableLockersResponse, error) {
+// GetAvailableLockersByRackIDAndBookingTime is the resolver for the getAvailableLockersByRackIDAndBookingTime field.
+func (r *queryResolver) GetAvailableLockersByRackIDAndBookingTime(ctx context.Context, input model.GetAvailableLockersByRackIDAndBookingTimeInput) (*model.AvailableLockersByRackIDAndBookingTimeResponse, error) {
 	// Llamar al caso de uso
 	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID, input.TraceID)
 	if err != nil {
@@ -68,7 +68,7 @@ func (r *queryResolver) GetAvailableLockers(ctx context.Context, input model.Get
 	}
 
 	// Mapear a respuesta GraphQL
-	return r.mapper.ToAvailableLockersResponse(lockers), nil
+	return r.mapper.ToAvailableLockersByRackIDAndBookingTimeResponse(lockers), nil
 }
 
 // ValidateDiscountCoupon is the resolver for the validateDiscountCoupon field.

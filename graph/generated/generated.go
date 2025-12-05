@@ -46,7 +46,7 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	AvailableLockersResponse struct {
+	AvailableLockersByRackIDAndBookingTimeResponse struct {
 		AvailableGroups func(childComplexity int) int
 		Message         func(childComplexity int) int
 		Status          func(childComplexity int) int
@@ -172,11 +172,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CheckBookingStatus       func(childComplexity int, input model.CheckBookingStatusInput) int
-		GetAvailableLockers      func(childComplexity int, input model.GetAvailableLockersInput) int
-		GetPaymentInfraByQRValue func(childComplexity int, input model.GetPaymentInfraByQRValueInput) int
-		GetPurchaseOrderByPo     func(childComplexity int, input model.GetPurchaseOrderByPoInput) int
-		ValidateDiscountCoupon   func(childComplexity int, input model.ValidateDiscountCouponInput) int
+		CheckBookingStatus                        func(childComplexity int, input model.CheckBookingStatusInput) int
+		GetAvailableLockersByRackIDAndBookingTime func(childComplexity int, input model.GetAvailableLockersByRackIDAndBookingTimeInput) int
+		GetPaymentInfraByQRValue                  func(childComplexity int, input model.GetPaymentInfraByQRValueInput) int
+		GetPurchaseOrderByPo                      func(childComplexity int, input model.GetPurchaseOrderByPoInput) int
+		ValidateDiscountCoupon                    func(childComplexity int, input model.ValidateDiscountCouponInput) int
 	}
 
 	ValidateDiscountCouponResponse struct {
@@ -195,7 +195,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error)
-	GetAvailableLockers(ctx context.Context, input model.GetAvailableLockersInput) (*model.AvailableLockersResponse, error)
+	GetAvailableLockersByRackIDAndBookingTime(ctx context.Context, input model.GetAvailableLockersByRackIDAndBookingTimeInput) (*model.AvailableLockersByRackIDAndBookingTimeResponse, error)
 	ValidateDiscountCoupon(ctx context.Context, input model.ValidateDiscountCouponInput) (*model.ValidateDiscountCouponResponse, error)
 	GetPurchaseOrderByPo(ctx context.Context, input model.GetPurchaseOrderByPoInput) (*model.PurchaseOrderResponse, error)
 	CheckBookingStatus(ctx context.Context, input model.CheckBookingStatusInput) (*model.CheckBookingStatusResponse, error)
@@ -220,40 +220,40 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AvailableLockersResponse.availableGroups":
-		if e.complexity.AvailableLockersResponse.AvailableGroups == nil {
+	case "AvailableLockersByRackIDAndBookingTimeResponse.availableGroups":
+		if e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.AvailableGroups == nil {
 			break
 		}
 
-		return e.complexity.AvailableLockersResponse.AvailableGroups(childComplexity), true
+		return e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.AvailableGroups(childComplexity), true
 
-	case "AvailableLockersResponse.message":
-		if e.complexity.AvailableLockersResponse.Message == nil {
+	case "AvailableLockersByRackIDAndBookingTimeResponse.message":
+		if e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.Message == nil {
 			break
 		}
 
-		return e.complexity.AvailableLockersResponse.Message(childComplexity), true
+		return e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.Message(childComplexity), true
 
-	case "AvailableLockersResponse.status":
-		if e.complexity.AvailableLockersResponse.Status == nil {
+	case "AvailableLockersByRackIDAndBookingTimeResponse.status":
+		if e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.Status == nil {
 			break
 		}
 
-		return e.complexity.AvailableLockersResponse.Status(childComplexity), true
+		return e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.Status(childComplexity), true
 
-	case "AvailableLockersResponse.traceId":
-		if e.complexity.AvailableLockersResponse.TraceID == nil {
+	case "AvailableLockersByRackIDAndBookingTimeResponse.traceId":
+		if e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.TraceID == nil {
 			break
 		}
 
-		return e.complexity.AvailableLockersResponse.TraceID(childComplexity), true
+		return e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.TraceID(childComplexity), true
 
-	case "AvailableLockersResponse.transactionId":
-		if e.complexity.AvailableLockersResponse.TransactionID == nil {
+	case "AvailableLockersByRackIDAndBookingTimeResponse.transactionId":
+		if e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.TransactionID == nil {
 			break
 		}
 
-		return e.complexity.AvailableLockersResponse.TransactionID(childComplexity), true
+		return e.complexity.AvailableLockersByRackIDAndBookingTimeResponse.TransactionID(childComplexity), true
 
 	case "AvailablePaymentGroup.description":
 		if e.complexity.AvailablePaymentGroup.Description == nil {
@@ -828,17 +828,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Query.CheckBookingStatus(childComplexity, args["input"].(model.CheckBookingStatusInput)), true
 
-	case "Query.getAvailableLockers":
-		if e.complexity.Query.GetAvailableLockers == nil {
+	case "Query.getAvailableLockersByRackIDAndBookingTime":
+		if e.complexity.Query.GetAvailableLockersByRackIDAndBookingTime == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getAvailableLockers_args(ctx, rawArgs)
+		args, err := ec.field_Query_getAvailableLockersByRackIDAndBookingTime_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetAvailableLockers(childComplexity, args["input"].(model.GetAvailableLockersInput)), true
+		return e.complexity.Query.GetAvailableLockersByRackIDAndBookingTime(childComplexity, args["input"].(model.GetAvailableLockersByRackIDAndBookingTimeInput)), true
 
 	case "Query.getPaymentInfraByQrValue":
 		if e.complexity.Query.GetPaymentInfraByQRValue == nil {
@@ -923,7 +923,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExecuteOpenInput,
 		ec.unmarshalInputGenerateBookingInput,
 		ec.unmarshalInputGeneratePurchaseOrderInput,
-		ec.unmarshalInputGetAvailableLockersInput,
+		ec.unmarshalInputGetAvailableLockersByRackIDAndBookingTimeInput,
 		ec.unmarshalInputGetPaymentInfraByQrValueInput,
 		ec.unmarshalInputGetPurchaseOrderByPoInput,
 		ec.unmarshalInputValidateDiscountCouponInput,
@@ -1028,8 +1028,8 @@ var sources = []*ast.Source{
   # Payment Infrastructure by QR Value
   getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
   
-  # Available Lockers
-  getAvailableLockers(input: GetAvailableLockersInput!): AvailableLockersResponse!
+  # Available Lockers by Rack ID and Booking Time
+  getAvailableLockersByRackIDAndBookingTime(input: GetAvailableLockersByRackIDAndBookingTimeInput!): AvailableLockersByRackIDAndBookingTimeResponse!
   
   # Validate Discount Coupon
   validateDiscountCoupon(input: ValidateDiscountCouponInput!): ValidateDiscountCouponResponse!
@@ -1058,7 +1058,7 @@ input GetPaymentInfraByQrValueInput {
   qrValue: String!
 }
 
-input GetAvailableLockersInput {
+input GetAvailableLockersByRackIDAndBookingTimeInput {
   paymentRackId: Int!
   bookingTimeId: Int!
   traceId: String!
@@ -1116,7 +1116,7 @@ type PaymentInfraResponse {
   bookingTimes: [PaymentBookingTime!]!
 }
 
-type AvailableLockersResponse {
+type AvailableLockersByRackIDAndBookingTimeResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!
@@ -1322,10 +1322,10 @@ func (ec *executionContext) field_Query_checkBookingStatus_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getAvailableLockers_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Query_getAvailableLockersByRackIDAndBookingTime_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGetAvailableLockersInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGetAvailableLockersInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGetAvailableLockersByRackIDAndBookingTimeInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGetAvailableLockersByRackIDAndBookingTimeInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1418,8 +1418,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AvailableLockersResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AvailableLockersResponse_transactionId(ctx, field)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_transactionId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1449,9 +1449,9 @@ func (ec *executionContext) _AvailableLockersResponse_transactionId(ctx context.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AvailableLockersResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AvailableLockersResponse",
+		Object:     "AvailableLockersByRackIDAndBookingTimeResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1462,8 +1462,8 @@ func (ec *executionContext) fieldContext_AvailableLockersResponse_transactionId(
 	return fc, nil
 }
 
-func (ec *executionContext) _AvailableLockersResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AvailableLockersResponse_message(ctx, field)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_message(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1493,9 +1493,9 @@ func (ec *executionContext) _AvailableLockersResponse_message(ctx context.Contex
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AvailableLockersResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AvailableLockersResponse",
+		Object:     "AvailableLockersByRackIDAndBookingTimeResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1506,8 +1506,8 @@ func (ec *executionContext) fieldContext_AvailableLockersResponse_message(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _AvailableLockersResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AvailableLockersResponse_status(ctx, field)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1537,9 +1537,9 @@ func (ec *executionContext) _AvailableLockersResponse_status(ctx context.Context
 	return ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AvailableLockersResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AvailableLockersResponse",
+		Object:     "AvailableLockersByRackIDAndBookingTimeResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1550,8 +1550,8 @@ func (ec *executionContext) fieldContext_AvailableLockersResponse_status(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _AvailableLockersResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AvailableLockersResponse_traceId(ctx, field)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_traceId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1581,9 +1581,9 @@ func (ec *executionContext) _AvailableLockersResponse_traceId(ctx context.Contex
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AvailableLockersResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AvailableLockersResponse",
+		Object:     "AvailableLockersByRackIDAndBookingTimeResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1594,8 +1594,8 @@ func (ec *executionContext) fieldContext_AvailableLockersResponse_traceId(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _AvailableLockersResponse_availableGroups(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AvailableLockersResponse_availableGroups(ctx, field)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse_availableGroups(ctx context.Context, field graphql.CollectedField, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_availableGroups(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1625,9 +1625,9 @@ func (ec *executionContext) _AvailableLockersResponse_availableGroups(ctx contex
 	return ec.marshalNAvailablePaymentGroup2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailablePaymentGroupᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AvailableLockersResponse_availableGroups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_availableGroups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AvailableLockersResponse",
+		Object:     "AvailableLockersByRackIDAndBookingTimeResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5301,8 +5301,8 @@ func (ec *executionContext) fieldContext_Query_getPaymentInfraByQrValue(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getAvailableLockers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getAvailableLockers(ctx, field)
+func (ec *executionContext) _Query_getAvailableLockersByRackIDAndBookingTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getAvailableLockersByRackIDAndBookingTime(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5315,7 +5315,7 @@ func (ec *executionContext) _Query_getAvailableLockers(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAvailableLockers(rctx, fc.Args["input"].(model.GetAvailableLockersInput))
+		return ec.resolvers.Query().GetAvailableLockersByRackIDAndBookingTime(rctx, fc.Args["input"].(model.GetAvailableLockersByRackIDAndBookingTimeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5327,12 +5327,12 @@ func (ec *executionContext) _Query_getAvailableLockers(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.AvailableLockersResponse)
+	res := resTmp.(*model.AvailableLockersByRackIDAndBookingTimeResponse)
 	fc.Result = res
-	return ec.marshalNAvailableLockersResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersResponse(ctx, field.Selections, res)
+	return ec.marshalNAvailableLockersByRackIDAndBookingTimeResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersByRackIDAndBookingTimeResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getAvailableLockers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getAvailableLockersByRackIDAndBookingTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5341,17 +5341,17 @@ func (ec *executionContext) fieldContext_Query_getAvailableLockers(ctx context.C
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "transactionId":
-				return ec.fieldContext_AvailableLockersResponse_transactionId(ctx, field)
+				return ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_transactionId(ctx, field)
 			case "message":
-				return ec.fieldContext_AvailableLockersResponse_message(ctx, field)
+				return ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AvailableLockersResponse_status(ctx, field)
+				return ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_status(ctx, field)
 			case "traceId":
-				return ec.fieldContext_AvailableLockersResponse_traceId(ctx, field)
+				return ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_traceId(ctx, field)
 			case "availableGroups":
-				return ec.fieldContext_AvailableLockersResponse_availableGroups(ctx, field)
+				return ec.fieldContext_AvailableLockersByRackIDAndBookingTimeResponse_availableGroups(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AvailableLockersResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AvailableLockersByRackIDAndBookingTimeResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -5361,7 +5361,7 @@ func (ec *executionContext) fieldContext_Query_getAvailableLockers(ctx context.C
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getAvailableLockers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_getAvailableLockersByRackIDAndBookingTime_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8068,8 +8068,8 @@ func (ec *executionContext) unmarshalInputGeneratePurchaseOrderInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputGetAvailableLockersInput(ctx context.Context, obj any) (model.GetAvailableLockersInput, error) {
-	var it model.GetAvailableLockersInput
+func (ec *executionContext) unmarshalInputGetAvailableLockersByRackIDAndBookingTimeInput(ctx context.Context, obj any) (model.GetAvailableLockersByRackIDAndBookingTimeInput, error) {
+	var it model.GetAvailableLockersByRackIDAndBookingTimeInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -8219,39 +8219,39 @@ func (ec *executionContext) unmarshalInputValidateDiscountCouponInput(ctx contex
 
 // region    **************************** object.gotpl ****************************
 
-var availableLockersResponseImplementors = []string{"AvailableLockersResponse"}
+var availableLockersByRackIDAndBookingTimeResponseImplementors = []string{"AvailableLockersByRackIDAndBookingTimeResponse"}
 
-func (ec *executionContext) _AvailableLockersResponse(ctx context.Context, sel ast.SelectionSet, obj *model.AvailableLockersResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, availableLockersResponseImplementors)
+func (ec *executionContext) _AvailableLockersByRackIDAndBookingTimeResponse(ctx context.Context, sel ast.SelectionSet, obj *model.AvailableLockersByRackIDAndBookingTimeResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, availableLockersByRackIDAndBookingTimeResponseImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("AvailableLockersResponse")
+			out.Values[i] = graphql.MarshalString("AvailableLockersByRackIDAndBookingTimeResponse")
 		case "transactionId":
-			out.Values[i] = ec._AvailableLockersResponse_transactionId(ctx, field, obj)
+			out.Values[i] = ec._AvailableLockersByRackIDAndBookingTimeResponse_transactionId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "message":
-			out.Values[i] = ec._AvailableLockersResponse_message(ctx, field, obj)
+			out.Values[i] = ec._AvailableLockersByRackIDAndBookingTimeResponse_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "status":
-			out.Values[i] = ec._AvailableLockersResponse_status(ctx, field, obj)
+			out.Values[i] = ec._AvailableLockersByRackIDAndBookingTimeResponse_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "traceId":
-			out.Values[i] = ec._AvailableLockersResponse_traceId(ctx, field, obj)
+			out.Values[i] = ec._AvailableLockersByRackIDAndBookingTimeResponse_traceId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "availableGroups":
-			out.Values[i] = ec._AvailableLockersResponse_availableGroups(ctx, field, obj)
+			out.Values[i] = ec._AvailableLockersByRackIDAndBookingTimeResponse_availableGroups(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9156,7 +9156,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getAvailableLockers":
+		case "getAvailableLockersByRackIDAndBookingTime":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -9165,7 +9165,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getAvailableLockers(ctx, field)
+				res = ec._Query_getAvailableLockersByRackIDAndBookingTime(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -9669,18 +9669,18 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAvailableLockersResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersResponse(ctx context.Context, sel ast.SelectionSet, v model.AvailableLockersResponse) graphql.Marshaler {
-	return ec._AvailableLockersResponse(ctx, sel, &v)
+func (ec *executionContext) marshalNAvailableLockersByRackIDAndBookingTimeResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersByRackIDAndBookingTimeResponse(ctx context.Context, sel ast.SelectionSet, v model.AvailableLockersByRackIDAndBookingTimeResponse) graphql.Marshaler {
+	return ec._AvailableLockersByRackIDAndBookingTimeResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAvailableLockersResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersResponse(ctx context.Context, sel ast.SelectionSet, v *model.AvailableLockersResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAvailableLockersByRackIDAndBookingTimeResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailableLockersByRackIDAndBookingTimeResponse(ctx context.Context, sel ast.SelectionSet, v *model.AvailableLockersByRackIDAndBookingTimeResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._AvailableLockersResponse(ctx, sel, v)
+	return ec._AvailableLockersByRackIDAndBookingTimeResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAvailablePaymentGroup2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐAvailablePaymentGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AvailablePaymentGroup) graphql.Marshaler {
@@ -9845,8 +9845,8 @@ func (ec *executionContext) marshalNGeneratePurchaseOrderResponse2ᚖbffᚑgraph
 	return ec._GeneratePurchaseOrderResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGetAvailableLockersInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGetAvailableLockersInput(ctx context.Context, v any) (model.GetAvailableLockersInput, error) {
-	res, err := ec.unmarshalInputGetAvailableLockersInput(ctx, v)
+func (ec *executionContext) unmarshalNGetAvailableLockersByRackIDAndBookingTimeInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGetAvailableLockersByRackIDAndBookingTimeInput(ctx context.Context, v any) (model.GetAvailableLockersByRackIDAndBookingTimeInput, error) {
+	res, err := ec.unmarshalInputGetAvailableLockersByRackIDAndBookingTimeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

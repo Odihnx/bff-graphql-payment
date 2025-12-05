@@ -422,6 +422,41 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPaymentInfraResponse(protoResp *paym
 	return response
 }
 
+// FromGRPCGetAvailableLockersByRackIDAndBookingTimeResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGetAvailableLockersByRackIDAndBookingTimeResponse(protoResp *paymentpb.GetAvailableLockersByRackIDAndBookingTimeResponse) *dto.GetAvailableLockersResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GetAvailableLockersResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear AvailableGroups
+	if len(protoResp.AvailableGroup) > 0 {
+		response.AvailableGroups = make([]*dto.AvailablePaymentGroupRecord, len(protoResp.AvailableGroup))
+		for i, ag := range protoResp.AvailableGroup {
+			response.AvailableGroups[i] = &dto.AvailablePaymentGroupRecord{
+				GroupId:     ag.GroupId,
+				Name:        ag.Name,
+				Price:       ag.Price,
+				Description: ag.Description,
+				ImageUrl:    ag.ImageUrl,
+			}
+		}
+	}
+
+	return response
+}
+
 // FromGRPCCheckBookingStatusResponse mapea la respuesta proto de gRPC de booking al DTO interno
 func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *bookingpb.CheckBookingStatusResponse) *dto.CheckBookingStatusResponse {
 	if protoResp == nil {

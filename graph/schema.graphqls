@@ -2,8 +2,8 @@ type Query {
   # Payment Infrastructure by QR Value
   getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
   
-  # Available Lockers
-  getAvailableLockers(input: GetAvailableLockersInput!): AvailableLockersResponse!
+  # Available Lockers by Rack ID and Booking Time
+  getAvailableLockersByRackIDAndBookingTime(input: GetAvailableLockersByRackIDAndBookingTimeInput!): AvailableLockersByRackIDAndBookingTimeResponse!
   
   # Validate Discount Coupon
   validateDiscountCoupon(input: ValidateDiscountCouponInput!): ValidateDiscountCouponResponse!
@@ -32,7 +32,7 @@ input GetPaymentInfraByQrValueInput {
   qrValue: String!
 }
 
-input GetAvailableLockersInput {
+input GetAvailableLockersByRackIDAndBookingTimeInput {
   paymentRackId: Int!
   bookingTimeId: Int!
   traceId: String!
@@ -90,7 +90,7 @@ type PaymentInfraResponse {
   bookingTimes: [PaymentBookingTime!]!
 }
 
-type AvailableLockersResponse {
+type AvailableLockersByRackIDAndBookingTimeResponse {
   transactionId: String!
   message: String!
   status: ResponseStatus!

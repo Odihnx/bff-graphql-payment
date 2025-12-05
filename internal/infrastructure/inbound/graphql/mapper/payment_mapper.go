@@ -90,13 +90,13 @@ func (m *PaymentInfraGraphQLMapper) mapUnitMeasurement(unit domainModel.UnitMeas
 	}
 }
 
-// ToAvailableLockersResponse mapea el modelo de dominio a respuesta GraphQL
-func (m *PaymentInfraGraphQLMapper) ToAvailableLockersResponse(lockers *domainModel.AvailableLockers) *model.AvailableLockersResponse {
+// ToAvailableLockersByRackIDAndBookingTimeResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToAvailableLockersByRackIDAndBookingTimeResponse(lockers *domainModel.AvailableLockers) *model.AvailableLockersByRackIDAndBookingTimeResponse {
 	if lockers == nil {
 		return nil
 	}
 
-	response := &model.AvailableLockersResponse{
+	response := &model.AvailableLockersByRackIDAndBookingTimeResponse{
 		TransactionID:   lockers.TransactionID,
 		Message:         lockers.Message,
 		Status:          m.mapResponseStatus(lockers.Status),

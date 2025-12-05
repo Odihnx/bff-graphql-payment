@@ -131,8 +131,28 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 
 	request := c.mapper.ToGetAvailableLockersRequest(paymentRackID, bookingTimeID, traceID)
 
-	// Mock por ahora
-	response := c.mockGetAvailableLockers(request)
+	var response *dto.GetAvailableLockersResponse
+
+	// Usar mock o llamada real según configuración
+	if c.useMock {
+		response = c.mockGetAvailableLockers(request)
+	} else {
+		// Llamada real al servicio gRPC con el método correcto del proto
+		grpcRequest := &paymentpb.GetAvailableLockersByRackIDAndBookingTimeRequest{
+			PaymentRackId: request.PaymentRackId,
+			BookingTimeId: request.BookingTimeId,
+			TraceId:       request.TraceId,
+		}
+
+		grpcResponse, err := c.grpcClient.GetAvailableLockersByRackIDAndBookingTime(ctx, grpcRequest)
+		if err != nil {
+			log.Printf("❌ gRPC call failed: %v", err)
+			return nil, c.mapGRPCError(err)
+		}
+
+		// Mapear respuesta de gRPC a DTO
+		response = c.mapper.FromGRPCGetAvailableLockersByRackIDAndBookingTimeResponse(grpcResponse)
+	}
 
 	if response == nil {
 		return nil, exception.ErrPaymentInfraServiceUnavailable
