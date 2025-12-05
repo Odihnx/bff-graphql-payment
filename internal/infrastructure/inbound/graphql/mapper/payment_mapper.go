@@ -127,7 +127,6 @@ func (m *PaymentInfraGraphQLMapper) ToValidateCouponResponse(validation *domainM
 		Message:            validation.Message,
 		Status:             m.mapResponseStatus(validation.Status),
 		TraceID:            validation.TraceID,
-		IsValid:            validation.IsValid,
 		DiscountPercentage: validation.DiscountPercentage,
 	}
 }
@@ -139,20 +138,11 @@ func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderResponse(order *domainModel.P
 	}
 
 	return &model.GeneratePurchaseOrderResponse{
-		TransactionID:      order.TransactionID,
-		Message:            order.Message,
-		Status:             m.mapResponseStatus(order.Status),
-		TraceID:            order.TraceID,
-		Oc:                 order.OC,
-		Email:              order.Email,
-		Phone:              order.Phone,
-		Discount:           order.Discount,
-		ProductPrice:       order.ProductPrice,
-		FinalProductPrice:  order.FinalProductPrice,
-		ProductName:        order.ProductName,
-		ProductDescription: order.ProductDescription,
-		LockerPosition:     order.LockerPosition,
-		InstallationName:   order.InstallationName,
+		TransactionID: order.TransactionID,
+		Message:       order.Message,
+		Status:        m.mapResponseStatus(order.Status),
+		TraceID:       order.TraceID,
+		URL:           order.URL,
 	}
 }
 
