@@ -7,6 +7,7 @@ type PaymentManagerGenericResponse struct {
 	TransactionId string                       `json:"transaction_id"`
 	Message       string                       `json:"message"`
 	Status        PaymentManagerResponseStatus `json:"status"`
+	TraceId       string                       `json:"trace_id"`
 }
 
 // PaymentManagerResponseStatus enum
@@ -26,14 +27,13 @@ type GetPaymentInfraByQrValueRequest struct {
 // GetPaymentInfraByQrValueResponse represents the response for getting payment infra by QR value
 type GetPaymentInfraByQrValueResponse struct {
 	Response     *PaymentManagerGenericResponse `json:"response"`
-	PaymentRack  *PaymentRackRecord             `json:"payment_rack"`
-	Installation *PaymentInstallationRecord     `json:"installation"`
-	BookingTimes []*PaymentBookingTimeRecord    `json:"booking_times"`
-	TraceId      string                         `json:"trace_id"`
+	PaymentRack  *RackRecord                    `json:"payment_rack"`
+	Installation *InstallationRecord            `json:"installation"`
+	BookingTimes []*BookingTimeRecord           `json:"booking_times"`
 }
 
-// PaymentInstallationRecord represents installation data
-type PaymentInstallationRecord struct {
+// InstallationRecord represents installation data
+type InstallationRecord struct {
 	Id       int32  `json:"id"`
 	Name     string `json:"name"`
 	Region   string `json:"region"`
@@ -42,15 +42,15 @@ type PaymentInstallationRecord struct {
 	ImageUrl string `json:"image_url"`
 }
 
-// PaymentRackRecord represents payment rack data
-type PaymentRackRecord struct {
+// RackRecord represents payment rack data
+type RackRecord struct {
 	Id          int32  `json:"id"`
 	Description string `json:"description"`
 	Address     string `json:"address"`
 }
 
-// PaymentBookingTimeRecord represents booking time configuration
-type PaymentBookingTimeRecord struct {
+// BookingTimeRecord represents booking time configuration
+type BookingTimeRecord struct {
 	Id              int32           `json:"id"`
 	Name            string          `json:"name"`
 	UnitMeasurement UnitMeasurement `json:"unit_measurement"`
@@ -79,7 +79,6 @@ type GetAvailableLockersRequest struct {
 type GetAvailableLockersResponse struct {
 	Response        *PaymentManagerGenericResponse `json:"response"`
 	AvailableGroups []*AvailablePaymentGroupRecord `json:"available_groups"`
-	TraceId         string                         `json:"trace_id"`
 }
 
 // AvailablePaymentGroupRecord represents an available payment group
@@ -101,48 +100,40 @@ type ValidateDiscountCouponRequest struct {
 // ValidateDiscountCouponResponse represents the response for validating a discount coupon
 type ValidateDiscountCouponResponse struct {
 	Response           *PaymentManagerGenericResponse `json:"response"`
-	IsValid            bool                           `json:"is_valid"`
-	DiscountPercentage float32                        `json:"discount_percentage"`
-	TraceId            string                         `json:"trace_id"`
+	DiscountPercentage float64                        `json:"discount_percentage"`
 }
 
 // GeneratePurchaseOrderRequest represents the request for generating a purchase order
 type GeneratePurchaseOrderRequest struct {
-	GroupId     int32  `json:"group_id"`
-	CouponCode  string `json:"coupon_code"`
-	UserEmail   string `json:"user_email"`
-	UserPhone   string `json:"user_phone"`
-	TraceId     string `json:"trace_id"`
-	GatewayName string `json:"gateway_name"`
+	RackIdReference int32   `json:"rack_id_reference"`
+	GroupId         int32   `json:"group_id"`
+	CouponCode      *string `json:"coupon_code"`
+	UserEmail       string  `json:"user_email"`
+	UserPhone       string  `json:"user_phone"`
+	TraceId         string  `json:"trace_id"`
+	GatewayName     string  `json:"gateway_name"`
 }
 
 // GeneratePurchaseOrderResponse represents the response for generating a purchase order
 type GeneratePurchaseOrderResponse struct {
-	Response           *PaymentManagerGenericResponse `json:"response"`
-	Oc                 string                         `json:"oc"`
-	Email              string                         `json:"email"`
-	Phone              string                         `json:"phone"`
-	Discount           float32                        `json:"discount"`
-	ProductPrice       int32                          `json:"product_price"`
-	FinalProductPrice  int32                          `json:"final_product_price"`
-	ProductName        string                         `json:"product_name"`
-	ProductDescription string                         `json:"product_description"`
-	LockerPosition     int32                          `json:"locker_position"`
-	InstallationName   string                         `json:"installation_name"`
-	TraceId            string                         `json:"trace_id"`
+	Response *PaymentManagerGenericResponse `json:"response"`
+	Url      string                         `json:"url"`
 }
 
 // GenerateBookingRequest represents the request for generating a booking
 type GenerateBookingRequest struct {
-	PurchaseOrder string `json:"purchase_order"`
-	TraceId       string `json:"trace_id"`
+	RackIdReference int32   `json:"rack_id_reference"`
+	GroupId         int32   `json:"group_id"`
+	CouponCode      *string `json:"coupon_code"`
+	UserEmail       string  `json:"user_email"`
+	UserPhone       string  `json:"user_phone"`
+	TraceId         string  `json:"trace_id"`
 }
 
 // GenerateBookingResponse represents the response for generating a booking
 type GenerateBookingResponse struct {
 	Response *PaymentManagerGenericResponse `json:"response"`
-	Booking  *BookingRecord                 `json:"booking"`
-	TraceId  string                         `json:"trace_id"`
+	Code     string                         `json:"code"`
 }
 
 // GetPurchaseOrderByPoRequest represents the request for getting a purchase order by PO
@@ -153,37 +144,26 @@ type GetPurchaseOrderByPoRequest struct {
 
 // GetPurchaseOrderByPoResponse represents the response for getting a purchase order by PO
 type GetPurchaseOrderByPoResponse struct {
-	Response          *PaymentManagerGenericResponse `json:"response"`
-	PurchaseOrderData *PurchaseOrderRecord           `json:"purchase_order_data"`
-	TraceId           string                         `json:"trace_id"`
-}
-
-// BookingRecord represents a booking
-type BookingRecord struct {
-	Id               int32  `json:"id"`
-	PurchaseOrder    string `json:"purchase_order"`
-	CurrentCode      string `json:"current_code"`
-	InitBooking      string `json:"init_booking"`
-	FinishBooking    string `json:"finish_booking"`
-	LockerPosition   int32  `json:"locker_position"`
-	InstallationName string `json:"installation_name"`
-	CreatedAt        string `json:"created_at"`
+	Response      *PaymentManagerGenericResponse `json:"response"`
+	PurchaseOrder *PurchaseOrderRecord           `json:"purchase_order"`
 }
 
 // PurchaseOrderRecord represents a purchase order
 type PurchaseOrderRecord struct {
-	Oc                 string  `json:"oc"`
-	Email              string  `json:"email"`
-	Phone              string  `json:"phone"`
-	Discount           float32 `json:"discount"`
-	ProductPrice       int32   `json:"product_price"`
-	FinalProductPrice  int32   `json:"final_product_price"`
-	ProductName        string  `json:"product_name"`
-	ProductDescription string  `json:"product_description"`
-	LockerPosition     int32   `json:"locker_position"`
-	InstallationName   string  `json:"installation_name"`
-	Status             string  `json:"status"`
-	CreatedAt          string  `json:"created_at"`
+	CouponId           int32  `json:"coupon_id"`
+	BookingReference   int32  `json:"booking_reference"`
+	Oc                 string `json:"oc"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Discount           int32  `json:"discount"`
+	ProductPrice       int32  `json:"product_price"`
+	FinalProductPrice  int64  `json:"final_product_price"`
+	ProductName        string `json:"product_name"`
+	ProductDescription string `json:"product_description"`
+	LockerPosition     int32  `json:"locker_position"`
+	InstallationName   string `json:"installation_name"`
+	DeviceSerieNum     string `json:"device_serie_num"`
+	Status             string `json:"status"`
 }
 
 // CheckBookingStatusRequest represents the request for checking booking status
