@@ -223,14 +223,11 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 		grpcRequest := &paymentpb.GeneratePurchaseOrderRequest{
 			RackIdReference: request.RackIdReference,
 			GroupId:         request.GroupId,
+			CouponCode:      request.CouponCode, // Se asigna directamente, nil si no se proporciona
 			UserEmail:       request.UserEmail,
 			UserPhone:       request.UserPhone,
 			TraceId:         request.TraceId,
 			GatewayName:     request.GatewayName,
-		}
-
-		if request.CouponCode != nil {
-			grpcRequest.CouponCode = request.CouponCode
 		}
 
 		grpcResponse, err := c.grpcClient.GeneratePurchaseOrder(ctx, grpcRequest)
@@ -271,13 +268,10 @@ func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdRe
 		grpcRequest := &paymentpb.GenerateBookingRequest{
 			RackIdReference: request.RackIdReference,
 			GroupId:         request.GroupId,
+			CouponCode:      request.CouponCode, // Se asigna directamente, nil si no se proporciona
 			UserEmail:       request.UserEmail,
 			UserPhone:       request.UserPhone,
 			TraceId:         request.TraceId,
-		}
-
-		if request.CouponCode != nil {
-			grpcRequest.CouponCode = request.CouponCode
 		}
 
 		grpcResponse, err := c.grpcClient.GenerateBooking(ctx, grpcRequest)
