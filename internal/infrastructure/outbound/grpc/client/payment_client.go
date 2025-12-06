@@ -213,10 +213,19 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 
 	request := c.mapper.ToGeneratePurchaseOrderRequest(rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 
+	// Log detallado del request
+	couponCodeValue := "nil"
+	if request.CouponCode != nil {
+		couponCodeValue = fmt.Sprintf("\"%s\"", *request.CouponCode)
+	}
+	log.Printf("🔵 GeneratePurchaseOrder - Request: rackId=%d, groupId=%d, couponCode=%s, email=%s, phone=%s, traceId=%s, gateway=%s",
+		request.RackIdReference, request.GroupId, couponCodeValue, request.UserEmail, request.UserPhone, request.TraceId, request.GatewayName)
+
 	var response *dto.GeneratePurchaseOrderResponse
 
 	// Usar mock o llamada real según configuración
 	if c.useMock {
+		log.Printf("🟡 Using MOCK mode for GeneratePurchaseOrder")
 		response = c.mockGeneratePurchaseOrder(request)
 	} else {
 		// Llamada real al servicio gRPC
@@ -230,23 +239,30 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 			GatewayName:     request.GatewayName,
 		}
 
+		log.Printf("🟢 Calling real gRPC service for GeneratePurchaseOrder")
 		grpcResponse, err := c.grpcClient.GeneratePurchaseOrder(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ GeneratePurchaseOrder gRPC call failed: %v", err)
+			log.Printf("❌ Error details - Type: %T, Message: %s", err, err.Error())
 			return nil, c.mapGRPCError(err)
 		}
 
+		log.Printf("✅ GeneratePurchaseOrder gRPC call succeeded")
 		// Mapear respuesta de gRPC a DTO
 		response = c.mapper.FromGRPCGeneratePurchaseOrderResponse(grpcResponse)
 	}
 
 	if response == nil {
+		log.Printf("❌ GeneratePurchaseOrder - Response is nil")
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		log.Printf("❌ GeneratePurchaseOrder - Response status is ERROR: %s", response.Response.Message)
 		return nil, exception.ErrPurchaseOrderFailed
 	}
+
+	log.Printf("✅ GeneratePurchaseOrder - Success: transactionId=%s, url=%s", response.Response.TransactionId, response.Url)
 
 	return c.mapper.ToPurchaseOrderDomain(response), nil
 }

@@ -19,12 +19,22 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 		couponCode = nil
 	}
 
+	// Log para debug
+	couponCodeLog := "nil"
+	if couponCode != nil {
+		couponCodeLog = fmt.Sprintf("\"%s\"", *couponCode)
+	}
+	fmt.Printf("🔷 GraphQL Resolver - GeneratePurchaseOrder: rackId=%d, groupId=%d, couponCode=%s, email=%s, phone=%s, traceId=%s, gateway=%s\n",
+		input.RackIDReference, input.GroupID, couponCodeLog, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
+
 	// Llamar al caso de uso
 	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
+		fmt.Printf("❌ GraphQL Resolver - GeneratePurchaseOrder failed: %v\n", err)
 		return nil, fmt.Errorf("failed to generate purchase order: %w", err)
 	}
 
+	fmt.Printf("✅ GraphQL Resolver - GeneratePurchaseOrder succeeded\n")
 	// Mapear a respuesta GraphQL
 	return r.mapper.ToPurchaseOrderResponse(order), nil
 }
