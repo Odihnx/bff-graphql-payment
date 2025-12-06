@@ -213,8 +213,35 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 
 	request := c.mapper.ToGeneratePurchaseOrderRequest(rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 
-	// Mock por ahora
-	response := c.mockGeneratePurchaseOrder(request)
+	var response *dto.GeneratePurchaseOrderResponse
+
+	// Usar mock o llamada real según configuración
+	if c.useMock {
+		response = c.mockGeneratePurchaseOrder(request)
+	} else {
+		// Llamada real al servicio gRPC
+		grpcRequest := &paymentpb.GeneratePurchaseOrderRequest{
+			RackIdReference: request.RackIdReference,
+			GroupId:         request.GroupId,
+			UserEmail:       request.UserEmail,
+			UserPhone:       request.UserPhone,
+			TraceId:         request.TraceId,
+			GatewayName:     request.GatewayName,
+		}
+
+		if request.CouponCode != nil {
+			grpcRequest.CouponCode = request.CouponCode
+		}
+
+		grpcResponse, err := c.grpcClient.GeneratePurchaseOrder(ctx, grpcRequest)
+		if err != nil {
+			log.Printf("❌ GeneratePurchaseOrder gRPC call failed: %v", err)
+			return nil, c.mapGRPCError(err)
+		}
+
+		// Mapear respuesta de gRPC a DTO
+		response = c.mapper.FromGRPCGeneratePurchaseOrderResponse(grpcResponse)
+	}
 
 	if response == nil {
 		return nil, exception.ErrPaymentInfraServiceUnavailable

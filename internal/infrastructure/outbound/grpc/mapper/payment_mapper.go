@@ -481,6 +481,30 @@ func (m *PaymentInfraGRPCMapper) FromGRPCValidateDiscountCouponResponse(protoRes
 	return response
 }
 
+// FromGRPCGeneratePurchaseOrderResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGeneratePurchaseOrderResponse(protoResp *paymentpb.GeneratePurchaseOrderResponse) *dto.GeneratePurchaseOrderResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GeneratePurchaseOrderResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear URL
+	response.Url = protoResp.Url
+
+	return response
+}
+
 // FromGRPCGenerateBookingResponse mapea la respuesta proto de gRPC al DTO interno
 func (m *PaymentInfraGRPCMapper) FromGRPCGenerateBookingResponse(protoResp *paymentpb.GenerateBookingResponse) *dto.GenerateBookingResponse {
 	if protoResp == nil {
