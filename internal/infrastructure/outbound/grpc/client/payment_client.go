@@ -10,6 +10,7 @@ import (
 	"bff-graphql-payment/internal/infrastructure/outbound/grpc/mapper"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -420,7 +421,12 @@ func (c *PaymentServiceGRPCClient) ExecuteOpen(ctx context.Context, serviceName 
 			resp, err := stream.Recv()
 			if err != nil {
 				// io.EOF significa que el stream terminó normalmente
-				if err.Error() == "EOF" {
+				if err == io.EOF {
+					break
+				}
+				// Si ya recibimos al menos una respuesta, preferimos usarla
+				if lastResponse != nil {
+					log.Printf("⚠️ ExecuteOpen stream recv error after responses: %v", err)
 					break
 				}
 				log.Printf("❌ ExecuteOpen failed to receive: %v", err)
@@ -435,17 +441,20 @@ func (c *PaymentServiceGRPCClient) ExecuteOpen(ctx context.Context, serviceName 
 			return nil, exception.ErrPaymentInfraServiceUnavailable
 		}
 
-		// Convertir a DTO interno
-		response = &dto.ExecuteOpenResponse{
-			Status: dto.OpenStatus(lastResponse.Status),
-			Response: &dto.PaymentManagerGenericResponse{
-				TransactionId: lastResponse.Response.TransactionId,
-				Message:       lastResponse.Response.Message,
-				Status:        dto.PaymentManagerResponseStatus(lastResponse.Response.Status),
-			},
+		// Convertir a DTO interno (proteger nils)
+		genericResp := &dto.PaymentManagerGenericResponse{}
+		if lastResponse.Response != nil {
+			genericResp.TransactionId = lastResponse.Response.TransactionId
+			genericResp.Message = lastResponse.Response.Message
+			genericResp.Status = dto.PaymentManagerResponseStatus(lastResponse.Response.Status)
 		}
 
-		log.Printf("✅ ExecuteOpen - Stream completed successfully")
+		response = &dto.ExecuteOpenResponse{
+			Status:   dto.OpenStatus(lastResponse.Status),
+			Response: genericResp,
+		}
+
+		log.Printf("✅ ExecuteOpen - Stream handling completed (lastStatus=%v)", lastResponse.Status)
 	}
 
 	if response == nil {
@@ -454,8 +463,9 @@ func (c *PaymentServiceGRPCClient) ExecuteOpen(ctx context.Context, serviceName 
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
-		log.Printf("❌ ExecuteOpen - Response status is ERROR: %s", response.Response.Message)
-		return nil, exception.ErrExecuteOpenFailed
+		log.Printf("⚠️ ExecuteOpen - Response status is ERROR: %s", response.Response.Message)
+		// Devolvemos el resultado tal cual para que el caller (GraphQL) pueda mostrar el estado/reportado por booking
+		return c.mapper.ToExecuteOpenDomain(response), nil
 	}
 
 	log.Printf("✅ ExecuteOpen - Success: status=%v, message=%s", response.Status, response.Response.Message)
