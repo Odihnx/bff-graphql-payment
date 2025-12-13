@@ -1,10 +1,11 @@
 package service
 
 import (
+	"bff-graphql-payment/internal/application/ports"
+	"bff-graphql-payment/internal/domain/exception"
+	domainException "bff-graphql-payment/internal/domain/exception"
+	"bff-graphql-payment/internal/domain/model"
 	"context"
-	"graphql-payment-bff/internal/application/ports"
-	"graphql-payment-bff/internal/domain/exception"
-	"graphql-payment-bff/internal/domain/model"
 	"strings"
 )
 
@@ -80,8 +81,12 @@ func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, coupon
 }
 
 // GeneratePurchaseOrder genera una orden de compra
-func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
+func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
 	// Validar entrada
+	if rackIdReference <= 0 {
+		return nil, domainException.ErrInvalidPaymentRackID
+	}
+
 	if groupID <= 0 {
 		return nil, exception.ErrInvalidGroupID
 	}
@@ -103,7 +108,7 @@ func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID
 	}
 
 	// Llamar al repositorio
-	order, err := s.repo.GeneratePurchaseOrder(ctx, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
+	order, err := s.repo.GeneratePurchaseOrder(ctx, rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +117,14 @@ func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, groupID
 }
 
 // GenerateBooking genera una reserva de locker
-func (s *PaymentInfraService) GenerateBooking(ctx context.Context, purchaseOrder string, traceID string) (*model.Booking, error) {
+func (s *PaymentInfraService) GenerateBooking(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string) (*model.Booking, error) {
 	// Validar entrada
-	if strings.TrimSpace(purchaseOrder) == "" {
-		return nil, exception.ErrInvalidPurchaseOrder
+	if rackIdReference <= 0 {
+		return nil, domainException.ErrInvalidPaymentRackID
+	}
+
+	if groupID <= 0 {
+		return nil, exception.ErrInvalidGroupID
 	}
 
 	if strings.TrimSpace(traceID) == "" {
@@ -123,7 +132,7 @@ func (s *PaymentInfraService) GenerateBooking(ctx context.Context, purchaseOrder
 	}
 
 	// Llamar al repositorio
-	booking, err := s.repo.GenerateBooking(ctx, purchaseOrder, traceID)
+	booking, err := s.repo.GenerateBooking(ctx, rackIdReference, groupID, couponCode, userEmail, userPhone, traceID)
 	if err != nil {
 		return nil, err
 	}

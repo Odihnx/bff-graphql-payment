@@ -80,42 +80,25 @@ type DiscountCouponValidation struct {
 	Message            string
 	Status             ResponseStatus
 	TraceID            string
-	IsValid            bool
 	DiscountPercentage float64
 }
 
 // PurchaseOrder representa una orden de compra generada
 type PurchaseOrder struct {
-	TransactionID      string
-	Message            string
-	Status             ResponseStatus
-	TraceID            string
-	OC                 string
-	Email              string
-	Phone              string
-	Discount           float64
-	ProductPrice       int
-	FinalProductPrice  int
-	ProductName        string
-	ProductDescription string
-	LockerPosition     int
-	InstallationName   string
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+	URL           string
 }
 
 // Booking representa una reserva de locker
 type Booking struct {
-	TransactionID    string
-	Message          string
-	Status           ResponseStatus
-	TraceID          string
-	ID               int
-	PurchaseOrder    string
-	CurrentCode      string
-	InitBooking      string
-	FinishBooking    string
-	LockerPosition   int
-	InstallationName string
-	CreatedAt        string
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+	Code          string
 }
 
 // PurchaseOrderData representa los datos completos de una orden de compra
@@ -124,18 +107,20 @@ type PurchaseOrderData struct {
 	Message            string
 	Status             ResponseStatus
 	TraceID            string
+	CouponID           int
+	BookingReference   int
 	OC                 string
 	Email              string
 	Phone              string
-	Discount           float64
+	Discount           int
 	ProductPrice       int
-	FinalProductPrice  int
+	FinalProductPrice  int64
 	ProductName        string
 	ProductDescription string
 	LockerPosition     int
 	InstallationName   string
+	DeviceSerieNum     string
 	OrderStatus        string
-	CreatedAt          string
 }
 
 // BookingStatusCheck representa el resultado de verificar el estado de una reserva

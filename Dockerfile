@@ -1,7 +1,11 @@
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
+ENV GO111MODULE=on
+
+# Ensure Go modules mode is enabled inside the builder
+ENV GO111MODULE=on
 
 # Instalar dependencias necesarias
 RUN apk add --no-cache git ca-certificates tzdata
@@ -10,11 +14,11 @@ RUN apk add --no-cache git ca-certificates tzdata
 COPY go.mod go.sum ./
 RUN go mod download
 
-    # Copy source code (including generated proto files)
+# Copiar código fuente (incluyendo gen/ generado previamente en workflow)
 COPY . .
 
-# Compilar la aplicación
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
+# Compilar la aplicación (explicitly use modules)
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=mod -a -installsuffix cgo -o main cmd/server/main.go
 
 # Final stage
 FROM alpine:latest
@@ -37,7 +41,7 @@ ARG HOST_API_PAYMENT
 ARG PORT_API_PAYMENT
 ARG HOST_API_BOOKING
 ARG PORT_API_BOOKING
-ARG JWKS_COGNITO
+ARG USE_MOCK=false
 
 # --- Environment vars ---
 ENV ENV=${ENV}
@@ -46,8 +50,7 @@ ENV HOST_API_PAYMENT=${HOST_API_PAYMENT}
 ENV PORT_API_PAYMENT=${PORT_API_PAYMENT}
 ENV HOST_API_BOOKING=${HOST_API_BOOKING}
 ENV PORT_API_BOOKING=${PORT_API_BOOKING}
-ENV JWKS_COGNITO=${JWKS_COGNITO}
-ENV USE_MOCK=false
+ENV USE_MOCK=${USE_MOCK}
 
 # Expose port
 EXPOSE ${PORT}

@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type AvailableLockersResponse struct {
+type AvailableLockersByRackIDAndBookingTimeResponse struct {
 	TransactionID   string                   `json:"transactionId"`
 	Message         string                   `json:"message"`
 	Status          ResponseStatus           `json:"status"`
@@ -23,17 +23,6 @@ type AvailablePaymentGroup struct {
 	Price       float64 `json:"price"`
 	Description string  `json:"description"`
 	ImageURL    string  `json:"imageUrl"`
-}
-
-type Booking struct {
-	ID               int    `json:"id"`
-	PurchaseOrder    string `json:"purchaseOrder"`
-	CurrentCode      string `json:"currentCode"`
-	InitBooking      string `json:"initBooking"`
-	FinishBooking    string `json:"finishBooking"`
-	LockerPosition   int    `json:"lockerPosition"`
-	InstallationName string `json:"installationName"`
-	CreatedAt        string `json:"createdAt"`
 }
 
 type BookingStatusData struct {
@@ -77,8 +66,12 @@ type ExecuteOpenResponse struct {
 }
 
 type GenerateBookingInput struct {
-	PurchaseOrder string `json:"purchaseOrder"`
-	TraceID       string `json:"traceId"`
+	RackIDReference int     `json:"rackIdReference"`
+	GroupID         int     `json:"groupId"`
+	CouponCode      *string `json:"couponCode,omitempty"`
+	UserEmail       string  `json:"userEmail"`
+	UserPhone       string  `json:"userPhone"`
+	TraceID         string  `json:"traceId"`
 }
 
 type GenerateBookingResponse struct {
@@ -86,36 +79,28 @@ type GenerateBookingResponse struct {
 	Message       string         `json:"message"`
 	Status        ResponseStatus `json:"status"`
 	TraceID       string         `json:"traceId"`
-	Booking       *Booking       `json:"booking"`
+	Code          string         `json:"code"`
 }
 
 type GeneratePurchaseOrderInput struct {
-	GroupID     int     `json:"groupId"`
-	CouponCode  *string `json:"couponCode,omitempty"`
-	UserEmail   string  `json:"userEmail"`
-	UserPhone   string  `json:"userPhone"`
-	TraceID     string  `json:"traceId"`
-	GatewayName string  `json:"gatewayName"`
+	RackIDReference int     `json:"rackIdReference"`
+	GroupID         int     `json:"groupId"`
+	CouponCode      *string `json:"couponCode,omitempty"`
+	UserEmail       string  `json:"userEmail"`
+	UserPhone       string  `json:"userPhone"`
+	TraceID         string  `json:"traceId"`
+	GatewayName     string  `json:"gatewayName"`
 }
 
 type GeneratePurchaseOrderResponse struct {
-	TransactionID      string         `json:"transactionId"`
-	Message            string         `json:"message"`
-	Status             ResponseStatus `json:"status"`
-	TraceID            string         `json:"traceId"`
-	Oc                 string         `json:"oc"`
-	Email              string         `json:"email"`
-	Phone              string         `json:"phone"`
-	Discount           float64        `json:"discount"`
-	ProductPrice       int            `json:"productPrice"`
-	FinalProductPrice  int            `json:"finalProductPrice"`
-	ProductName        string         `json:"productName"`
-	ProductDescription string         `json:"productDescription"`
-	LockerPosition     int            `json:"lockerPosition"`
-	InstallationName   string         `json:"installationName"`
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+	URL           string         `json:"url"`
 }
 
-type GetAvailableLockersInput struct {
+type GetAvailableLockersByRackIDAndBookingTimeInput struct {
 	PaymentRackID int    `json:"paymentRackId"`
 	BookingTimeID int    `json:"bookingTimeId"`
 	TraceID       string `json:"traceId"`
@@ -166,18 +151,20 @@ type PaymentRack struct {
 }
 
 type PurchaseOrderData struct {
-	Oc                 string  `json:"oc"`
-	Email              string  `json:"email"`
-	Phone              string  `json:"phone"`
-	Discount           float64 `json:"discount"`
-	ProductPrice       int     `json:"productPrice"`
-	FinalProductPrice  int     `json:"finalProductPrice"`
-	ProductName        string  `json:"productName"`
-	ProductDescription string  `json:"productDescription"`
-	LockerPosition     int     `json:"lockerPosition"`
-	InstallationName   string  `json:"installationName"`
-	Status             string  `json:"status"`
-	CreatedAt          string  `json:"createdAt"`
+	CouponID           int    `json:"couponId"`
+	BookingReference   int    `json:"bookingReference"`
+	Oc                 string `json:"oc"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Discount           int    `json:"discount"`
+	ProductPrice       int    `json:"productPrice"`
+	FinalProductPrice  string `json:"finalProductPrice"`
+	ProductName        string `json:"productName"`
+	ProductDescription string `json:"productDescription"`
+	LockerPosition     int    `json:"lockerPosition"`
+	InstallationName   string `json:"installationName"`
+	DeviceSerieNum     string `json:"deviceSerieNum"`
+	Status             string `json:"status"`
 }
 
 type PurchaseOrderResponse struct {
@@ -202,7 +189,6 @@ type ValidateDiscountCouponResponse struct {
 	Message            string         `json:"message"`
 	Status             ResponseStatus `json:"status"`
 	TraceID            string         `json:"traceId"`
-	IsValid            bool           `json:"isValid"`
 	DiscountPercentage float64        `json:"discountPercentage"`
 }
 

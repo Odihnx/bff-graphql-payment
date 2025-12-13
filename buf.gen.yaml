@@ -1,12 +1,25 @@
-version: v1
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: bff-graphql-payment/gen/go/proto/payment
+      module: buf.build/odihnx-prod/service-payment-manager
+    - file_option: go_package_prefix
+      value: bff-graphql-payment/gen/go/proto/booking
+      module: buf.build/odihnx-prod/service-booking-manager
+
+inputs:
+  - module: buf.build/odihnx-prod/service-payment-manager
+  - module: buf.build/odihnx-prod/service-booking-manager
+
 plugins:
-  - plugin: buf.build/protocolbuffers/go
-    out: gen/go/v1
+  - local: protoc-gen-go
+    out: gen/go
+    opt: 
+      - paths=source_relative
+  
+  - local: protoc-gen-go-grpc
+    out: gen/go
     opt:
       - paths=source_relative
-      - module=bff-graphql-payment
-  - plugin: buf.build/grpc/go
-    out: gen/go/v1
-    opt:
-      - paths=source_relative
-      - module=bff-graphql-payment

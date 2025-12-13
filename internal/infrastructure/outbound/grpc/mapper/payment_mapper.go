@@ -1,8 +1,10 @@
 package mapper
 
 import (
-	"graphql-payment-bff/internal/domain/model"
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/dto"
+	bookingpb "bff-graphql-payment/gen/go/proto/booking/v1"
+	paymentpb "bff-graphql-payment/gen/go/proto/payment/v1"
+	"bff-graphql-payment/internal/domain/model"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/dto"
 )
 
 // PaymentInfraGRPCMapper maneja el mapeo entre modelos de dominio y DTOs de gRPC
@@ -20,7 +22,7 @@ func (m *PaymentInfraGRPCMapper) ToGetPaymentInfraByQrValueRequest(qrValue strin
 	}
 }
 
-// ToDomain mapea la respuesta gRPC al modelo de dominio
+// main mapea la respuesta gRPC al modelo de dominio
 func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByQrValueResponse) *model.PaymentInfra {
 	if response == nil {
 		return nil
@@ -33,10 +35,8 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByQrValue
 		paymentInfra.TransactionID = response.Response.TransactionId
 		paymentInfra.Message = response.Response.Message
 		paymentInfra.Status = m.mapResponseStatus(response.Response.Status)
+		paymentInfra.TraceID = response.Response.TraceId
 	}
-
-	// Mapear trace ID desde el nivel de respuesta
-	paymentInfra.TraceID = response.TraceId
 
 	// Mapear rack de pagos
 	if response.PaymentRack != nil {
@@ -126,9 +126,8 @@ func (m *PaymentInfraGRPCMapper) ToAvailableLockersDomain(response *dto.GetAvail
 		lockers.TransactionID = response.Response.TransactionId
 		lockers.Message = response.Response.Message
 		lockers.Status = m.mapResponseStatus(response.Response.Status)
+		lockers.TraceID = response.Response.TraceId
 	}
-
-	lockers.TraceID = response.TraceId
 
 	for _, group := range response.AvailableGroups {
 		lockers.AvailableGroups = append(lockers.AvailableGroups, model.AvailablePaymentGroup{
@@ -159,36 +158,30 @@ func (m *PaymentInfraGRPCMapper) ToCouponValidationDomain(response *dto.Validate
 	}
 
 	validation := &model.DiscountCouponValidation{
-		IsValid:            response.IsValid,
-		DiscountPercentage: float64(response.DiscountPercentage),
+		DiscountPercentage: response.DiscountPercentage,
 	}
 
 	if response.Response != nil {
 		validation.TransactionID = response.Response.TransactionId
 		validation.Message = response.Response.Message
 		validation.Status = m.mapResponseStatus(response.Response.Status)
+		validation.TraceID = response.Response.TraceId
 	}
-
-	validation.TraceID = response.TraceId
 
 	return validation
 }
 
 // ToGeneratePurchaseOrderRequest mapea a solicitud gRPC para orden de compra
-func (m *PaymentInfraGRPCMapper) ToGeneratePurchaseOrderRequest(groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) *dto.GeneratePurchaseOrderRequest {
-	req := &dto.GeneratePurchaseOrderRequest{
-		GroupId:     int32(groupID),
-		UserEmail:   userEmail,
-		UserPhone:   userPhone,
-		TraceId:     traceID,
-		GatewayName: gatewayName,
+func (m *PaymentInfraGRPCMapper) ToGeneratePurchaseOrderRequest(rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) *dto.GeneratePurchaseOrderRequest {
+	return &dto.GeneratePurchaseOrderRequest{
+		RackIdReference: int32(rackIdReference),
+		GroupId:         int32(groupID),
+		CouponCode:      couponCode,
+		UserEmail:       userEmail,
+		UserPhone:       userPhone,
+		TraceId:         traceID,
+		GatewayName:     gatewayName,
 	}
-
-	if couponCode != nil {
-		req.CouponCode = *couponCode
-	}
-
-	return req
 }
 
 // ToPurchaseOrderDomain mapea la respuesta gRPC al modelo de dominio de orden de compra
@@ -198,34 +191,28 @@ func (m *PaymentInfraGRPCMapper) ToPurchaseOrderDomain(response *dto.GeneratePur
 	}
 
 	order := &model.PurchaseOrder{
-		OC:                 response.Oc,
-		Email:              response.Email,
-		Phone:              response.Phone,
-		Discount:           float64(response.Discount),
-		ProductPrice:       int(response.ProductPrice),
-		FinalProductPrice:  int(response.FinalProductPrice),
-		ProductName:        response.ProductName,
-		ProductDescription: response.ProductDescription,
-		LockerPosition:     int(response.LockerPosition),
-		InstallationName:   response.InstallationName,
+		URL: response.Url,
 	}
 
 	if response.Response != nil {
 		order.TransactionID = response.Response.TransactionId
 		order.Message = response.Response.Message
 		order.Status = m.mapResponseStatus(response.Response.Status)
+		order.TraceID = response.Response.TraceId
 	}
-
-	order.TraceID = response.TraceId
 
 	return order
 }
 
 // ToGenerateBookingRequest mapea a solicitud gRPC para generar reserva
-func (m *PaymentInfraGRPCMapper) ToGenerateBookingRequest(purchaseOrder string, traceID string) *dto.GenerateBookingRequest {
+func (m *PaymentInfraGRPCMapper) ToGenerateBookingRequest(rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string) *dto.GenerateBookingRequest {
 	return &dto.GenerateBookingRequest{
-		PurchaseOrder: purchaseOrder,
-		TraceId:       traceID,
+		RackIdReference: int32(rackIdReference),
+		GroupId:         int32(groupID),
+		CouponCode:      couponCode,
+		UserEmail:       userEmail,
+		UserPhone:       userPhone,
+		TraceId:         traceID,
 	}
 }
 
@@ -235,25 +222,15 @@ func (m *PaymentInfraGRPCMapper) ToBookingDomain(response *dto.GenerateBookingRe
 		return nil
 	}
 
-	booking := &model.Booking{}
+	booking := &model.Booking{
+		Code: response.Code,
+	}
 
 	if response.Response != nil {
 		booking.TransactionID = response.Response.TransactionId
 		booking.Message = response.Response.Message
 		booking.Status = m.mapResponseStatus(response.Response.Status)
-	}
-
-	booking.TraceID = response.TraceId
-
-	if response.Booking != nil {
-		booking.ID = int(response.Booking.Id)
-		booking.PurchaseOrder = response.Booking.PurchaseOrder
-		booking.CurrentCode = response.Booking.CurrentCode
-		booking.InitBooking = response.Booking.InitBooking
-		booking.FinishBooking = response.Booking.FinishBooking
-		booking.LockerPosition = int(response.Booking.LockerPosition)
-		booking.InstallationName = response.Booking.InstallationName
-		booking.CreatedAt = response.Booking.CreatedAt
+		booking.TraceID = response.Response.TraceId
 	}
 
 	return booking
@@ -279,23 +256,24 @@ func (m *PaymentInfraGRPCMapper) ToPurchaseOrderDataDomain(response *dto.GetPurc
 		orderData.TransactionID = response.Response.TransactionId
 		orderData.Message = response.Response.Message
 		orderData.Status = m.mapResponseStatus(response.Response.Status)
+		orderData.TraceID = response.Response.TraceId
 	}
 
-	orderData.TraceID = response.TraceId
-
-	if response.PurchaseOrderData != nil {
-		orderData.OC = response.PurchaseOrderData.Oc
-		orderData.Email = response.PurchaseOrderData.Email
-		orderData.Phone = response.PurchaseOrderData.Phone
-		orderData.Discount = float64(response.PurchaseOrderData.Discount)
-		orderData.ProductPrice = int(response.PurchaseOrderData.ProductPrice)
-		orderData.FinalProductPrice = int(response.PurchaseOrderData.FinalProductPrice)
-		orderData.ProductName = response.PurchaseOrderData.ProductName
-		orderData.ProductDescription = response.PurchaseOrderData.ProductDescription
-		orderData.LockerPosition = int(response.PurchaseOrderData.LockerPosition)
-		orderData.InstallationName = response.PurchaseOrderData.InstallationName
-		orderData.OrderStatus = response.PurchaseOrderData.Status
-		orderData.CreatedAt = response.PurchaseOrderData.CreatedAt
+	if response.PurchaseOrder != nil {
+		orderData.CouponID = int(response.PurchaseOrder.CouponId)
+		orderData.BookingReference = int(response.PurchaseOrder.BookingReference)
+		orderData.OC = response.PurchaseOrder.Oc
+		orderData.Email = response.PurchaseOrder.Email
+		orderData.Phone = response.PurchaseOrder.Phone
+		orderData.Discount = int(response.PurchaseOrder.Discount)
+		orderData.ProductPrice = int(response.PurchaseOrder.ProductPrice)
+		orderData.FinalProductPrice = response.PurchaseOrder.FinalProductPrice
+		orderData.ProductName = response.PurchaseOrder.ProductName
+		orderData.ProductDescription = response.PurchaseOrder.ProductDescription
+		orderData.LockerPosition = int(response.PurchaseOrder.LockerPosition)
+		orderData.InstallationName = response.PurchaseOrder.InstallationName
+		orderData.DeviceSerieNum = response.PurchaseOrder.DeviceSerieNum
+		orderData.OrderStatus = response.PurchaseOrder.Status
 	}
 
 	return orderData
@@ -387,4 +365,205 @@ func (m *PaymentInfraGRPCMapper) mapOpenStatus(status dto.OpenStatus) model.Open
 	default:
 		return model.OpenStatusUnspecified
 	}
+}
+
+// FromGRPCGetPaymentInfraResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGetPaymentInfraResponse(protoResp *paymentpb.GetPaymentInfraByQrValueResponse) *dto.GetPaymentInfraByQrValueResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GetPaymentInfraByQrValueResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear PaymentRack
+	if protoResp.PaymentRack != nil {
+		response.PaymentRack = &dto.RackRecord{
+			Id:          protoResp.PaymentRack.Id,
+			Description: protoResp.PaymentRack.Description,
+			Address:     protoResp.PaymentRack.Address,
+		}
+	}
+
+	// Mapear Installation
+	if protoResp.Installation != nil {
+		response.Installation = &dto.InstallationRecord{
+			Id:       protoResp.Installation.Id,
+			Name:     protoResp.Installation.Name,
+			Region:   protoResp.Installation.Region,
+			City:     protoResp.Installation.City,
+			Address:  protoResp.Installation.Address,
+			ImageUrl: protoResp.Installation.ImageUrl,
+		}
+	}
+
+	// Mapear BookingTimes
+	if len(protoResp.BookingTimes) > 0 {
+		response.BookingTimes = make([]*dto.BookingTimeRecord, len(protoResp.BookingTimes))
+		for i, bt := range protoResp.BookingTimes {
+			response.BookingTimes[i] = &dto.BookingTimeRecord{
+				Id:              bt.Id,
+				Name:            bt.Name,
+				UnitMeasurement: dto.UnitMeasurement(bt.UnitMeasurement),
+				Amount:          bt.Amount,
+			}
+		}
+	}
+
+	return response
+}
+
+// FromGRPCGetAvailableLockersByRackIDAndBookingTimeResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGetAvailableLockersByRackIDAndBookingTimeResponse(protoResp *paymentpb.GetAvailableLockersByRackIDAndBookingTimeResponse) *dto.GetAvailableLockersResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GetAvailableLockersResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear AvailableGroups
+	if len(protoResp.AvailableGroup) > 0 {
+		response.AvailableGroups = make([]*dto.AvailablePaymentGroupRecord, len(protoResp.AvailableGroup))
+		for i, ag := range protoResp.AvailableGroup {
+			response.AvailableGroups[i] = &dto.AvailablePaymentGroupRecord{
+				GroupId:     ag.GroupId,
+				Name:        ag.Name,
+				Price:       ag.Price,
+				Description: ag.Description,
+				ImageUrl:    ag.ImageUrl,
+			}
+		}
+	}
+
+	return response
+}
+
+// FromGRPCValidateDiscountCouponResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCValidateDiscountCouponResponse(protoResp *paymentpb.ValidateDiscountCouponResponse) *dto.ValidateDiscountCouponResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.ValidateDiscountCouponResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear DiscountPercentage (double en proto -> float64 en Go)
+	response.DiscountPercentage = protoResp.DiscountPercentage
+
+	return response
+}
+
+// FromGRPCGeneratePurchaseOrderResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGeneratePurchaseOrderResponse(protoResp *paymentpb.GeneratePurchaseOrderResponse) *dto.GeneratePurchaseOrderResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GeneratePurchaseOrderResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear URL
+	response.Url = protoResp.Url
+
+	return response
+}
+
+// FromGRPCGenerateBookingResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGenerateBookingResponse(protoResp *paymentpb.GenerateBookingResponse) *dto.GenerateBookingResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GenerateBookingResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	// Mapear Code
+	response.Code = protoResp.Code
+
+	return response
+}
+
+// FromGRPCCheckBookingStatusResponse mapea la respuesta proto de gRPC de booking al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *bookingpb.CheckBookingStatusResponse) *dto.CheckBookingStatusResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.CheckBookingStatusResponse{}
+
+	// Mapear response metadata
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+		}
+	}
+
+	// Mapear BookingRecord
+	if protoResp.Booking != nil {
+		response.Booking = &dto.BookingStatusRecord{
+			Id:                     protoResp.Booking.Id,
+			ConfigurationBookingId: protoResp.Booking.ConfigurationBookingId,
+			InitBooking:            protoResp.Booking.InitBooking,
+			FinishBooking:          protoResp.Booking.FinishBooking,
+			InstallationName:       protoResp.Booking.InstallationName,
+			NumberLocker:           protoResp.Booking.NumberLocker,
+			DeviceId:               protoResp.Booking.DeviceId,
+			CurrentCode:            protoResp.Booking.CurrentCode,
+			Openings:               protoResp.Booking.Openings,
+			ServiceName:            protoResp.Booking.ServiceName,
+			EmailRecipient:         protoResp.Booking.EmailRecipient,
+			CreatedAt:              protoResp.Booking.CreatedAt,
+			UpdatedAt:              protoResp.Booking.UpdatedAt,
+		}
+	}
+
+	return response
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bff-graphql-payment/config"
+	"bff-graphql-payment/graph/generated"
 	"context"
-	"graphql-payment-bff/config"
-	"graphql-payment-bff/graph/generated"
 	"log"
 	"net/http"
 	"os"
@@ -121,9 +121,14 @@ func getConfig() config.Config {
 		cfg.General.Environment = env
 	}
 
-	// Mock configuration
-	if useMock := os.Getenv("USE_MOCK"); useMock == "false" {
-		cfg.General.UseMock = false
+	// Mock configuration - default based on environment
+	// In deployed environments (dev/prod), default to false (real APIs)
+	// In local development, default to true (mocks)
+	if useMockEnv := os.Getenv("USE_MOCK"); useMockEnv != "" {
+		cfg.General.UseMock = (useMockEnv == "true")
+	} else {
+		// Default: use mocks only in local development (when ENV is empty or "development")
+		cfg.General.UseMock = (cfg.General.Environment == "development" || cfg.General.Environment == "")
 	}
 
 	// Payment Service gRPC configuration (concatenate HOST:PORT like legacy)

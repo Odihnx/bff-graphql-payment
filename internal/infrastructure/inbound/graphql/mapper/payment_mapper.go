@@ -1,8 +1,9 @@
 package mapper
 
 import (
-	"graphql-payment-bff/graph/model"
-	domainModel "graphql-payment-bff/internal/domain/model"
+	"bff-graphql-payment/graph/model"
+	domainModel "bff-graphql-payment/internal/domain/model"
+	"fmt"
 )
 
 // PaymentInfraGraphQLMapper maneja el mapeo entre modelos de dominio y DTOs de GraphQL
@@ -89,13 +90,13 @@ func (m *PaymentInfraGraphQLMapper) mapUnitMeasurement(unit domainModel.UnitMeas
 	}
 }
 
-// ToAvailableLockersResponse mapea el modelo de dominio a respuesta GraphQL
-func (m *PaymentInfraGraphQLMapper) ToAvailableLockersResponse(lockers *domainModel.AvailableLockers) *model.AvailableLockersResponse {
+// ToAvailableLockersByRackIDAndBookingTimeResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToAvailableLockersByRackIDAndBookingTimeResponse(lockers *domainModel.AvailableLockers) *model.AvailableLockersByRackIDAndBookingTimeResponse {
 	if lockers == nil {
 		return nil
 	}
 
-	response := &model.AvailableLockersResponse{
+	response := &model.AvailableLockersByRackIDAndBookingTimeResponse{
 		TransactionID:   lockers.TransactionID,
 		Message:         lockers.Message,
 		Status:          m.mapResponseStatus(lockers.Status),
@@ -127,7 +128,6 @@ func (m *PaymentInfraGraphQLMapper) ToValidateCouponResponse(validation *domainM
 		Message:            validation.Message,
 		Status:             m.mapResponseStatus(validation.Status),
 		TraceID:            validation.TraceID,
-		IsValid:            validation.IsValid,
 		DiscountPercentage: validation.DiscountPercentage,
 	}
 }
@@ -139,20 +139,11 @@ func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderResponse(order *domainModel.P
 	}
 
 	return &model.GeneratePurchaseOrderResponse{
-		TransactionID:      order.TransactionID,
-		Message:            order.Message,
-		Status:             m.mapResponseStatus(order.Status),
-		TraceID:            order.TraceID,
-		Oc:                 order.OC,
-		Email:              order.Email,
-		Phone:              order.Phone,
-		Discount:           order.Discount,
-		ProductPrice:       order.ProductPrice,
-		FinalProductPrice:  order.FinalProductPrice,
-		ProductName:        order.ProductName,
-		ProductDescription: order.ProductDescription,
-		LockerPosition:     order.LockerPosition,
-		InstallationName:   order.InstallationName,
+		TransactionID: order.TransactionID,
+		Message:       order.Message,
+		Status:        m.mapResponseStatus(order.Status),
+		TraceID:       order.TraceID,
+		URL:           order.URL,
 	}
 }
 
@@ -167,16 +158,7 @@ func (m *PaymentInfraGraphQLMapper) ToBookingResponse(booking *domainModel.Booki
 		Message:       booking.Message,
 		Status:        m.mapResponseStatus(booking.Status),
 		TraceID:       booking.TraceID,
-		Booking: &model.Booking{
-			ID:               booking.ID,
-			PurchaseOrder:    booking.PurchaseOrder,
-			CurrentCode:      booking.CurrentCode,
-			InitBooking:      booking.InitBooking,
-			FinishBooking:    booking.FinishBooking,
-			LockerPosition:   booking.LockerPosition,
-			InstallationName: booking.InstallationName,
-			CreatedAt:        booking.CreatedAt,
-		},
+		Code:          booking.Code,
 	}
 }
 
@@ -192,18 +174,20 @@ func (m *PaymentInfraGraphQLMapper) ToPurchaseOrderDataResponse(orderData *domai
 		Status:        m.mapResponseStatus(orderData.Status),
 		TraceID:       orderData.TraceID,
 		PurchaseOrderData: &model.PurchaseOrderData{
+			CouponID:           orderData.CouponID,
+			BookingReference:   orderData.BookingReference,
 			Oc:                 orderData.OC,
 			Email:              orderData.Email,
 			Phone:              orderData.Phone,
 			Discount:           orderData.Discount,
 			ProductPrice:       orderData.ProductPrice,
-			FinalProductPrice:  orderData.FinalProductPrice,
+			FinalProductPrice:  fmt.Sprintf("%d", orderData.FinalProductPrice),
 			ProductName:        orderData.ProductName,
 			ProductDescription: orderData.ProductDescription,
 			LockerPosition:     orderData.LockerPosition,
 			InstallationName:   orderData.InstallationName,
+			DeviceSerieNum:     orderData.DeviceSerieNum,
 			Status:             orderData.OrderStatus,
-			CreatedAt:          orderData.CreatedAt,
 		},
 	}
 }

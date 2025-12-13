@@ -3,12 +3,12 @@ name: Build & Deploy to GitOps (DEV)
 on:
   push:
     branches:
-      - develop
+      - main
   workflow_dispatch:
 
 env:
-  ENVIRONMENT: dev
-  ECR_REGISTRY: 590184058323.dkr.ecr.us-east-1.amazonaws.com
+  ENVIRONMENT: prod
+  ECR_REGISTRY: 023341689753.dkr.ecr.us-east-1.amazonaws.com
   IMAGE_NAME: bff-graphql-payment
   REPO_OWNER: Odihnx
   PROTO_BUF_REGISTRY_PAYMENT_API: buf.build/odihnx-prod/service-payment-manager

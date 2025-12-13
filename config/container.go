@@ -1,11 +1,11 @@
 package config
 
 import (
+	"bff-graphql-payment/internal/application/service"
+	"bff-graphql-payment/internal/domain/ports"
+	"bff-graphql-payment/internal/infrastructure/inbound/graphql/resolver"
+	"bff-graphql-payment/internal/infrastructure/outbound/grpc/client"
 	"fmt"
-	"graphql-payment-bff/internal/application/service"
-	"graphql-payment-bff/internal/domain/ports"
-	"graphql-payment-bff/internal/infrastructure/inbound/graphql/resolver"
-	"graphql-payment-bff/internal/infrastructure/outbound/grpc/client"
 )
 
 // Container contiene todas las dependencias de la aplicación
@@ -27,6 +27,7 @@ func NewContainer(config Config) (*Container, error) {
 	// Inicializar cliente gRPC (mock o real según configuración)
 	paymentClient, err := client.NewPaymentServiceGRPCClient(
 		config.GRPC.PaymentServiceAddress,
+		config.GRPC.BookingServiceAddress,
 		config.GRPC.PaymentServiceTimeout,
 		config.General.UseMock,
 	)

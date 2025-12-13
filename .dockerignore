@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+
+# Env files
+.env
+.env.local
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+docker-compose.yml
+
+# Scripts
+scripts/
+
+# Legacy
+legacy/
+
+# Tests
+*_test.go
+
+# Kubernetes
+k8s/
