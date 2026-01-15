@@ -9,6 +9,7 @@ import (
 	"bff-graphql-payment/graph/model"
 	"context"
 	"fmt"
+	"time"
 )
 
 // GeneratePurchaseOrder is the resolver for the generatePurchaseOrder field.
@@ -130,13 +131,18 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 		return nil, fmt.Errorf("failed to execute open: %w", err)
 	}
 
-	// Crear canal de salida para GraphQL
-	outputChan := make(chan *model.ExecuteOpenResponse)
+	// Crear canal de salida para GraphQL con buffer suficiente para los 3 mensajes
+	outputChan := make(chan *model.ExecuteOpenResponse, 5)
 
 	// Goroutine para transformar y reenviar los mensajes del dominio a GraphQL
 	go func() {
-		defer close(outputChan)
+		defer func() {
+			fmt.Printf("🔒 GraphQL Subscription - Closing output channel\n")
+			close(outputChan)
+		}()
+
 		messageCount := 0
+		var lastMessage *model.ExecuteOpenResponse
 
 		for domainResult := range domainChan {
 			messageCount++
@@ -147,25 +153,30 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 
 			// Mapear de dominio a GraphQL
 			graphQLResponse := r.mapper.ToExecuteOpenResponse(domainResult)
+			lastMessage = graphQLResponse
 
-			// Enviar al frontend
+			// Enviar al frontend de forma no bloqueante con timeout
 			select {
 			case outputChan <- graphQLResponse:
 				fmt.Printf("✅ GraphQL Subscription - Sent message %d to frontend: status=%v\n",
 					messageCount, graphQLResponse.OpenStatus)
 			case <-ctx.Done():
-				fmt.Printf("⚠️ GraphQL Subscription - Context cancelled, stopping")
+				fmt.Printf("⚠️ GraphQL Subscription - Context cancelled after %d messages\n", messageCount)
 				return
 			}
 
-			// Si es un estado terminal, salimos después de enviarlo
+			// Log si es un estado terminal pero NO salimos, esperamos a que el canal se vacíe
 			if domainResult.OpenStatus == "OPEN_STATUS_SUCCESS" || domainResult.OpenStatus == "OPEN_STATUS_ERROR" {
-				fmt.Printf("🏁 GraphQL Subscription - Terminal status sent, closing subscription\n")
-				return
+				fmt.Printf("🏁 GraphQL Subscription - Terminal status sent (%v), waiting for channel drain\n", domainResult.OpenStatus)
 			}
 		}
 
-		fmt.Printf("✅ GraphQL Subscription - ExecuteOpen completed with %d messages\n", messageCount)
+		// El canal domainChan se cerró (ya se enviaron todos los mensajes)
+		fmt.Printf("✅ GraphQL Subscription - ExecuteOpen completed with %d messages, last status: %v\n",
+			messageCount, lastMessage.OpenStatus)
+
+		// Pequeño delay para asegurar que el último mensaje se procese
+		time.Sleep(100 * time.Millisecond)
 	}()
 
 	return outputChan, nil
