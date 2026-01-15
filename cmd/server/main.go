@@ -12,9 +12,13 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 func main() {
@@ -40,12 +44,30 @@ func main() {
 		}
 	}()
 
-	// Crear servidor GraphQL
-	srv := handler.NewDefaultServer(
+	// Crear servidor GraphQL con soporte completo para subscriptions vía WebSocket
+	srv := handler.New(
 		generated.NewExecutableSchema(
 			generated.Config{Resolvers: container.GraphQLResolver},
 		),
 	)
+
+	// Configurar transports (HTTP POST, WebSocket para subscriptions, GET para queries)
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	// WebSocket transport para subscriptions - CRÍTICO para executeOpen subscription
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+
+	// Configurar query cache y extensions
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+	srv.Use(extension.Introspection{})
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](100),
+	})
 
 	// Configurar CORS
 	c := cors.New(cors.Options{
