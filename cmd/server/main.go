@@ -100,8 +100,18 @@ func main() {
 	// Configurar rutas
 	mux := http.NewServeMux()
 
-	// Endpoint GraphQL
-	mux.Handle("/query", c.Handler(srv))
+	// Endpoint GraphQL con logging para debugging WebSocket
+	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("📥 [%s] %s | Origin: %s | Upgrade: %s | Connection: %s | Sec-WebSocket-Key: %s", 
+			r.Method, 
+			r.URL.Path,
+			r.Header.Get("Origin"),
+			r.Header.Get("Upgrade"),
+			r.Header.Get("Connection"),
+			r.Header.Get("Sec-WebSocket-Key"),
+		)
+		c.Handler(srv).ServeHTTP(w, r)
+	})
 
 	// GraphQL Playground
 	mux.Handle("/", playground.Handler("GraphQL Playground", "/query"))
