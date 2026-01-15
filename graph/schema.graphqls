@@ -21,8 +21,11 @@ type Mutation {
 
   # Generate Booking
   generateBooking(input: GenerateBookingInput!): GenerateBookingResponse!
+}
 
-  # Execute Open Locker
+type Subscription {
+  # Execute Open Locker with real-time status updates
+  # Emits 3 messages: RECEIVED -> REQUESTED -> SUCCESS/ERROR
   executeOpen(input: ExecuteOpenInput!): ExecuteOpenResponse!
 }
 
