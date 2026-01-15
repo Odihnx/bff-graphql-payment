@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -58,8 +59,33 @@ func main() {
 	srv.AddTransport(transport.MultipartForm{})
 
 	// WebSocket transport para subscriptions - CRÍTICO para executeOpen subscription
+	// Con CheckOrigin personalizado para permitir cross-origin desde dominios permitidos
+	allowedOrigins := []string{
+		"https://payment.api.odihnx.com",
+		"https://payment.odihnx.com",
+		"https://payment.api-dev.odihnx.com",
+		"http://localhost:5173",
+	}
 	srv.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				origin := r.Header.Get("Origin")
+				// Permitir sin Origin (Postman, curl, etc.)
+				if origin == "" {
+					return true
+				}
+				// Verificar si origin está en lista permitida
+				for _, allowed := range allowedOrigins {
+					if origin == allowed {
+						log.Printf("✅ WebSocket origin allowed: %s", origin)
+						return true
+					}
+				}
+				log.Printf("❌ WebSocket origin rejected: %s", origin)
+				return false
+			},
+		},
 	})
 
 	// Configurar query cache y extensions
