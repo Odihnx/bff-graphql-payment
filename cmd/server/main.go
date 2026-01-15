@@ -69,12 +69,32 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	// Configurar CORS
+	// Configurar CORS - CRÍTICO para WebSocket cross-origin
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Configure appropriately for production
-		AllowCredentials: true,
+		AllowedOrigins: []string{
+			"https://payment.api.odihnx.com",     // CloudFront frontend principal
+			"https://payment.odihnx.com",         // Producción
+			"https://payment.api-dev.odihnx.com", // Dev
+			"http://localhost:5173",              // Local dev Vite
+		},
+		AllowCredentials: true, // Para cookies/auth - requiere origins explícitos (no "*")
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
+		AllowedHeaders: []string{
+			"Content-Type",
+			"Authorization",
+			"Accept",
+			"Origin",
+			// Headers WebSocket específicos para handshake
+			"Sec-WebSocket-Protocol",
+			"Sec-WebSocket-Version",
+			"Sec-WebSocket-Extensions",
+			"Sec-WebSocket-Key",
+			"Connection",
+			"Upgrade",
+		},
+		ExposedHeaders: []string{
+			"Sec-WebSocket-Accept",
+		},
 	})
 
 	// Configurar rutas
