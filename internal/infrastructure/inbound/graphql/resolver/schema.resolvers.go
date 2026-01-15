@@ -57,33 +57,6 @@ func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.Gene
 	return r.mapper.ToBookingResponse(booking), nil
 }
 
-// ExecuteOpen is the resolver for the executeOpen field.
-func (r *mutationResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (*model.ExecuteOpenResponse, error) {
-	// Log de entrada
-	fmt.Printf("🔷 GraphQL Resolver - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
-		input.ServiceName, input.CurrentCode)
-
-	// Llamar al caso de uso
-	openResult, err := r.paymentInfraService.ExecuteOpen(ctx, input.ServiceName, input.CurrentCode)
-	if err != nil {
-		fmt.Printf("❌ GraphQL Resolver - ExecuteOpen FAILED: %v\n", err)
-		return nil, fmt.Errorf("failed to execute open: %w", err)
-	}
-
-	// Log de la respuesta del dominio (antes del mapeo)
-	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen DOMAIN RESPONSE: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
-		openResult.TransactionID, openResult.Status, openResult.OpenStatus, openResult.Message)
-
-	// Mapear a respuesta GraphQL
-	graphQLResponse := r.mapper.ToExecuteOpenResponse(openResult)
-
-	// Log de la respuesta final que se enviará al frontend
-	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen GRAPHQL RESPONSE TO FRONTEND: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
-		graphQLResponse.TransactionID, graphQLResponse.Status, graphQLResponse.OpenStatus, graphQLResponse.Message)
-
-	return graphQLResponse, nil
-}
-
 // GetPaymentInfraByQRValue is the resolver for the getPaymentInfraByQrValue field.
 func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error) {
 	// Llamar al caso de uso
@@ -144,11 +117,103 @@ func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.Chec
 	return r.mapper.ToBookingStatusResponse(bookingStatus), nil
 }
 
+// ExecuteOpen is the resolver for the executeOpen field.
+func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (<-chan *model.ExecuteOpenResponse, error) {
+	// Log de entrada
+	fmt.Printf("🔷 GraphQL Subscription - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
+		input.ServiceName, input.CurrentCode)
+
+	// Obtener el canal del servicio que emite los 3 estados progresivamente
+	domainChan, err := r.paymentInfraService.ExecuteOpenStream(ctx, input.ServiceName, input.CurrentCode)
+	if err != nil {
+		fmt.Printf("❌ GraphQL Subscription - ExecuteOpen FAILED to start: %v\n", err)
+		return nil, fmt.Errorf("failed to execute open: %w", err)
+	}
+
+	// Crear canal de salida para GraphQL
+	outputChan := make(chan *model.ExecuteOpenResponse)
+
+	// Goroutine para transformar y reenviar los mensajes del dominio a GraphQL
+	go func() {
+		defer close(outputChan)
+		messageCount := 0
+
+		for domainResult := range domainChan {
+			messageCount++
+
+			// Log del estado recibido
+			fmt.Printf("📥 GraphQL Subscription - Message %d: openStatus=%v, message=%s\n",
+				messageCount, domainResult.OpenStatus, domainResult.Message)
+
+			// Mapear de dominio a GraphQL
+			graphQLResponse := r.mapper.ToExecuteOpenResponse(domainResult)
+
+			// Enviar al frontend
+			select {
+			case outputChan <- graphQLResponse:
+				fmt.Printf("✅ GraphQL Subscription - Sent message %d to frontend: status=%v\n",
+					messageCount, graphQLResponse.OpenStatus)
+			case <-ctx.Done():
+				fmt.Printf("⚠️ GraphQL Subscription - Context cancelled, stopping")
+				return
+			}
+
+			// Si es un estado terminal, salimos después de enviarlo
+			if domainResult.OpenStatus == "OPEN_STATUS_SUCCESS" || domainResult.OpenStatus == "OPEN_STATUS_ERROR" {
+				fmt.Printf("🏁 GraphQL Subscription - Terminal status sent, closing subscription\n")
+				return
+			}
+		}
+
+		fmt.Printf("✅ GraphQL Subscription - ExecuteOpen completed with %d messages\n", messageCount)
+	}()
+
+	return outputChan, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *mutationResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (*model.ExecuteOpenResponse, error) {
+	// Log de entrada
+	fmt.Printf("🔷 GraphQL Resolver - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
+		input.ServiceName, input.CurrentCode)
+
+	// Llamar al caso de uso
+	openResult, err := r.paymentInfraService.ExecuteOpen(ctx, input.ServiceName, input.CurrentCode)
+	if err != nil {
+		fmt.Printf("❌ GraphQL Resolver - ExecuteOpen FAILED: %v\n", err)
+		return nil, fmt.Errorf("failed to execute open: %w", err)
+	}
+
+	// Log de la respuesta del dominio (antes del mapeo)
+	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen DOMAIN RESPONSE: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
+		openResult.TransactionID, openResult.Status, openResult.OpenStatus, openResult.Message)
+
+	// Mapear a respuesta GraphQL
+	graphQLResponse := r.mapper.ToExecuteOpenResponse(openResult)
+
+	// Log de la respuesta final que se enviará al frontend
+	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen GRAPHQL RESPONSE TO FRONTEND: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
+		graphQLResponse.TransactionID, graphQLResponse.Status, graphQLResponse.OpenStatus, graphQLResponse.Message)
+
+	return graphQLResponse, nil
+}
+*/

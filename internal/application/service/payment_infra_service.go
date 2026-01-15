@@ -180,8 +180,8 @@ func (s *PaymentInfraService) CheckBookingStatus(ctx context.Context, serviceNam
 	return bookingStatus, nil
 }
 
-// ExecuteOpen ejecuta la apertura de un locker
-func (s *PaymentInfraService) ExecuteOpen(ctx context.Context, serviceName string, currentCode string) (*model.ExecuteOpenResult, error) {
+// ExecuteOpenStream ejecuta la apertura de un locker con streaming de estados
+func (s *PaymentInfraService) ExecuteOpenStream(ctx context.Context, serviceName string, currentCode string) (<-chan *model.ExecuteOpenResult, error) {
 	// Validar entrada
 	if strings.TrimSpace(serviceName) == "" {
 		return nil, exception.ErrInvalidServiceName
@@ -191,11 +191,11 @@ func (s *PaymentInfraService) ExecuteOpen(ctx context.Context, serviceName strin
 		return nil, exception.ErrInvalidCurrentCode
 	}
 
-	// Llamar al repositorio
-	openResult, err := s.repo.ExecuteOpen(ctx, serviceName, currentCode)
+	// Llamar al repositorio que retorna un canal
+	resultChan, err := s.repo.ExecuteOpenStream(ctx, serviceName, currentCode)
 	if err != nil {
 		return nil, err
 	}
 
-	return openResult, nil
+	return resultChan, nil
 }
