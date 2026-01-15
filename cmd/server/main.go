@@ -62,10 +62,10 @@ func main() {
 	})
 
 	// Configurar query cache y extensions
-	srv.SetQueryCache(lru.New(1000))
+	srv.SetQueryCache(lru.New[string](1000))
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New(100),
+		Cache: lru.New[string](100),
 	})
 
 	// Configurar CORS
