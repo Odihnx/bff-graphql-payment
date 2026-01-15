@@ -102,8 +102,8 @@ func main() {
 
 	// Endpoint GraphQL con logging para debugging WebSocket
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("📥 [%s] %s | Origin: %s | Upgrade: %s | Connection: %s | Sec-WebSocket-Key: %s", 
-			r.Method, 
+		log.Printf("📥 [%s] %s | Origin: %s | Upgrade: %s | Connection: %s | Sec-WebSocket-Key: %s",
+			r.Method,
 			r.URL.Path,
 			r.Header.Get("Origin"),
 			r.Header.Get("Upgrade"),
