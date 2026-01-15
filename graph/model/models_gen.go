@@ -178,6 +178,9 @@ type PurchaseOrderResponse struct {
 type Query struct {
 }
 
+type Subscription struct {
+}
+
 type ValidateDiscountCouponInput struct {
 	CouponCode string `json:"couponCode"`
 	RackID     int    `json:"rackId"`
