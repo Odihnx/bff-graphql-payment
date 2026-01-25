@@ -232,10 +232,10 @@ func (m *PaymentInfraGraphQLMapper) ToExecuteOpenResponse(openResult *domainMode
 	}
 
 	return &model.ExecuteOpenResponse{
-		TransactionID: openResult.TransactionID,
-		Message:       openResult.Message,
-		Status:        m.mapResponseStatus(openResult.Status),
-		OpenStatus:    m.mapOpenStatusToGraphQL(openResult.OpenStatus),
+		TransactionID:  openResult.TransactionID,
+		Message:        openResult.Message,
+		OpenStatus:     m.mapOpenStatusToGraphQL(openResult.OpenStatus),
+		PhysicalStatus: m.mapPhysicalStatusToGraphQL(openResult.PhysicalStatus),
 	}
 }
 
@@ -256,5 +256,23 @@ func (m *PaymentInfraGraphQLMapper) mapOpenStatusToGraphQL(status domainModel.Op
 		return model.OpenStatusOpenStatusSuccess
 	default:
 		return model.OpenStatusOpenStatusUnspecified
+	}
+}
+
+// mapPhysicalStatusToGraphQL mapea PhysicalStatus de dominio a GraphQL
+func (m *PaymentInfraGraphQLMapper) mapPhysicalStatusToGraphQL(status domainModel.PhysicalStatus) model.PhysicalStatus {
+	switch status {
+	case domainModel.PhysicalStatusWaiting:
+		return model.PhysicalStatusPhysicalStatusWaiting
+	case domainModel.PhysicalStatusSuccess:
+		return model.PhysicalStatusPhysicalStatusSuccess
+	case domainModel.PhysicalStatusFailed:
+		return model.PhysicalStatusPhysicalStatusFailed
+	case domainModel.PhysicalStatusAlreadyOpen:
+		return model.PhysicalStatusPhysicalStatusAlreadyOpen
+	case domainModel.PhysicalStatusUnexpected:
+		return model.PhysicalStatusPhysicalStatusUnexpected
+	default:
+		return model.PhysicalStatusPhysicalStatusUnspecified
 	}
 }
