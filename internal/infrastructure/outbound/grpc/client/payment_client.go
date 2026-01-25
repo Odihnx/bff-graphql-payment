@@ -472,10 +472,27 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 
 			// Convertir respuesta gRPC a DTO
 			genericResp := &dto.PaymentManagerGenericResponse{}
-			if resp.Response != nil {
-				genericResp.TransactionId = resp.Response.TransactionId
-				genericResp.Message = resp.Response.Message
-				genericResp.Status = dto.PaymentManagerResponseStatus(resp.Response.Status)
+			if resp != nil {
+				// Preferir el campo anidado `Response` (legacy) si existe,
+				// sino usar los campos de primer nivel del nuevo proto.
+				if resp.Response != nil {
+					genericResp.TransactionId = resp.Response.TransactionId
+					genericResp.Message = resp.Response.Message
+					genericResp.Status = dto.PaymentManagerResponseStatus(resp.Response.Status)
+					genericResp.TraceId = resp.Response.TraceId
+				} else {
+					genericResp.TransactionId = resp.TransactionId
+					genericResp.Message = resp.Message
+					// Inferir un PaymentManagerResponseStatus a partir del OpenStatus
+					switch resp.Status {
+					case bookingpb.OpenStatus_OPEN_STATUS_SUCCESS:
+						genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK
+					case bookingpb.OpenStatus_OPEN_STATUS_ERROR:
+						genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR
+					default:
+						genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_UNSPECIFIED
+					}
+				}
 			}
 
 			dtoResponse := &dto.ExecuteOpenResponse{
