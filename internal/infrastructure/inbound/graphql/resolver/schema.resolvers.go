@@ -194,37 +194,3 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (*model.ExecuteOpenResponse, error) {
-	// Log de entrada
-	fmt.Printf("🔷 GraphQL Resolver - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
-		input.ServiceName, input.CurrentCode)
-
-	// Llamar al caso de uso
-	openResult, err := r.paymentInfraService.ExecuteOpen(ctx, input.ServiceName, input.CurrentCode)
-	if err != nil {
-		fmt.Printf("❌ GraphQL Resolver - ExecuteOpen FAILED: %v\n", err)
-		return nil, fmt.Errorf("failed to execute open: %w", err)
-	}
-
-	// Log de la respuesta del dominio (antes del mapeo)
-	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen DOMAIN RESPONSE: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
-		openResult.TransactionID, openResult.Status, openResult.OpenStatus, openResult.Message)
-
-	// Mapear a respuesta GraphQL
-	graphQLResponse := r.mapper.ToExecuteOpenResponse(openResult)
-
-	// Log de la respuesta final que se enviará al frontend
-	fmt.Printf("📦 GraphQL Resolver - ExecuteOpen GRAPHQL RESPONSE TO FRONTEND: transactionId=%s, status=%v, openStatus=%v, message=%s\n",
-		graphQLResponse.TransactionID, graphQLResponse.Status, graphQLResponse.OpenStatus, graphQLResponse.Message)
-
-	return graphQLResponse, nil
-}
-*/

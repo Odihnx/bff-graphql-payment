@@ -143,8 +143,8 @@ type CheckBookingStatusResponse {
 type ExecuteOpenResponse {
   transactionId: String!
   message: String!
-  status: ResponseStatus!
   openStatus: OpenStatus!
+  physicalStatus: PhysicalStatus!
 }
 
 # ========== DOMAIN TYPES ==========
@@ -235,4 +235,13 @@ enum OpenStatus {
   OPEN_STATUS_EXECUTED
   OPEN_STATUS_ERROR
   OPEN_STATUS_SUCCESS
+}
+
+enum PhysicalStatus {
+  PHYSICAL_STATUS_UNSPECIFIED
+  PHYSICAL_STATUS_WAITING
+  PHYSICAL_STATUS_SUCCESS
+  PHYSICAL_STATUS_FAILED
+  PHYSICAL_STATUS_ALREADY_OPEN
+  PHYSICAL_STATUS_UNEXPECTED
 }

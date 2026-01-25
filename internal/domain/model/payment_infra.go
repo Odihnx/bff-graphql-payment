@@ -150,10 +150,10 @@ type BookingStatusData struct {
 
 // ExecuteOpenResult representa el resultado de ejecutar la apertura de un locker
 type ExecuteOpenResult struct {
-	TransactionID string
-	Message       string
-	Status        ResponseStatus
-	OpenStatus    OpenStatus
+	TransactionID  string
+	Message        string
+	OpenStatus     OpenStatus
+	PhysicalStatus PhysicalStatus
 }
 
 // OpenStatus enumeración de estados de apertura de locker
@@ -166,4 +166,16 @@ const (
 	OpenStatusExecuted    OpenStatus = "OPEN_STATUS_EXECUTED"
 	OpenStatusError       OpenStatus = "OPEN_STATUS_ERROR"
 	OpenStatusSuccess     OpenStatus = "OPEN_STATUS_SUCCESS"
+)
+
+// PhysicalStatus enumeración de estados físicos de apertura
+type PhysicalStatus string
+
+const (
+	PhysicalStatusUnspecified PhysicalStatus = "PHYSICAL_STATUS_UNSPECIFIED"
+	PhysicalStatusWaiting     PhysicalStatus = "PHYSICAL_STATUS_WAITING"
+	PhysicalStatusSuccess     PhysicalStatus = "PHYSICAL_STATUS_SUCCESS"
+	PhysicalStatusFailed      PhysicalStatus = "PHYSICAL_STATUS_FAILED"
+	PhysicalStatusAlreadyOpen PhysicalStatus = "PHYSICAL_STATUS_ALREADY_OPEN"
+	PhysicalStatusUnexpected  PhysicalStatus = "PHYSICAL_STATUS_UNEXPECTED"
 )

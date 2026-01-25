@@ -203,8 +203,9 @@ type ExecuteOpenRequest struct {
 
 // ExecuteOpenResponse represents the response for executing locker opening
 type ExecuteOpenResponse struct {
-	Status   OpenStatus                     `json:"status"`
-	Response *PaymentManagerGenericResponse `json:"response"`
+	Status         OpenStatus                     `json:"status"`
+	Response       *PaymentManagerGenericResponse `json:"response"`
+	PhysicalStatus PhysicalStatus                 `json:"physical_status"`
 }
 
 // OpenStatus enum
@@ -217,4 +218,16 @@ const (
 	OpenStatus_OPEN_STATUS_EXECUTED    OpenStatus = 3
 	OpenStatus_OPEN_STATUS_ERROR       OpenStatus = 4
 	OpenStatus_OPEN_STATUS_SUCCESS     OpenStatus = 5
+)
+
+// PhysicalStatus enum
+type PhysicalStatus int32
+
+const (
+	PhysicalStatus_PHYSICAL_STATUS_UNSPECIFIED  PhysicalStatus = 0
+	PhysicalStatus_PHYSICAL_STATUS_WAITING      PhysicalStatus = 1
+	PhysicalStatus_PHYSICAL_STATUS_SUCCESS      PhysicalStatus = 2
+	PhysicalStatus_PHYSICAL_STATUS_FAILED       PhysicalStatus = 3
+	PhysicalStatus_PHYSICAL_STATUS_ALREADY_OPEN PhysicalStatus = 4
+	PhysicalStatus_PHYSICAL_STATUS_UNEXPECTED   PhysicalStatus = 5
 )
