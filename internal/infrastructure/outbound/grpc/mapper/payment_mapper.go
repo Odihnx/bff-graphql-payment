@@ -343,10 +343,30 @@ func (m *PaymentInfraGRPCMapper) ToExecuteOpenDomain(response *dto.ExecuteOpenRe
 	if response.Response != nil {
 		openResult.TransactionID = response.Response.TransactionId
 		openResult.Message = response.Response.Message
-		openResult.Status = m.mapResponseStatus(response.Response.Status)
 	}
 
+	// Mapear physical status si está presente en el DTO
+	openResult.PhysicalStatus = m.mapPhysicalStatus(response.PhysicalStatus)
+
 	return openResult
+}
+
+// mapPhysicalStatus convierte el estado físico de gRPC a estado de dominio
+func (m *PaymentInfraGRPCMapper) mapPhysicalStatus(status dto.PhysicalStatus) model.PhysicalStatus {
+	switch status {
+	case dto.PhysicalStatus_PHYSICAL_STATUS_WAITING:
+		return model.PhysicalStatusWaiting
+	case dto.PhysicalStatus_PHYSICAL_STATUS_SUCCESS:
+		return model.PhysicalStatusSuccess
+	case dto.PhysicalStatus_PHYSICAL_STATUS_FAILED:
+		return model.PhysicalStatusFailed
+	case dto.PhysicalStatus_PHYSICAL_STATUS_ALREADY_OPEN:
+		return model.PhysicalStatusAlreadyOpen
+	case dto.PhysicalStatus_PHYSICAL_STATUS_UNEXPECTED:
+		return model.PhysicalStatusUnexpected
+	default:
+		return model.PhysicalStatusUnspecified
+	}
 }
 
 // mapOpenStatus convierte el estado de apertura gRPC a estado de dominio
