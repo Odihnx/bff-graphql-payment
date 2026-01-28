@@ -88,10 +88,10 @@ type ComplexityRoot struct {
 	}
 
 	ExecuteOpenResponse struct {
-		Message       func(childComplexity int) int
-		OpenStatus    func(childComplexity int) int
-		Status        func(childComplexity int) int
-		TransactionID func(childComplexity int) int
+		Message        func(childComplexity int) int
+		OpenStatus     func(childComplexity int) int
+		PhysicalStatus func(childComplexity int) int
+		TransactionID  func(childComplexity int) int
 	}
 
 	GenerateBookingResponse struct {
@@ -430,12 +430,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ExecuteOpenResponse.OpenStatus(childComplexity), true
 
-	case "ExecuteOpenResponse.status":
-		if e.complexity.ExecuteOpenResponse.Status == nil {
+	case "ExecuteOpenResponse.physicalStatus":
+		if e.complexity.ExecuteOpenResponse.PhysicalStatus == nil {
 			break
 		}
 
-		return e.complexity.ExecuteOpenResponse.Status(childComplexity), true
+		return e.complexity.ExecuteOpenResponse.PhysicalStatus(childComplexity), true
 
 	case "ExecuteOpenResponse.transactionId":
 		if e.complexity.ExecuteOpenResponse.TransactionID == nil {
@@ -1193,8 +1193,8 @@ type CheckBookingStatusResponse {
 type ExecuteOpenResponse {
   transactionId: String!
   message: String!
-  status: ResponseStatus!
   openStatus: OpenStatus!
+  physicalStatus: PhysicalStatus!
 }
 
 # ========== DOMAIN TYPES ==========
@@ -1285,6 +1285,15 @@ enum OpenStatus {
   OPEN_STATUS_EXECUTED
   OPEN_STATUS_ERROR
   OPEN_STATUS_SUCCESS
+}
+
+enum PhysicalStatus {
+  PHYSICAL_STATUS_UNSPECIFIED
+  PHYSICAL_STATUS_WAITING
+  PHYSICAL_STATUS_SUCCESS
+  PHYSICAL_STATUS_FAILED
+  PHYSICAL_STATUS_ALREADY_OPEN
+  PHYSICAL_STATUS_UNEXPECTED
 }
 `, BuiltIn: false},
 }
@@ -2758,50 +2767,6 @@ func (ec *executionContext) fieldContext_ExecuteOpenResponse_message(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ExecuteOpenResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.ExecuteOpenResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ExecuteOpenResponse_status(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.ResponseStatus)
-	fc.Result = res
-	return ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ExecuteOpenResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ExecuteOpenResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ResponseStatus does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ExecuteOpenResponse_openStatus(ctx context.Context, field graphql.CollectedField, obj *model.ExecuteOpenResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ExecuteOpenResponse_openStatus(ctx, field)
 	if err != nil {
@@ -2841,6 +2806,50 @@ func (ec *executionContext) fieldContext_ExecuteOpenResponse_openStatus(_ contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type OpenStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExecuteOpenResponse_physicalStatus(ctx context.Context, field graphql.CollectedField, obj *model.ExecuteOpenResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExecuteOpenResponse_physicalStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhysicalStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PhysicalStatus)
+	fc.Result = res
+	return ec.marshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPhysicalStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExecuteOpenResponse_physicalStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExecuteOpenResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PhysicalStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5717,10 +5726,10 @@ func (ec *executionContext) fieldContext_Subscription_executeOpen(ctx context.Co
 				return ec.fieldContext_ExecuteOpenResponse_transactionId(ctx, field)
 			case "message":
 				return ec.fieldContext_ExecuteOpenResponse_message(ctx, field)
-			case "status":
-				return ec.fieldContext_ExecuteOpenResponse_status(ctx, field)
 			case "openStatus":
 				return ec.fieldContext_ExecuteOpenResponse_openStatus(ctx, field)
+			case "physicalStatus":
+				return ec.fieldContext_ExecuteOpenResponse_physicalStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ExecuteOpenResponse", field.Name)
 		},
@@ -8549,13 +8558,13 @@ func (ec *executionContext) _ExecuteOpenResponse(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "status":
-			out.Values[i] = ec._ExecuteOpenResponse_status(ctx, field, obj)
+		case "openStatus":
+			out.Values[i] = ec._ExecuteOpenResponse_openStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "openStatus":
-			out.Values[i] = ec._ExecuteOpenResponse_openStatus(ctx, field, obj)
+		case "physicalStatus":
+			out.Values[i] = ec._ExecuteOpenResponse_physicalStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -10006,6 +10015,16 @@ func (ec *executionContext) marshalNPaymentInfraResponse2ᚖbffᚑgraphqlᚑpaym
 		return graphql.Null
 	}
 	return ec._PaymentInfraResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPhysicalStatus(ctx context.Context, v any) (model.PhysicalStatus, error) {
+	var res model.PhysicalStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPhysicalStatus(ctx context.Context, sel ast.SelectionSet, v model.PhysicalStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPurchaseOrderData2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPurchaseOrderData(ctx context.Context, sel ast.SelectionSet, v *model.PurchaseOrderData) graphql.Marshaler {

@@ -59,10 +59,10 @@ type ExecuteOpenInput struct {
 }
 
 type ExecuteOpenResponse struct {
-	TransactionID string         `json:"transactionId"`
-	Message       string         `json:"message"`
-	Status        ResponseStatus `json:"status"`
-	OpenStatus    OpenStatus     `json:"openStatus"`
+	TransactionID  string         `json:"transactionId"`
+	Message        string         `json:"message"`
+	OpenStatus     OpenStatus     `json:"openStatus"`
+	PhysicalStatus PhysicalStatus `json:"physicalStatus"`
 }
 
 type GenerateBookingInput struct {
@@ -253,6 +253,69 @@ func (e *OpenStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e OpenStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type PhysicalStatus string
+
+const (
+	PhysicalStatusPhysicalStatusUnspecified PhysicalStatus = "PHYSICAL_STATUS_UNSPECIFIED"
+	PhysicalStatusPhysicalStatusWaiting     PhysicalStatus = "PHYSICAL_STATUS_WAITING"
+	PhysicalStatusPhysicalStatusSuccess     PhysicalStatus = "PHYSICAL_STATUS_SUCCESS"
+	PhysicalStatusPhysicalStatusFailed      PhysicalStatus = "PHYSICAL_STATUS_FAILED"
+	PhysicalStatusPhysicalStatusAlreadyOpen PhysicalStatus = "PHYSICAL_STATUS_ALREADY_OPEN"
+	PhysicalStatusPhysicalStatusUnexpected  PhysicalStatus = "PHYSICAL_STATUS_UNEXPECTED"
+)
+
+var AllPhysicalStatus = []PhysicalStatus{
+	PhysicalStatusPhysicalStatusUnspecified,
+	PhysicalStatusPhysicalStatusWaiting,
+	PhysicalStatusPhysicalStatusSuccess,
+	PhysicalStatusPhysicalStatusFailed,
+	PhysicalStatusPhysicalStatusAlreadyOpen,
+	PhysicalStatusPhysicalStatusUnexpected,
+}
+
+func (e PhysicalStatus) IsValid() bool {
+	switch e {
+	case PhysicalStatusPhysicalStatusUnspecified, PhysicalStatusPhysicalStatusWaiting, PhysicalStatusPhysicalStatusSuccess, PhysicalStatusPhysicalStatusFailed, PhysicalStatusPhysicalStatusAlreadyOpen, PhysicalStatusPhysicalStatusUnexpected:
+		return true
+	}
+	return false
+}
+
+func (e PhysicalStatus) String() string {
+	return string(e)
+}
+
+func (e *PhysicalStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PhysicalStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PhysicalStatus", str)
+	}
+	return nil
+}
+
+func (e PhysicalStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PhysicalStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PhysicalStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

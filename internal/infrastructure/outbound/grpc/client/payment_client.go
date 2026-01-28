@@ -389,28 +389,28 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 
 			// Estado 1: RECEIVED
 			resultChan <- &model.ExecuteOpenResult{
-				TransactionID: "mock-tx-id",
-				Message:       "Solicitud recibida",
-				Status:        model.ResponseStatusOK,
-				OpenStatus:    model.OpenStatusReceived,
+				TransactionID:  "mock-tx-id",
+				Message:        "Solicitud recibida",
+				OpenStatus:     model.OpenStatusReceived,
+				PhysicalStatus: model.PhysicalStatusWaiting,
 			}
 			time.Sleep(500 * time.Millisecond)
 
 			// Estado 2: REQUESTED
 			resultChan <- &model.ExecuteOpenResult{
-				TransactionID: "mock-tx-id",
-				Message:       "Solicitud enviada al dispositivo",
-				Status:        model.ResponseStatusOK,
-				OpenStatus:    model.OpenStatusRequested,
+				TransactionID:  "mock-tx-id",
+				Message:        "Solicitud enviada al dispositivo",
+				OpenStatus:     model.OpenStatusRequested,
+				PhysicalStatus: model.PhysicalStatusWaiting,
 			}
 			time.Sleep(2 * time.Second)
 
 			// Estado 3: SUCCESS
 			resultChan <- &model.ExecuteOpenResult{
-				TransactionID: "mock-tx-id",
-				Message:       "Apertura ejecutada correctamente",
-				Status:        model.ResponseStatusOK,
-				OpenStatus:    model.OpenStatusSuccess,
+				TransactionID:  "mock-tx-id",
+				Message:        "Apertura ejecutada correctamente",
+				OpenStatus:     model.OpenStatusSuccess,
+				PhysicalStatus: model.PhysicalStatusSuccess,
 			}
 		}()
 
@@ -460,10 +460,10 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 
 				// Emitir error al canal
 				resultChan <- &model.ExecuteOpenResult{
-					TransactionID: "",
-					Message:       fmt.Sprintf("Error de conexión: %v", err),
-					Status:        model.ResponseStatusError,
-					OpenStatus:    model.OpenStatusError,
+					TransactionID:  "",
+					Message:        fmt.Sprintf("Error de conexión: %v", err),
+					OpenStatus:     model.OpenStatusError,
+					PhysicalStatus: model.PhysicalStatusUnspecified,
 				}
 				break
 			}
@@ -472,15 +472,25 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 
 			// Convertir respuesta gRPC a DTO
 			genericResp := &dto.PaymentManagerGenericResponse{}
-			if resp.Response != nil {
-				genericResp.TransactionId = resp.Response.TransactionId
-				genericResp.Message = resp.Response.Message
-				genericResp.Status = dto.PaymentManagerResponseStatus(resp.Response.Status)
+			if resp != nil {
+				// Nuevo proto: los metadatos vienen en campos de primer nivel
+				genericResp.TransactionId = resp.TransactionId
+				genericResp.Message = resp.Message
+				// Inferir un PaymentManagerResponseStatus a partir del OpenStatus
+				switch resp.Status {
+				case bookingpb.OpenStatus_OPEN_STATUS_SUCCESS:
+					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK
+				case bookingpb.OpenStatus_OPEN_STATUS_ERROR:
+					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR
+				default:
+					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_UNSPECIFIED
+				}
 			}
 
 			dtoResponse := &dto.ExecuteOpenResponse{
-				Status:   dto.OpenStatus(resp.Status),
-				Response: genericResp,
+				Status:         dto.OpenStatus(resp.Status),
+				Response:       genericResp,
+				PhysicalStatus: dto.PhysicalStatus(resp.PhysicalStatus),
 			}
 
 			// Convertir a modelo de dominio
