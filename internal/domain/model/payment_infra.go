@@ -8,6 +8,7 @@ type PaymentInfra struct {
 	TraceID       string
 	PaymentRack   *PaymentRack
 	Installation  *PaymentInstallation
+	Device        *PaymentDevice
 	BookingTimes  []PaymentBookingTime
 }
 
@@ -26,6 +27,14 @@ type PaymentInstallation struct {
 	City     string
 	Address  string
 	ImageURL string
+}
+
+// PaymentDevice representa una entidad de dispositivo
+type PaymentDevice struct {
+	Name   string
+	Online bool
+	Brand  string
+	Model  string
 }
 
 // PaymentBookingTime representa la configuración de tiempo de reserva
