@@ -90,6 +90,7 @@ type PaymentInfraResponse {
   traceId: String!
   paymentRack: PaymentRack
   installation: PaymentInstallation
+  device: PaymentDevice
   bookingTimes: [PaymentBookingTime!]!
 }
 
@@ -162,6 +163,13 @@ type PaymentInstallation {
   city: String!
   address: String!
   imageUrl: String!
+}
+
+type PaymentDevice {
+  name: String!
+  online: Boolean!
+  brand: String!
+  model: String!
 }
 
 type PaymentBookingTime {
