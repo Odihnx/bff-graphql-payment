@@ -59,6 +59,16 @@ func (m *PaymentInfraGRPCMapper) ToDomain(response *dto.GetPaymentInfraByQrValue
 		}
 	}
 
+	// Mapear dispositivo
+	if response.Device != nil {
+		paymentInfra.Device = &model.PaymentDevice{
+			Name:   response.Device.Name,
+			Online: response.Device.Online,
+			Brand:  response.Device.Brand,
+			Model:  response.Device.Model,
+		}
+	}
+
 	// Mapear tiempos de reserva
 	if response.BookingTimes != nil {
 		paymentInfra.BookingTimes = make([]model.PaymentBookingTime, len(response.BookingTimes))
@@ -423,6 +433,16 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPaymentInfraResponse(protoResp *paym
 			City:     protoResp.Installation.City,
 			Address:  protoResp.Installation.Address,
 			ImageUrl: protoResp.Installation.ImageUrl,
+		}
+	}
+
+	// Mapear Device
+	if protoResp.Device != nil {
+		response.Device = &dto.DeviceRecord{
+			Name:   protoResp.Device.Name,
+			Online: protoResp.Device.Online,
+			Brand:  protoResp.Device.Brand,
+			Model:  protoResp.Device.Model,
 		}
 	}
 
