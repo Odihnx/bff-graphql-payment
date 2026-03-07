@@ -125,6 +125,13 @@ type PaymentBookingTime struct {
 	Amount          int             `json:"amount"`
 }
 
+type PaymentDevice struct {
+	Name   string `json:"name"`
+	Online bool   `json:"online"`
+	Brand  string `json:"brand"`
+	Model  string `json:"model"`
+}
+
 type PaymentInfraResponse struct {
 	TransactionID string                `json:"transactionId"`
 	Message       string                `json:"message"`
@@ -132,6 +139,7 @@ type PaymentInfraResponse struct {
 	TraceID       string                `json:"traceId"`
 	PaymentRack   *PaymentRack          `json:"paymentRack,omitempty"`
 	Installation  *PaymentInstallation  `json:"installation,omitempty"`
+	Device        *PaymentDevice        `json:"device,omitempty"`
 	BookingTimes  []*PaymentBookingTime `json:"bookingTimes"`
 }
 
