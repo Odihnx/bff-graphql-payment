@@ -61,10 +61,17 @@ func main() {
 	// WebSocket transport para subscriptions - CRÍTICO para executeOpen subscription
 	// Con CheckOrigin personalizado para permitir cross-origin desde dominios permitidos
 	allowedOrigins := []string{
-		"https://payment.api.odihnx.com",
-		"https://payment.odihnx.com",
-		"https://payment.api-dev.odihnx.com",
-		"http://localhost:5173",
+		// Frontend Board
+		"https://board.api.odihnx.com",     // Board producción
+		"https://board.api-dev.odihnx.com", // Board desarrollo
+		// Frontend Payment
+		"https://payment.api.odihnx.com",     // Payment producción
+		"https://payment.odihnx.com",         // Payment producción alternativo
+		"https://payment.api-dev.odihnx.com", // Payment desarrollo
+		// Local testing
+		"http://localhost:5173", // Vite dev server
+		"http://localhost:8080", // Local testing
+		"http://127.0.0.1:8080", // Local testing alternativo
 	}
 	srv.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,
@@ -98,10 +105,17 @@ func main() {
 	// Configurar CORS - CRÍTICO para WebSocket cross-origin
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"https://payment.api.odihnx.com",     // CloudFront frontend principal
-			"https://payment.odihnx.com",         // Producción
-			"https://payment.api-dev.odihnx.com", // Dev
-			"http://localhost:5173",              // Local dev Vite
+			// Frontend Board
+			"https://board.api.odihnx.com",     // Board producción
+			"https://board.api-dev.odihnx.com", // Board desarrollo
+			// Frontend Payment
+			"https://payment.api.odihnx.com",     // Payment producción
+			"https://payment.odihnx.com",         // Payment producción alternativo
+			"https://payment.api-dev.odihnx.com", // Payment desarrollo
+			// Local testing
+			"http://localhost:5173", // Vite dev server
+			"http://localhost:8080", // Local testing
+			"http://127.0.0.1:8080", // Local testing alternativo
 		},
 		AllowCredentials: true, // Para cookies/auth - requiere origins explícitos (no "*")
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -121,6 +135,7 @@ func main() {
 		ExposedHeaders: []string{
 			"Sec-WebSocket-Accept",
 		},
+		MaxAge: 86400, // Cache preflight response por 24 horas (86400 segundos)
 	})
 
 	// Configurar rutas
