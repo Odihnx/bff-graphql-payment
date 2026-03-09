@@ -29,6 +29,7 @@ type GetPaymentInfraByQrValueResponse struct {
 	Response     *PaymentManagerGenericResponse `json:"response"`
 	PaymentRack  *RackRecord                    `json:"payment_rack"`
 	Installation *InstallationRecord            `json:"installation"`
+	Device       *DeviceRecord                  `json:"device"`
 	BookingTimes []*BookingTimeRecord           `json:"booking_times"`
 }
 
@@ -47,6 +48,14 @@ type RackRecord struct {
 	Id          int32  `json:"id"`
 	Description string `json:"description"`
 	Address     string `json:"address"`
+}
+
+// DeviceRecord represents device data
+type DeviceRecord struct {
+	Name   string `json:"name"`
+	Online bool   `json:"online"`
+	Brand  string `json:"brand"`
+	Model  string `json:"model"`
 }
 
 // BookingTimeRecord represents booking time configuration

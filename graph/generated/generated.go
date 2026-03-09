@@ -122,8 +122,16 @@ type ComplexityRoot struct {
 		UnitMeasurement func(childComplexity int) int
 	}
 
+	PaymentDevice struct {
+		Brand  func(childComplexity int) int
+		Model  func(childComplexity int) int
+		Name   func(childComplexity int) int
+		Online func(childComplexity int) int
+	}
+
 	PaymentInfraResponse struct {
 		BookingTimes  func(childComplexity int) int
+		Device        func(childComplexity int) int
 		Installation  func(childComplexity int) int
 		Message       func(childComplexity int) int
 		PaymentRack   func(childComplexity int) int
@@ -566,12 +574,47 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PaymentBookingTime.UnitMeasurement(childComplexity), true
 
+	case "PaymentDevice.brand":
+		if e.complexity.PaymentDevice.Brand == nil {
+			break
+		}
+
+		return e.complexity.PaymentDevice.Brand(childComplexity), true
+
+	case "PaymentDevice.model":
+		if e.complexity.PaymentDevice.Model == nil {
+			break
+		}
+
+		return e.complexity.PaymentDevice.Model(childComplexity), true
+
+	case "PaymentDevice.name":
+		if e.complexity.PaymentDevice.Name == nil {
+			break
+		}
+
+		return e.complexity.PaymentDevice.Name(childComplexity), true
+
+	case "PaymentDevice.online":
+		if e.complexity.PaymentDevice.Online == nil {
+			break
+		}
+
+		return e.complexity.PaymentDevice.Online(childComplexity), true
+
 	case "PaymentInfraResponse.bookingTimes":
 		if e.complexity.PaymentInfraResponse.BookingTimes == nil {
 			break
 		}
 
 		return e.complexity.PaymentInfraResponse.BookingTimes(childComplexity), true
+
+	case "PaymentInfraResponse.device":
+		if e.complexity.PaymentInfraResponse.Device == nil {
+			break
+		}
+
+		return e.complexity.PaymentInfraResponse.Device(childComplexity), true
 
 	case "PaymentInfraResponse.installation":
 		if e.complexity.PaymentInfraResponse.Installation == nil {
@@ -1140,6 +1183,7 @@ type PaymentInfraResponse {
   traceId: String!
   paymentRack: PaymentRack
   installation: PaymentInstallation
+  device: PaymentDevice
   bookingTimes: [PaymentBookingTime!]!
 }
 
@@ -1212,6 +1256,13 @@ type PaymentInstallation {
   city: String!
   address: String!
   imageUrl: String!
+}
+
+type PaymentDevice {
+  name: String!
+  online: Boolean!
+  brand: String!
+  model: String!
 }
 
 type PaymentBookingTime {
@@ -3605,6 +3656,182 @@ func (ec *executionContext) fieldContext_PaymentBookingTime_amount(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _PaymentDevice_name(ctx context.Context, field graphql.CollectedField, obj *model.PaymentDevice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentDevice_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentDevice_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentDevice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentDevice_online(ctx context.Context, field graphql.CollectedField, obj *model.PaymentDevice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentDevice_online(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Online, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentDevice_online(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentDevice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentDevice_brand(ctx context.Context, field graphql.CollectedField, obj *model.PaymentDevice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentDevice_brand(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Brand, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentDevice_brand(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentDevice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentDevice_model(ctx context.Context, field graphql.CollectedField, obj *model.PaymentDevice) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentDevice_model(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Model, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentDevice_model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentDevice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaymentInfraResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.PaymentInfraResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaymentInfraResponse_transactionId(ctx, field)
 	if err != nil {
@@ -3880,6 +4107,57 @@ func (ec *executionContext) fieldContext_PaymentInfraResponse_installation(_ con
 				return ec.fieldContext_PaymentInstallation_imageUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaymentInstallation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentInfraResponse_device(ctx context.Context, field graphql.CollectedField, obj *model.PaymentInfraResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentInfraResponse_device(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Device, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaymentDevice)
+	fc.Result = res
+	return ec.marshalOPaymentDevice2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPaymentDevice(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentInfraResponse_device(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentInfraResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_PaymentDevice_name(ctx, field)
+			case "online":
+				return ec.fieldContext_PaymentDevice_online(ctx, field)
+			case "brand":
+				return ec.fieldContext_PaymentDevice_brand(ctx, field)
+			case "model":
+				return ec.fieldContext_PaymentDevice_model(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaymentDevice", field.Name)
 		},
 	}
 	return fc, nil
@@ -5252,6 +5530,8 @@ func (ec *executionContext) fieldContext_Query_getPaymentInfraByQrValue(ctx cont
 				return ec.fieldContext_PaymentInfraResponse_paymentRack(ctx, field)
 			case "installation":
 				return ec.fieldContext_PaymentInfraResponse_installation(ctx, field)
+			case "device":
+				return ec.fieldContext_PaymentInfraResponse_device(ctx, field)
 			case "bookingTimes":
 				return ec.fieldContext_PaymentInfraResponse_bookingTimes(ctx, field)
 			}
@@ -8819,6 +9099,60 @@ func (ec *executionContext) _PaymentBookingTime(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var paymentDeviceImplementors = []string{"PaymentDevice"}
+
+func (ec *executionContext) _PaymentDevice(ctx context.Context, sel ast.SelectionSet, obj *model.PaymentDevice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paymentDeviceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaymentDevice")
+		case "name":
+			out.Values[i] = ec._PaymentDevice_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "online":
+			out.Values[i] = ec._PaymentDevice_online(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "brand":
+			out.Values[i] = ec._PaymentDevice_brand(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "model":
+			out.Values[i] = ec._PaymentDevice_model(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var paymentInfraResponseImplementors = []string{"PaymentInfraResponse"}
 
 func (ec *executionContext) _PaymentInfraResponse(ctx context.Context, sel ast.SelectionSet, obj *model.PaymentInfraResponse) graphql.Marshaler {
@@ -8854,6 +9188,8 @@ func (ec *executionContext) _PaymentInfraResponse(ctx context.Context, sel ast.S
 			out.Values[i] = ec._PaymentInfraResponse_paymentRack(ctx, field, obj)
 		case "installation":
 			out.Values[i] = ec._PaymentInfraResponse_installation(ctx, field, obj)
+		case "device":
+			out.Values[i] = ec._PaymentInfraResponse_device(ctx, field, obj)
 		case "bookingTimes":
 			out.Values[i] = ec._PaymentInfraResponse_bookingTimes(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -10408,6 +10744,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOPaymentDevice2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPaymentDevice(ctx context.Context, sel ast.SelectionSet, v *model.PaymentDevice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaymentDevice(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaymentInstallation2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPaymentInstallation(ctx context.Context, sel ast.SelectionSet, v *model.PaymentInstallation) graphql.Marshaler {

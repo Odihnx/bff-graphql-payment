@@ -49,6 +49,16 @@ func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.
 		}
 	}
 
+	// Map device
+	if paymentInfra.Device != nil {
+		response.Device = &model.PaymentDevice{
+			Name:   paymentInfra.Device.Name,
+			Online: paymentInfra.Device.Online,
+			Brand:  paymentInfra.Device.Brand,
+			Model:  paymentInfra.Device.Model,
+		}
+	}
+
 	// Mapear tiempos de reserva
 	for _, bt := range paymentInfra.BookingTimes {
 		response.BookingTimes = append(response.BookingTimes, &model.PaymentBookingTime{
