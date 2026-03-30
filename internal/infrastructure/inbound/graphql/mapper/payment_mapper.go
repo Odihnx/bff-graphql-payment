@@ -59,8 +59,13 @@ func (m *PaymentInfraGraphQLMapper) ToGraphQLResponse(paymentInfra *domainModel.
 		}
 	}
 
-	// Mapear tiempos de reserva
+	// Mapear tiempos de reserva (filtrar opciones de administrador)
 	for _, bt := range paymentInfra.BookingTimes {
+		// Filtrar bookingTimes con nombre "Admin" ya que es un objeto privado para administración
+		if bt.Name == "Admin" {
+			continue
+		}
+
 		response.BookingTimes = append(response.BookingTimes, &model.PaymentBookingTime{
 			ID:              bt.ID,
 			Name:            bt.Name,
