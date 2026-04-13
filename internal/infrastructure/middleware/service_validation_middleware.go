@@ -45,17 +45,23 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 		return fmt.Errorf("service validation error: %w", err)
 	}
 
+	// Log del resultado de validación
+	log.Printf("🔍 Service validation result for '%s': available=%v", m.serviceName, available)
+
 	// Si el servicio no está disponible
 	if !available {
 		// Intentar obtener mensaje detallado del gateway
 		status, err := m.statusChecker.GetServiceStatus(ctx, m.serviceName)
 		if err == nil && status.MaintenanceMessage != "" {
+			log.Printf("❌ Service '%s' is unavailable: %s", m.serviceName, status.MaintenanceMessage)
 			return fmt.Errorf("service '%s' is not available: %s", m.serviceName, status.MaintenanceMessage)
 		}
+		log.Printf("❌ Service '%s' is unavailable (no detailed message)", m.serviceName)
 		return fmt.Errorf("service '%s' is not available", m.serviceName)
 	}
 
 	// Servicio disponible
+	log.Printf("✅ Service '%s' is available", m.serviceName)
 	return nil
 }
 
