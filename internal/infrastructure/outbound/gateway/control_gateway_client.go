@@ -75,11 +75,18 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 		if err := json.Unmarshal(body, &result); err != nil {
 			return false, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
+		fmt.Printf("🌐 Control Gateway response for '%s': status=200, valid=%v, message=%s\n",
+			serviceName, result.Valid, result.Message)
 		return result.Valid, nil
 	}
 
 	// Si es 503, el servicio no está disponible (pero la llamada fue exitosa)
 	if resp.StatusCode == http.StatusServiceUnavailable {
+		var result serviceValidationResponse
+		if err := json.Unmarshal(body, &result); err == nil {
+			fmt.Printf("🌐 Control Gateway response for '%s': status=503, message=%s\n",
+				serviceName, result.Message)
+		}
 		return false, nil
 	}
 
@@ -134,10 +141,14 @@ func (c *ControlGatewayClient) GetServiceStatus(ctx context.Context, serviceName
 
 	// Construir ServiceStatus basado en la respuesta del plugin
 	status := &ports.ServiceStatus{
-		Name:               serviceName,
-		Enabled:            result.Valid,
-		Maintenance:        !result.Valid, // Asumimos que si no es válido, está en mantenimiento
-		MaintenanceMessage: result.Message,
+		Name:        serviceName,
+		Enabled:     result.Valid,
+		Maintenance: !result.Valid, // Asumimos que si no es válido, está en mantenimiento
+	}
+
+	// Solo incluir mensaje si el servicio NO está disponible
+	if !result.Valid {
+		status.MaintenanceMessage = result.Message
 	}
 
 	return status, nil
