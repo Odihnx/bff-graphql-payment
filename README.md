@@ -74,6 +74,34 @@ O usando el binario compilado:
 
 ## 🔌 APIs y Servicios
 
+### Servicios Externos Conectados
+
+| Servicio | Tipo | Propósito |
+|----------|------|-----------|
+| **APISIX Control Gateway** | Plugin Lua | Validación de estado de servicios antes de ejecutar operaciones |
+| **Payment Manager** | gRPC | Gestión de pagos (buf.build/odihnx-prod/service-payment-manager) |
+| **Booking Manager** | gRPC | Gestión de reservas (buf.build/odihnx-prod/service-booking-manager) |
+
+### Control Gateway Integration
+
+Antes de ejecutar **cualquier operación GraphQL**, el BFF valida:
+- ✅ Servicio "payment" está habilitado y no en mantenimiento
+
+**Flujo de validación**:
+```
+GraphQL Query → Middleware → POST /validate/service → APISIX Plugin Lua → MySQL
+                    ↓                                                          ↓
+           [200] Continúa                                    service validation
+           [503] Error: "service not available"
+```
+
+**Configuración** (`.env`):
+```bash
+CONTROL_GATEWAY_URL=http://localhost:9080
+CONTROL_SERVICE_NAME=payment
+CONTROL_BYPASS_ON_ERROR=true  # true=desarrollo, false=producción
+```
+
 
 ### Servicios gRPC Conectados
 
