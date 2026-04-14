@@ -42,7 +42,7 @@ func NewControlGatewayClient(baseURL string, timeout time.Duration) ports.Servic
 // IsServiceAvailable verifica si un servicio está disponible consultando el plugin Lua
 func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceName string) (bool, error) {
 	url := fmt.Sprintf("%s/validate/service", c.baseURL)
-	
+
 	fmt.Printf("🌐 Calling Control Gateway: URL=%s, service=%s\n", url, serviceName)
 
 	reqBody := serviceValidationRequest{
@@ -84,7 +84,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 			fmt.Printf("❌ Failed to unmarshal JSON: %v\n", err)
 			return false, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
-		fmt.Printf("✅ Control Gateway response for '%s': status=200, valid=%v, message=%s\n", 
+		fmt.Printf("✅ Control Gateway response for '%s': status=200, valid=%v, message=%s\n",
 			serviceName, result.Valid, result.Message)
 		return result.Valid, nil
 	}
@@ -93,7 +93,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 	if resp.StatusCode == http.StatusServiceUnavailable {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err == nil {
-			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n", 
+			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n",
 				serviceName, result.Message)
 		}
 		return false, nil
@@ -101,6 +101,9 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	// Cualquier otro código es un error
 	fmt.Printf("❌ Unexpected status code: %d\n", resp.StatusCode)
+	return false, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+}
+
 // GetServiceStatus obtiene el estado completo del servicio
 // Nota: El plugin Lua no expone un endpoint de status detallado,
 // solo valida disponibilidad, así que retornamos info básica
