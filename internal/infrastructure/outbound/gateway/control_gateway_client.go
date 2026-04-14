@@ -101,6 +101,9 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	// Cualquier otro código es un error
 	fmt.Printf("❌ Unexpected status code: %d\n", resp.StatusCode)
+	return false, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+}
+
 // GetServiceStatus obtiene el estado completo del servicio
 // Nota: El plugin Lua no expone un endpoint de status detallado,
 // solo valida disponibilidad, así que retornamos info básica
