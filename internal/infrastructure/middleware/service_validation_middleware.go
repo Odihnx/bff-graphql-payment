@@ -53,8 +53,9 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 		// Intentar obtener mensaje detallado del gateway
 		status, err := m.statusChecker.GetServiceStatus(ctx, m.serviceName)
 		if err == nil && status.MaintenanceMessage != "" {
+			// Propagar el mensaje exacto del Control Gateway
 			log.Printf("❌ Service '%s' is unavailable: %s", m.serviceName, status.MaintenanceMessage)
-			return fmt.Errorf("service '%s' is not available: %s", m.serviceName, status.MaintenanceMessage)
+			return fmt.Errorf(status.MaintenanceMessage)
 		}
 		log.Printf("❌ Service '%s' is unavailable (no detailed message)", m.serviceName)
 		return fmt.Errorf("service '%s' is not available", m.serviceName)
