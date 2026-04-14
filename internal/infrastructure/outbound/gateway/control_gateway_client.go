@@ -77,7 +77,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	fmt.Printf("🌐 Control Gateway HTTP Response: status=%d, body=%s\n", resp.StatusCode, string(body))
 
-	// Si es 200, parsear respuesta
+	// HTTP 200 = servicio disponible
 	if resp.StatusCode == http.StatusOK {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err != nil {
@@ -89,16 +89,13 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 		return result.Valid, nil
 	}
 
-	// Si es 503, el servicio no está disponible
+	// HTTP 503 = servicio no disponible, propagar mensaje del gateway
 	if resp.StatusCode == http.StatusServiceUnavailable {
 		var result serviceValidationResponse
-		if err := json.Unmarshal(body, &result); err == nil {
-			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, valid=%v, message=%s\n",
-				serviceName, result.Valid, result.Message)
-			// Retornar el mensaje del gateway como error
-			if result.Message != "" {
-				return false, fmt.Errorf(result.Message)
-			}
+		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
+			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n",
+				serviceName, result.Message)
+			return false, fmt.Errorf(result.Message)
 		}
 		return false, fmt.Errorf("service is not available")
 	}
