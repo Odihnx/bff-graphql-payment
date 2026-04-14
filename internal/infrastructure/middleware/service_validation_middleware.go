@@ -37,32 +37,33 @@ func NewServiceValidationMiddleware(
 // validateServiceAvailability verifica si el servicio está disponible
 func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Context) error {
 	available, err := m.statusChecker.IsServiceAvailable(ctx, m.serviceName)
+
+	// Si hay error de ejecución (conexión, timeout, etc.)
 	if err != nil {
-		// Si hay error, verificar si debemos hacer bypass
-		// El error puede ser:
-		// 1. Mensaje del Control Gateway (servicio deshabilitado/mantenimiento) - NO bypass
-		// 2. Error de conexión (gateway no responde) - SÍ bypass si está habilitado
-
-		// Si contiene palabras clave del gateway, es un mensaje de estado, no hacer bypass
+		// Verificar si es un error de infraestructura vs mensaje del gateway
+		// Los errores del gateway vienen cuando HTTP 503 (servicio deshabilitado)
+		// Los errores de infraestructura son: connection refused, timeout, etc.
 		errorMsg := err.Error()
-		isGatewayMessage := strings.Contains(errorMsg, "maintenance") ||
-			strings.Contains(errorMsg, "disabled") ||
-			strings.Contains(errorMsg, "not active")
+		isInfrastructureError := strings.Contains(errorMsg, "connection refused") ||
+			strings.Contains(errorMsg, "timeout") ||
+			strings.Contains(errorMsg, "dial tcp") ||
+			strings.Contains(errorMsg, "no such host")
 
-		if !isGatewayMessage && m.bypassOnError {
-			// Es un error de conexión y tenemos bypass habilitado
-			log.Printf("⚠️  Service validation failed (continuing): %v", err)
+		if isInfrastructureError && m.bypassOnError {
+			// Error de infraestructura y tenemos bypass habilitado
+			log.Printf("⚠️  Service validation failed (bypassing): %v", err)
 			return nil
 		}
 
-		// Es un mensaje del gateway o no tenemos bypass habilitado
+		// Es un mensaje del gateway (servicio deshabilitado/mantenimiento)
+		// o un error de infraestructura sin bypass
 		log.Printf("❌ Service validation error: %v", err)
 		return err
 	}
 
+	// Si available=false pero no hay error, algo está mal en la lógica
 	if !available {
-		// Esto no debería pasar porque cuando available=false, debería haber un error
-		log.Printf("❌ Service '%s' is unavailable (no error details)", m.serviceName)
+		log.Printf("❌ Service '%s' reported as unavailable without error details", m.serviceName)
 		return fmt.Errorf("service '%s' is not available", m.serviceName)
 	}
 
