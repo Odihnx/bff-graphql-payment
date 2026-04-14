@@ -95,8 +95,12 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 		if err := json.Unmarshal(body, &result); err == nil {
 			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n",
 				serviceName, result.Message)
+			// Retornar el mensaje del gateway como error para que se propague
+			if result.Message != "" {
+				return false, fmt.Errorf(result.Message)
+			}
 		}
-		return false, nil
+		return false, fmt.Errorf("service is not available")
 	}
 
 	// Cualquier otro código es un error
