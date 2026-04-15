@@ -7,6 +7,7 @@ package resolver
 import (
 	"bff-graphql-payment/graph/generated"
 	"bff-graphql-payment/graph/model"
+	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
 	"context"
 	"fmt"
 	"time"
@@ -32,7 +33,7 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
 		fmt.Printf("❌ GraphQL Resolver - GeneratePurchaseOrder failed: %v\n", err)
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	fmt.Printf("✅ GraphQL Resolver - GeneratePurchaseOrder succeeded\n")
@@ -51,7 +52,7 @@ func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.Gene
 	// Llamar al caso de uso
 	booking, err := r.paymentInfraService.GenerateBooking(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID)
 	if err != nil {
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -63,8 +64,7 @@ func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input mode
 	// Llamar al caso de uso
 	paymentInfra, err := r.paymentInfraService.GetPaymentInfraByQrValue(ctx, input.QRValue)
 	if err != nil {
-		// Propagar el error directamente (puede venir del Control Gateway)
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -76,7 +76,7 @@ func (r *queryResolver) GetAvailableLockersByRackIDAndBookingTime(ctx context.Co
 	// Llamar al caso de uso
 	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID, input.TraceID)
 	if err != nil {
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -88,7 +88,7 @@ func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.
 	// Llamar al caso de uso
 	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode, input.RackID, input.TraceID)
 	if err != nil {
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -100,7 +100,7 @@ func (r *queryResolver) GetPurchaseOrderByPo(ctx context.Context, input model.Ge
 	// Llamar al caso de uso
 	orderData, err := r.paymentInfraService.GetPurchaseOrderByPo(ctx, input.PurchaseOrder, input.TraceID)
 	if err != nil {
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -112,7 +112,7 @@ func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.Chec
 	// Llamar al caso de uso
 	bookingStatus, err := r.paymentInfraService.CheckBookingStatus(ctx, input.ServiceName, input.CurrentCode)
 	if err != nil {
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Mapear a respuesta GraphQL
@@ -129,7 +129,7 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 	domainChan, err := r.paymentInfraService.ExecuteOpenStream(ctx, input.ServiceName, input.CurrentCode)
 	if err != nil {
 		fmt.Printf("❌ GraphQL Subscription - ExecuteOpen FAILED to start: %v\n", err)
-		return nil, err
+		return nil, gqlerrors.New(ctx, err)
 	}
 
 	// Crear canal de salida para GraphQL con buffer suficiente para los 3 mensajes
