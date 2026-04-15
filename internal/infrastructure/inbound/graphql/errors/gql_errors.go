@@ -42,6 +42,12 @@ func New(ctx context.Context, err error) *gqlerror.Error {
 
 // resolveCode determina el código de error según el tipo/mensaje del error.
 func resolveCode(err error) string {
+	// Errores del Control Gateway: usar el código que el gateway determinó
+	var gwErr *gatewayerrors.GatewayValidationError
+	if errors.As(err, &gwErr) {
+		return gwErr.Code
+	}
+
 	// Errores de dominio - NOT_FOUND
 	if isAny(err,
 		domainexception.ErrPaymentRackNotFound,

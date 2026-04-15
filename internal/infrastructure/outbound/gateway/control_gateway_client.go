@@ -96,13 +96,26 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
 			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s, maintenance=%s\n",
 				serviceName, result.Message, result.Maintenance)
-			gwErr := &GatewayValidationError{
+			return false, &GatewayValidationError{
 				Msg:         result.Message,
+				Code:        "SERVICE_UNAVAILABLE",
 				Maintenance: result.Maintenance,
 			}
-			return false, gwErr
 		}
 		return false, fmt.Errorf("service unavailable")
+	}
+
+	// HTTP 500 = error interno del gateway
+	if resp.StatusCode == http.StatusInternalServerError {
+		var result serviceValidationResponse
+		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
+			fmt.Printf("❌ Control Gateway internal error for '%s': message=%s\n", serviceName, result.Message)
+			return false, &GatewayValidationError{
+				Msg:  result.Message,
+				Code: "INTERNAL_ERROR",
+			}
+		}
+		return false, fmt.Errorf("gateway internal error")
 	}
 
 	// Cualquier otro código es un error
