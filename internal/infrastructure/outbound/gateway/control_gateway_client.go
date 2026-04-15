@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"bff-graphql-payment/internal/domain/ports"
@@ -97,10 +96,6 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n",
 				serviceName, result.Message)
 			return false, fmt.Errorf(result.Message)
-		}
-		// Propagar el body raw si el JSON no tiene message
-		if rawMsg := strings.TrimSpace(string(body)); rawMsg != "" {
-			return false, fmt.Errorf(rawMsg)
 		}
 		return false, fmt.Errorf("service unavailable")
 	}
