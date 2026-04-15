@@ -2,10 +2,12 @@ package errors
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	appexception "bff-graphql-payment/internal/application/exception"
 	domainexception "bff-graphql-payment/internal/domain/exception"
+	gatewayerrors "bff-graphql-payment/internal/infrastructure/outbound/gateway"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -22,11 +24,19 @@ const (
 // Mapea errores conocidos a su código correspondiente.
 func New(ctx context.Context, err error) *gqlerror.Error {
 	code := resolveCode(err)
+	ext := map[string]interface{}{
+		"code": code,
+	}
+
+	// Si es un error del gateway con mensaje de mantenimiento, incluirlo
+	var gwErr *gatewayerrors.GatewayValidationError
+	if errors.As(err, &gwErr) && gwErr.Maintenance != "" {
+		ext["maintenance"] = gwErr.Maintenance
+	}
+
 	return &gqlerror.Error{
-		Message: err.Error(),
-		Extensions: map[string]interface{}{
-			"code": code,
-		},
+		Message:    err.Error(),
+		Extensions: ext,
 	}
 }
 
