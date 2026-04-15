@@ -25,8 +25,9 @@ type serviceValidationRequest struct {
 
 // serviceValidationResponse es la respuesta del plugin Lua
 type serviceValidationResponse struct {
-	Valid   bool   `json:"valid"`
-	Message string `json:"message"`
+	Valid       bool   `json:"valid"`
+	Message     string `json:"message"`
+	Maintenance string `json:"maintenance"`
 }
 
 // NewControlGatewayClient crea un nuevo cliente para el Control Gateway
@@ -93,9 +94,13 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 	if resp.StatusCode == http.StatusServiceUnavailable {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
-			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s\n",
-				serviceName, result.Message)
-			return false, fmt.Errorf(result.Message)
+			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s, maintenance=%s\n",
+				serviceName, result.Message, result.Maintenance)
+			gwErr := &GatewayValidationError{
+				Msg:         result.Message,
+				Maintenance: result.Maintenance,
+			}
+			return false, gwErr
 		}
 		return false, fmt.Errorf("service unavailable")
 	}
