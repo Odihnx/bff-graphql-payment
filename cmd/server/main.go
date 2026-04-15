@@ -238,6 +238,16 @@ func getConfig() config.Config {
 		cfg.GRPC.BookingServiceAddress = hostBooking + ":" + portBooking
 	}
 
+	// Control Gateway configuration (concatenate HOST:PORT like legacy)
+	hostGatewayControl := os.Getenv("HOST_GATEWAY_CONTROL")
+	portGatewayControl := os.Getenv("PORT_GATEWAY_CONTROL")
+	if hostGatewayControl != "" && portGatewayControl != "" {
+		cfg.ControlGateway.BaseURL = "http://" + hostGatewayControl + ":" + portGatewayControl
+	}
+	if controlServiceName := os.Getenv("CONTROL_SERVICE_NAME"); controlServiceName != "" {
+		cfg.ControlGateway.ServiceName = controlServiceName
+	}
+
 	// Log configuration
 	log.Printf("🔧 Configuration loaded:")
 	log.Printf("   Environment: %s", cfg.General.Environment)
@@ -245,6 +255,10 @@ func getConfig() config.Config {
 	log.Printf("   Server Port: %s", cfg.Server.Port)
 	log.Printf("   Payment Service: %s", cfg.GRPC.PaymentServiceAddress)
 	log.Printf("   Booking Service: %s", cfg.GRPC.BookingServiceAddress)
+	log.Printf("   Control Gateway: %s (service: %s, bypass: %v)",
+		cfg.ControlGateway.BaseURL,
+		cfg.ControlGateway.ServiceName,
+		cfg.ControlGateway.BypassOnError)
 
 	return cfg
 }

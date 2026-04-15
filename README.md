@@ -6,12 +6,13 @@ Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura
 
 - ✅ **Clean Architecture** con separación clara de capas
 - ✅ **Arquitectura Hexagonal** con puertos e interfaces bien definidos
+- ✅ **Control Gateway Integration** para validación de estado de servicios
 - ✅ **gRPC Clients** para Payment Manager y Booking Manager
 - ✅ **Mock/Real API Switch** para desarrollo local y producción
 - ✅ **Buf Registry Integration** para protos remotos
 - ✅ **Health Check** endpoint `/ping`
 - ✅ **CI/CD Pipeline** con GitHub Actions y AWS ECR
-- ✅ **GraphQL API** con 8 operaciones (5 queries, 3 mutations)
+- ✅ **GraphQL API** con 8 operaciones (5 queries, 2 mutations, 1 subscription)
 
 ## 🏗️ Arquitectura
 
@@ -35,56 +36,95 @@ Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura
         └── notification/ # (Futuro)
 ```
 
-## 🚀 Inicio Rápido
-
-### Prerequisitos
-
-- Go 1.21+
-- Buf CLI (para generación de protos)
-- Docker (opcional)
-
-### Desarrollo Local (con Mocks)
-
-1. **Setup inicial:**
-```bash
-scripts\dev_local.bat
-```
-
-Este script:
-- Copia `.env.example` a `.env` (con `USE_MOCK=true`)
-- Genera código GraphQL
-- Genera protos locales
-- Compila el proyecto
-
-2. **Ejecutar servidor:**
-```bash
-go run cmd/server/main.go
-```
-
-O usando el binario compilado:
-```bash
-.\main.exe
-```
-
-### URLs Importantes
+#### URLs Importantes
 
 - **GraphQL Playground**: http://localhost:8080/
 - **GraphQL Endpoint**: http://localhost:8080/query
 - **Health Check**: http://localhost:8080/ping
 
+---
+
 ## 🔌 APIs y Servicios
 
+#### Servicios Externos Conectados
 
-### Servicios gRPC Conectados
+| Servicio | Tipo | Propósito |
+|----------|------|-----------|
+| **APISIX Control Gateway** | Plugin Lua | Validación de estado de servicios antes de ejecutar operaciones |
+| **Payment Manager** | gRPC | Gestión de pagos (buf.build/odihnx-prod/service-payment-manager) |
+| **Booking Manager** | gRPC | Gestión de reservas (buf.build/odihnx-prod/service-booking-manager) |
+
+#### Control Gateway Integration
+
+Antes de ejecutar **cualquier operación GraphQL**, el BFF consulta al **APISIX Control Gateway** para validar que el servicio esté disponible y no en mantenimiento.
+
+#### Flujo de Validación ♻️
+
+```
+GraphQL Query → ServiceValidationMiddleware → Control Gateway → MySQL (control_manager)
+                         ↓                            ↓                    ↓
+                 POST /validate/service      APISIX Plugin Lua    SELECT enabled, maintenance
+                         ↓                            ↓                    ↓
+                [HTTP 200] Continúa          {"valid":true}        enabled=1, maintenance=0
+                [HTTP 503] Error             {"valid":false}       enabled=0 or maintenance=1
+```
+
+#### Request/Response Format 📡
+
+**Request Body** (enviado por el BFF):
+```json
+{
+  "service_name": "payment"
+}
+```
+
+**Response - Servicio Disponible** (HTTP 200):
+```json
+{
+  "valid": true,
+  "message": "Service is active and available"
+}
+```
+
+**Response - Servicio No Disponible** (HTTP 503):
+```json
+{
+  "valid": false,
+  "message": "Service is not active or in maintenance mode"
+}
+```
+
+#### 📋 Logs
+
+**Cuando el servicio está disponible:**
+```
+🔧 Configuration loaded:
+   Control Gateway: http://apisix-gateway-control:9081 (service: payment, bypass: true)
+🌐 Calling Control Gateway: URL=http://apisix-gateway-control:9081/validate/service, service=payment
+🌐 Control Gateway HTTP Response: status=200, body={"valid":true,"message":"Service is active and available"}
+✅ Control Gateway response for 'payment': status=200, valid=true, message=Service is active and available
+✅ Service 'payment' is available
+```
+
+**Cuando el servicio NO está disponible:**
+```
+🌐 Calling Control Gateway: URL=http://apisix-gateway-control:9081/validate/service, service=payment
+🌐 Control Gateway HTTP Response: status=503, body={"valid":false,"message":"Service is currently in maintenance mode"}
+⚠️  Control Gateway response for 'payment': status=503, message=Service is currently in maintenance mode
+❌ Service 'payment' is unavailable: Service is currently in maintenance mode
+```
+
+---
+
+#### Servicios gRPC Conectados
 
 | Servicio | Buf Registry |
 |----------|--------------|
 | Payment Manager | `buf.build/odihnx-prod/service-payment-manager` |
 | Booking Manager | `buf.build/odihnx-prod/service-booking-manager` |
 
-## 🛠️ Desarrollo
 
-### Estructura del Proyecto
+#### Estructura del Proyecto 🏗️
 
 ```
 bff-graphql-payment/
@@ -110,24 +150,26 @@ bff-graphql-payment/
 ├── Dockerfile              # Imagen de producción
 └── README.md               # Este archivo
 ```
+---
+### 📦 GraphQL Operations
 
-## 📦 GraphQL Operations
-
-### Queries (5)
+#### Queries (5)
 - `getPaymentInfraByQrValue` - Obtener infraestructura de pago por QR
-- `getAvailableLockers` - Obtener lockers disponibles
+- `getAvailableLockersByRackIDAndBookingTime` - Obtener lockers disponibles por rack y horario
 - `validateDiscountCoupon` - Validar cupón de descuento
 - `getPurchaseOrderByPo` - Obtener orden de compra por PO
 - `checkBookingStatus` - Verificar estado de reserva
 
-### Mutations (3)
+#### Mutations (2)
 - `generatePurchaseOrder` - Generar orden de compra
 - `generateBooking` - Generar reserva de locker
-- `executeOpen` - Ejecutar apertura de locker
 
+#### Subscriptions (1)
+- `executeOpen` - Ejecutar apertura de locker con actualizaciones en tiempo real (SSE)
+---
 ## 🧪 Testing
 
-### Probar la API
+#### Probar la API 
 
 1. **Health Check:**
 ```bash
