@@ -119,6 +119,18 @@ func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.Chec
 	return r.mapper.ToBookingStatusResponse(bookingStatus), nil
 }
 
+// GetBookingPayment is the resolver for the getBookingPayment field.
+func (r *queryResolver) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentResponse, error) {
+	domainInput := r.mapper.ToGetBookingPaymentInput(input)
+
+	history, err := r.paymentInfraService.GetBookingPayment(ctx, domainInput)
+	if err != nil {
+		return nil, gqlerrors.New(ctx, err)
+	}
+
+	return r.mapper.ToBookingPaymentResponse(history), nil
+}
+
 // ExecuteOpen is the resolver for the executeOpen field.
 func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (<-chan *model.ExecuteOpenResponse, error) {
 	// Log de entrada
