@@ -56,7 +56,7 @@ func (c *CachedServiceChecker) IsServiceAvailable(ctx context.Context, serviceNa
 
 	if cacheValid && found {
 		remaining := (c.ttl - time.Since(c.refreshedAt)).Round(time.Second)
-		log.Printf("🗃️ Cache AVAILABLE | service='%s' expires_in=%s", serviceName, remaining)
+		log.Printf("🗃️  Cache AVAILABLE | service='%s' expires_in=%s", serviceName, remaining)
 		return entry.available, entry.err
 	}
 
