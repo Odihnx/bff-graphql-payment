@@ -135,3 +135,11 @@ func (m *ServiceValidationMiddleware) ExecuteOpenStream(ctx context.Context, ser
 	}
 	return m.next.ExecuteOpenStream(ctx, serviceName, currentCode)
 }
+
+// GetBookingPayment obtiene el historial de reservas de pago
+func (m *ServiceValidationMiddleware) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
+	if err := m.validateServiceAvailability(ctx); err != nil {
+		return nil, err
+	}
+	return m.next.GetBookingPayment(ctx, input)
+}
