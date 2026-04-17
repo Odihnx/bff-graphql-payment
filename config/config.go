@@ -30,8 +30,9 @@ type GRPCConfig struct {
 type ControlGatewayConfig struct {
 	BaseURL       string
 	Timeout       time.Duration
-	ServiceName   string // Nombre del servicio a validar (ej: "payment")
-	BypassOnError bool   // Si es true, continúa aunque el gateway falle
+	ServiceName   string        // Nombre del servicio a validar (ej: "payment")
+	BypassOnError bool          // Si es true, continúa aunque el gateway falle
+	CacheTTL      time.Duration // TTL del caché de validaciones (0 = deshabilitado)
 }
 
 // GeneralConfig contiene configuración general de la aplicación
@@ -60,6 +61,7 @@ func DefaultConfig() Config {
 			Timeout:       5 * time.Second,
 			ServiceName:   "payment",
 			BypassOnError: true, // En desarrollo, permitir continuar si falla
+			CacheTTL:      5 * time.Minute,
 		},
 		General: GeneralConfig{
 			Environment: "development",
