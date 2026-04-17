@@ -622,9 +622,47 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 		return &model.BookingPaymentHistory{Bookings: []*model.BookingPaymentRecord{}}, nil
 	}
 
+	// collect booking IDs for batch purchase order lookup
+	bookingIDs := make([]int32, 0, len(resp.Bookings.Bookings))
+	for _, b := range resp.Bookings.Bookings {
+		bookingIDs = append(bookingIDs, b.Id)
+	}
+
+	// fetch purchase orders in parallel
+	type poResult struct {
+		orders []*paymentpb.PurchaseOrderRecord
+		err    error
+	}
+	poCh := make(chan poResult, 1)
+	go func() {
+		if len(bookingIDs) == 0 {
+			poCh <- poResult{}
+			return
+		}
+		poResp, err := c.grpcClient.GetPurchaseOrdersByBookingIDs(ctx, &paymentpb.GetPurchaseOrdersByBookingIDsRequest{
+			BookingIds: bookingIDs,
+		})
+		if err != nil {
+			log.Printf("⚠️ GetPurchaseOrdersByBookingIDs failed (non-fatal): %v", err)
+			poCh <- poResult{err: err}
+			return
+		}
+		poCh <- poResult{orders: poResp.PurchaseOrders}
+	}()
+
+	poRes := <-poCh
+
+	// build lookup map: booking_reference -> purchase order
+	poMap := make(map[int32]*paymentpb.PurchaseOrderRecord)
+	if poRes.err == nil {
+		for _, o := range poRes.orders {
+			poMap[o.BookingReference] = o
+		}
+	}
+
 	records := make([]*model.BookingPaymentRecord, 0, len(resp.Bookings.Bookings))
 	for _, b := range resp.Bookings.Bookings {
-		records = append(records, &model.BookingPaymentRecord{
+		rec := &model.BookingPaymentRecord{
 			ID:                     int(b.Id),
 			ConfigurationBookingID: int(b.ConfigurationBookingId),
 			InitBooking:            b.InitBooking,
@@ -638,7 +676,32 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 			EmailRecipient:         b.EmailRecipient,
 			CreatedAt:              b.CreatedAt,
 			UpdatedAt:              b.UpdatedAt,
-		})
+		}
+		if po, ok := poMap[b.Id]; ok {
+			info := &model.PurchaseOrderInfo{
+				BookingReference:   int(po.BookingReference),
+				Oc:                 po.Oc,
+				Email:              po.Email,
+				Phone:              po.Phone,
+				Discount:           int(po.Discount),
+				ProductPrice:       int(po.ProductPrice),
+				FinalProductPrice:  int(po.FinalProductPrice),
+				ProductName:        po.ProductName,
+				ProductDescription: po.ProductDescription,
+				LockerPosition:     int(po.LockerPosition),
+				InstallationName:   po.InstallationName,
+				DeviceSerieNum:     po.DeviceSerieNum,
+				Status:             po.Status,
+				CreatedAt:          po.CreatedAt,
+				UpdatedAt:          po.UpdatedAt,
+			}
+			if po.CouponId != nil {
+				v := int(*po.CouponId)
+				info.CouponID = &v
+			}
+			rec.PurchaseOrder = info
+		}
+		records = append(records, rec)
 	}
 
 	return &model.BookingPaymentHistory{
