@@ -76,6 +76,7 @@ type ComplexityRoot struct {
 		InstallationName       func(childComplexity int) int
 		NumberLocker           func(childComplexity int) int
 		Openings               func(childComplexity int) int
+		PurchaseOrder          func(childComplexity int) int
 		ServiceName            func(childComplexity int) int
 		UpdatedAt              func(childComplexity int) int
 	}
@@ -195,6 +196,25 @@ type ComplexityRoot struct {
 		ProductName        func(childComplexity int) int
 		ProductPrice       func(childComplexity int) int
 		Status             func(childComplexity int) int
+	}
+
+	PurchaseOrderInfo struct {
+		BookingReference   func(childComplexity int) int
+		CouponID           func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		DeviceSerieNum     func(childComplexity int) int
+		Discount           func(childComplexity int) int
+		Email              func(childComplexity int) int
+		FinalProductPrice  func(childComplexity int) int
+		InstallationName   func(childComplexity int) int
+		LockerPosition     func(childComplexity int) int
+		Oc                 func(childComplexity int) int
+		Phone              func(childComplexity int) int
+		ProductDescription func(childComplexity int) int
+		ProductName        func(childComplexity int) int
+		ProductPrice       func(childComplexity int) int
+		Status             func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
 	}
 
 	PurchaseOrderResponse struct {
@@ -408,6 +428,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.BookingPaymentRecord.Openings(childComplexity), true
+
+	case "BookingPaymentRecord.purchaseOrder":
+		if e.complexity.BookingPaymentRecord.PurchaseOrder == nil {
+			break
+		}
+
+		return e.complexity.BookingPaymentRecord.PurchaseOrder(childComplexity), true
 
 	case "BookingPaymentRecord.serviceName":
 		if e.complexity.BookingPaymentRecord.ServiceName == nil {
@@ -978,6 +1005,118 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PurchaseOrderData.Status(childComplexity), true
+
+	case "PurchaseOrderInfo.bookingReference":
+		if e.complexity.PurchaseOrderInfo.BookingReference == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.BookingReference(childComplexity), true
+
+	case "PurchaseOrderInfo.couponId":
+		if e.complexity.PurchaseOrderInfo.CouponID == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.CouponID(childComplexity), true
+
+	case "PurchaseOrderInfo.createdAt":
+		if e.complexity.PurchaseOrderInfo.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.CreatedAt(childComplexity), true
+
+	case "PurchaseOrderInfo.deviceSerieNum":
+		if e.complexity.PurchaseOrderInfo.DeviceSerieNum == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.DeviceSerieNum(childComplexity), true
+
+	case "PurchaseOrderInfo.discount":
+		if e.complexity.PurchaseOrderInfo.Discount == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.Discount(childComplexity), true
+
+	case "PurchaseOrderInfo.email":
+		if e.complexity.PurchaseOrderInfo.Email == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.Email(childComplexity), true
+
+	case "PurchaseOrderInfo.finalProductPrice":
+		if e.complexity.PurchaseOrderInfo.FinalProductPrice == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.FinalProductPrice(childComplexity), true
+
+	case "PurchaseOrderInfo.installationName":
+		if e.complexity.PurchaseOrderInfo.InstallationName == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.InstallationName(childComplexity), true
+
+	case "PurchaseOrderInfo.lockerPosition":
+		if e.complexity.PurchaseOrderInfo.LockerPosition == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.LockerPosition(childComplexity), true
+
+	case "PurchaseOrderInfo.oc":
+		if e.complexity.PurchaseOrderInfo.Oc == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.Oc(childComplexity), true
+
+	case "PurchaseOrderInfo.phone":
+		if e.complexity.PurchaseOrderInfo.Phone == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.Phone(childComplexity), true
+
+	case "PurchaseOrderInfo.productDescription":
+		if e.complexity.PurchaseOrderInfo.ProductDescription == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.ProductDescription(childComplexity), true
+
+	case "PurchaseOrderInfo.productName":
+		if e.complexity.PurchaseOrderInfo.ProductName == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.ProductName(childComplexity), true
+
+	case "PurchaseOrderInfo.productPrice":
+		if e.complexity.PurchaseOrderInfo.ProductPrice == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.ProductPrice(childComplexity), true
+
+	case "PurchaseOrderInfo.status":
+		if e.complexity.PurchaseOrderInfo.Status == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.Status(childComplexity), true
+
+	case "PurchaseOrderInfo.updatedAt":
+		if e.complexity.PurchaseOrderInfo.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.PurchaseOrderInfo.UpdatedAt(childComplexity), true
 
 	case "PurchaseOrderResponse.message":
 		if e.complexity.PurchaseOrderResponse.Message == nil {
@@ -1552,6 +1691,26 @@ type BookingPaymentRecord {
   openings: Int!
   serviceName: String!
   emailRecipient: String!
+  createdAt: String!
+  updatedAt: String!
+  purchaseOrder: PurchaseOrderInfo
+}
+
+type PurchaseOrderInfo {
+  couponId: Int
+  bookingReference: Int!
+  oc: String!
+  email: String!
+  phone: String!
+  discount: Int!
+  productPrice: Int!
+  finalProductPrice: Int!
+  productName: String!
+  productDescription: String!
+  lockerPosition: Int!
+  installationName: String!
+  deviceSerieNum: String!
+  status: String!
   createdAt: String!
   updatedAt: String!
 }
@@ -2758,6 +2917,81 @@ func (ec *executionContext) fieldContext_BookingPaymentRecord_updatedAt(_ contex
 	return fc, nil
 }
 
+func (ec *executionContext) _BookingPaymentRecord_purchaseOrder(ctx context.Context, field graphql.CollectedField, obj *model.BookingPaymentRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingPaymentRecord_purchaseOrder(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PurchaseOrder, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PurchaseOrderInfo)
+	fc.Result = res
+	return ec.marshalOPurchaseOrderInfo2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPurchaseOrderInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingPaymentRecord_purchaseOrder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPaymentRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "couponId":
+				return ec.fieldContext_PurchaseOrderInfo_couponId(ctx, field)
+			case "bookingReference":
+				return ec.fieldContext_PurchaseOrderInfo_bookingReference(ctx, field)
+			case "oc":
+				return ec.fieldContext_PurchaseOrderInfo_oc(ctx, field)
+			case "email":
+				return ec.fieldContext_PurchaseOrderInfo_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_PurchaseOrderInfo_phone(ctx, field)
+			case "discount":
+				return ec.fieldContext_PurchaseOrderInfo_discount(ctx, field)
+			case "productPrice":
+				return ec.fieldContext_PurchaseOrderInfo_productPrice(ctx, field)
+			case "finalProductPrice":
+				return ec.fieldContext_PurchaseOrderInfo_finalProductPrice(ctx, field)
+			case "productName":
+				return ec.fieldContext_PurchaseOrderInfo_productName(ctx, field)
+			case "productDescription":
+				return ec.fieldContext_PurchaseOrderInfo_productDescription(ctx, field)
+			case "lockerPosition":
+				return ec.fieldContext_PurchaseOrderInfo_lockerPosition(ctx, field)
+			case "installationName":
+				return ec.fieldContext_PurchaseOrderInfo_installationName(ctx, field)
+			case "deviceSerieNum":
+				return ec.fieldContext_PurchaseOrderInfo_deviceSerieNum(ctx, field)
+			case "status":
+				return ec.fieldContext_PurchaseOrderInfo_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PurchaseOrderInfo_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_PurchaseOrderInfo_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PurchaseOrderInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BookingPaymentResponse_bookings(ctx context.Context, field graphql.CollectedField, obj *model.BookingPaymentResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BookingPaymentResponse_bookings(ctx, field)
 	if err != nil {
@@ -2823,6 +3057,8 @@ func (ec *executionContext) fieldContext_BookingPaymentResponse_bookings(_ conte
 				return ec.fieldContext_BookingPaymentRecord_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_BookingPaymentRecord_updatedAt(ctx, field)
+			case "purchaseOrder":
+				return ec.fieldContext_BookingPaymentRecord_purchaseOrder(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingPaymentRecord", field.Name)
 		},
@@ -6312,6 +6548,707 @@ func (ec *executionContext) _PurchaseOrderData_status(ctx context.Context, field
 func (ec *executionContext) fieldContext_PurchaseOrderData_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PurchaseOrderData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_couponId(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_couponId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CouponID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_couponId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_bookingReference(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_bookingReference(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BookingReference, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_bookingReference(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_oc(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_oc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Oc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_oc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_email(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_phone(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_phone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_discount(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_discount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Discount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_discount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_productPrice(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_productPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_productPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_finalProductPrice(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_finalProductPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FinalProductPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_finalProductPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_productName(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_productName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_productName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_productDescription(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_productDescription(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductDescription, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_productDescription(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_lockerPosition(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_lockerPosition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LockerPosition, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_lockerPosition(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_installationName(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_installationName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InstallationName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_installationName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_deviceSerieNum(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_deviceSerieNum(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeviceSerieNum, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_deviceSerieNum(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_status(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PurchaseOrderInfo_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.PurchaseOrderInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PurchaseOrderInfo_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PurchaseOrderInfo_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PurchaseOrderInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -9988,6 +10925,8 @@ func (ec *executionContext) _BookingPaymentRecord(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "purchaseOrder":
+			out.Values[i] = ec._BookingPaymentRecord_purchaseOrder(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10817,6 +11756,117 @@ func (ec *executionContext) _PurchaseOrderData(ctx context.Context, sel ast.Sele
 			}
 		case "status":
 			out.Values[i] = ec._PurchaseOrderData_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var purchaseOrderInfoImplementors = []string{"PurchaseOrderInfo"}
+
+func (ec *executionContext) _PurchaseOrderInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PurchaseOrderInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, purchaseOrderInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PurchaseOrderInfo")
+		case "couponId":
+			out.Values[i] = ec._PurchaseOrderInfo_couponId(ctx, field, obj)
+		case "bookingReference":
+			out.Values[i] = ec._PurchaseOrderInfo_bookingReference(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "oc":
+			out.Values[i] = ec._PurchaseOrderInfo_oc(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "email":
+			out.Values[i] = ec._PurchaseOrderInfo_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "phone":
+			out.Values[i] = ec._PurchaseOrderInfo_phone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "discount":
+			out.Values[i] = ec._PurchaseOrderInfo_discount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productPrice":
+			out.Values[i] = ec._PurchaseOrderInfo_productPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "finalProductPrice":
+			out.Values[i] = ec._PurchaseOrderInfo_finalProductPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productName":
+			out.Values[i] = ec._PurchaseOrderInfo_productName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productDescription":
+			out.Values[i] = ec._PurchaseOrderInfo_productDescription(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lockerPosition":
+			out.Values[i] = ec._PurchaseOrderInfo_lockerPosition(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "installationName":
+			out.Values[i] = ec._PurchaseOrderInfo_installationName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deviceSerieNum":
+			out.Values[i] = ec._PurchaseOrderInfo_deviceSerieNum(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._PurchaseOrderInfo_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PurchaseOrderInfo_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._PurchaseOrderInfo_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12286,6 +13336,13 @@ func (ec *executionContext) marshalOPaymentRack2ᚖbffᚑgraphqlᚑpaymentᚋgra
 		return graphql.Null
 	}
 	return ec._PaymentRack(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPurchaseOrderInfo2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPurchaseOrderInfo(ctx context.Context, sel ast.SelectionSet, v *model.PurchaseOrderInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PurchaseOrderInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSortDirection2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐSortDirection(ctx context.Context, v any) (*model.SortDirection, error) {
