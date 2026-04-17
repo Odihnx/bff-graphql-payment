@@ -291,3 +291,70 @@ func (m *PaymentInfraGraphQLMapper) mapPhysicalStatusToGraphQL(status domainMode
 		return model.PhysicalStatusPhysicalStatusUnspecified
 	}
 }
+
+// ToGetBookingPaymentInput convierte el input GraphQL al input de dominio
+func (m *PaymentInfraGraphQLMapper) ToGetBookingPaymentInput(input model.GetBookingPaymentInput) domainModel.GetBookingPaymentInput {
+	domainInput := domainModel.GetBookingPaymentInput{
+		DeviceID:       input.DeviceID,
+		EmailRecipient: input.EmailRecipient,
+		ActiveOnly:     input.ActiveOnly,
+		DateFrom:       input.DateFrom,
+		DateUntil:      input.DateUntil,
+		SortBy:         input.SortBy,
+	}
+
+	if input.Page != nil {
+		domainInput.Page = input.Page
+	}
+	if input.PageSize != nil {
+		domainInput.PageSize = input.PageSize
+	}
+
+	if input.Sort != nil {
+		switch *input.Sort {
+		case model.SortDirectionDesc:
+			d := domainModel.SortDirectionDesc
+			domainInput.Sort = &d
+		default:
+			d := domainModel.SortDirectionAsc
+			domainInput.Sort = &d
+		}
+	}
+
+	return domainInput
+}
+
+// ToBookingPaymentResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToBookingPaymentResponse(history *domainModel.BookingPaymentHistory) *model.BookingPaymentResponse {
+	if history == nil {
+		return &model.BookingPaymentResponse{Bookings: []*model.BookingPaymentRecord{}}
+	}
+
+	records := make([]*model.BookingPaymentRecord, 0, len(history.Bookings))
+	for _, b := range history.Bookings {
+		records = append(records, &model.BookingPaymentRecord{
+			ID:                     b.ID,
+			ConfigurationBookingID: b.ConfigurationBookingID,
+			InitBooking:            b.InitBooking,
+			FinishBooking:          b.FinishBooking,
+			InstallationName:       b.InstallationName,
+			NumberLocker:           b.NumberLocker,
+			DeviceID:               b.DeviceID,
+			CurrentCode:            b.CurrentCode,
+			Openings:               b.Openings,
+			ServiceName:            b.ServiceName,
+			EmailRecipient:         b.EmailRecipient,
+			CreatedAt:              b.CreatedAt,
+			UpdatedAt:              b.UpdatedAt,
+		})
+	}
+
+	return &model.BookingPaymentResponse{
+		Bookings:    records,
+		TotalCount:  history.TotalCount,
+		CurrentPage: history.CurrentPage,
+		TotalPages:  history.TotalPages,
+		LastPage:    history.LastPage,
+		NextPage:    history.NextPage,
+	}
+}
