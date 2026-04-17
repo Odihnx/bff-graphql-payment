@@ -26,19 +26,20 @@ type AvailablePaymentGroup struct {
 }
 
 type BookingPaymentRecord struct {
-	ID                     int    `json:"id"`
-	ConfigurationBookingID int    `json:"configurationBookingId"`
-	InitBooking            string `json:"initBooking"`
-	FinishBooking          string `json:"finishBooking"`
-	InstallationName       string `json:"installationName"`
-	NumberLocker           int    `json:"numberLocker"`
-	DeviceID               string `json:"deviceId"`
-	CurrentCode            string `json:"currentCode"`
-	Openings               int    `json:"openings"`
-	ServiceName            string `json:"serviceName"`
-	EmailRecipient         string `json:"emailRecipient"`
-	CreatedAt              string `json:"createdAt"`
-	UpdatedAt              string `json:"updatedAt"`
+	ID                     int                `json:"id"`
+	ConfigurationBookingID int                `json:"configurationBookingId"`
+	InitBooking            string             `json:"initBooking"`
+	FinishBooking          string             `json:"finishBooking"`
+	InstallationName       string             `json:"installationName"`
+	NumberLocker           int                `json:"numberLocker"`
+	DeviceID               string             `json:"deviceId"`
+	CurrentCode            string             `json:"currentCode"`
+	Openings               int                `json:"openings"`
+	ServiceName            string             `json:"serviceName"`
+	EmailRecipient         string             `json:"emailRecipient"`
+	CreatedAt              string             `json:"createdAt"`
+	UpdatedAt              string             `json:"updatedAt"`
+	PurchaseOrder          *PurchaseOrderInfo `json:"purchaseOrder,omitempty"`
 }
 
 type BookingPaymentResponse struct {
@@ -210,6 +211,25 @@ type PurchaseOrderData struct {
 	InstallationName   string `json:"installationName"`
 	DeviceSerieNum     string `json:"deviceSerieNum"`
 	Status             string `json:"status"`
+}
+
+type PurchaseOrderInfo struct {
+	CouponID           *int   `json:"couponId,omitempty"`
+	BookingReference   int    `json:"bookingReference"`
+	Oc                 string `json:"oc"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Discount           int    `json:"discount"`
+	ProductPrice       int    `json:"productPrice"`
+	FinalProductPrice  int    `json:"finalProductPrice"`
+	ProductName        string `json:"productName"`
+	ProductDescription string `json:"productDescription"`
+	LockerPosition     int    `json:"lockerPosition"`
+	InstallationName   string `json:"installationName"`
+	DeviceSerieNum     string `json:"deviceSerieNum"`
+	Status             string `json:"status"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
 }
 
 type PurchaseOrderResponse struct {
