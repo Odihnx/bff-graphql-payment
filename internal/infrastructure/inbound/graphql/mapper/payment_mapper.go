@@ -332,7 +332,7 @@ func (m *PaymentInfraGraphQLMapper) ToBookingPaymentResponse(history *domainMode
 
 	records := make([]*model.BookingPaymentRecord, 0, len(history.Bookings))
 	for _, b := range history.Bookings {
-		records = append(records, &model.BookingPaymentRecord{
+		rec := &model.BookingPaymentRecord{
 			ID:                     b.ID,
 			ConfigurationBookingID: b.ConfigurationBookingID,
 			InitBooking:            b.InitBooking,
@@ -346,7 +346,29 @@ func (m *PaymentInfraGraphQLMapper) ToBookingPaymentResponse(history *domainMode
 			EmailRecipient:         b.EmailRecipient,
 			CreatedAt:              b.CreatedAt,
 			UpdatedAt:              b.UpdatedAt,
-		})
+		}
+		if b.PurchaseOrder != nil {
+			po := b.PurchaseOrder
+			rec.PurchaseOrder = &model.PurchaseOrderInfo{
+				CouponID:           po.CouponID,
+				BookingReference:   po.BookingReference,
+				Oc:                 po.Oc,
+				Email:              po.Email,
+				Phone:              po.Phone,
+				Discount:           po.Discount,
+				ProductPrice:       po.ProductPrice,
+				FinalProductPrice:  po.FinalProductPrice,
+				ProductName:        po.ProductName,
+				ProductDescription: po.ProductDescription,
+				LockerPosition:     po.LockerPosition,
+				InstallationName:   po.InstallationName,
+				DeviceSerieNum:     po.DeviceSerieNum,
+				Status:             po.Status,
+				CreatedAt:          po.CreatedAt,
+				UpdatedAt:          po.UpdatedAt,
+			}
+		}
+		records = append(records, rec)
 	}
 
 	return &model.BookingPaymentResponse{

@@ -288,6 +288,26 @@ type BookingPaymentRecord {
   emailRecipient: String!
   createdAt: String!
   updatedAt: String!
+  purchaseOrder: PurchaseOrderInfo
+}
+
+type PurchaseOrderInfo {
+  couponId: Int
+  bookingReference: Int!
+  oc: String!
+  email: String!
+  phone: String!
+  discount: Int!
+  productPrice: Int!
+  finalProductPrice: Int!
+  productName: String!
+  productDescription: String!
+  lockerPosition: Int!
+  installationName: String!
+  deviceSerieNum: String!
+  status: String!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type BookingPaymentResponse {

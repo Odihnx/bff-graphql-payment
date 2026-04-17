@@ -225,6 +225,27 @@ type BookingPaymentRecord struct {
 	EmailRecipient         string
 	CreatedAt              string
 	UpdatedAt              string
+	PurchaseOrder          *PurchaseOrderInfo
+}
+
+// PurchaseOrderInfo representa los datos de una orden de compra asociada a una reserva
+type PurchaseOrderInfo struct {
+	CouponID           *int
+	BookingReference   int
+	Oc                 string
+	Email              string
+	Phone              string
+	Discount           int
+	ProductPrice       int
+	FinalProductPrice  int
+	ProductName        string
+	ProductDescription string
+	LockerPosition     int
+	InstallationName   string
+	DeviceSerieNum     string
+	Status             string
+	CreatedAt          string
+	UpdatedAt          string
 }
 
 // BookingPaymentHistory representa la respuesta paginada del historial de reservas
