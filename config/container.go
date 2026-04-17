@@ -40,10 +40,17 @@ func NewContainer(config Config) (*Container, error) {
 	container.PaymentServiceClient = paymentClient
 
 	// Inicializar cliente del Control Gateway
-	container.ServiceStatusChecker = gateway.NewControlGatewayClient(
+	gatewayClient := gateway.NewControlGatewayClient(
 		config.ControlGateway.BaseURL,
 		config.ControlGateway.Timeout,
 	)
+
+	// Envolver con caché si el TTL está configurado
+	if config.ControlGateway.CacheTTL > 0 {
+		container.ServiceStatusChecker = gateway.NewCachedServiceChecker(gatewayClient, config.ControlGateway.CacheTTL)
+	} else {
+		container.ServiceStatusChecker = gatewayClient
+	}
 
 	// Inicializar servicio base de aplicación
 	basePaymentService := service.NewPaymentInfraService(paymentClient)
