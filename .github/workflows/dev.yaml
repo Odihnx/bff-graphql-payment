@@ -105,6 +105,7 @@ jobs:
             --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
             --build-arg HOST_GATEWAY_CONTROL=${{ vars.HOST_GATEWAY_CONTROL }} \
             --build-arg PORT_GATEWAY_CONTROL=${{ vars.PORT_GATEWAY_CONTROL }} \
+            --build-arg GATEWAY_CACHE=${{ vars.GATEWAY_CACHE }} \
             --build-arg USE_MOCK=false \
             -t ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
           
