@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -247,6 +248,13 @@ func getConfig() config.Config {
 	if controlServiceName := os.Getenv("CONTROL_SERVICE_NAME"); controlServiceName != "" {
 		cfg.ControlGateway.ServiceName = controlServiceName
 	}
+	if gatewayCacheStr := os.Getenv("GATEWAY_CACHE"); gatewayCacheStr != "" {
+		if secs, err := strconv.Atoi(gatewayCacheStr); err == nil {
+			cfg.ControlGateway.CacheTTL = time.Duration(secs) * time.Second
+		} else {
+			log.Printf("⚠️  Invalid GATEWAY_CACHE value '%s', using default %s", gatewayCacheStr, cfg.ControlGateway.CacheTTL)
+		}
+	}
 
 	// Log configuration
 	log.Printf("🔧 Configuration loaded:")
@@ -255,10 +263,11 @@ func getConfig() config.Config {
 	log.Printf("   Server Port: %s", cfg.Server.Port)
 	log.Printf("   Payment Service: %s", cfg.GRPC.PaymentServiceAddress)
 	log.Printf("   Booking Service: %s", cfg.GRPC.BookingServiceAddress)
-	log.Printf("   Control Gateway: %s (service: %s, bypass: %v)",
+	log.Printf("   Control Gateway: %s (service: %s, bypass: %v, cache_ttl: %s)",
 		cfg.ControlGateway.BaseURL,
 		cfg.ControlGateway.ServiceName,
-		cfg.ControlGateway.BypassOnError)
+		cfg.ControlGateway.BypassOnError,
+		cfg.ControlGateway.CacheTTL)
 
 	return cfg
 }
