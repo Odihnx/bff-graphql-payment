@@ -57,7 +57,7 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 
 		// Es un mensaje del gateway (servicio deshabilitado/mantenimiento)
 		// o un error de infraestructura sin bypass
-		log.Printf("❌ Service validation error: %v", err)
+		log.Printf("🔴 Service validation error: %v", err)
 		return err
 	}
 
@@ -68,7 +68,7 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 	}
 
 	// Servicio disponible
-	log.Printf("✅ Service '%s' is available", m.serviceName)
+	log.Printf("🟢 Service '%s' is available", m.serviceName)
 	return nil
 }
 

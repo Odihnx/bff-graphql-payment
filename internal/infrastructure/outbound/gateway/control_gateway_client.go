@@ -85,8 +85,6 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 			fmt.Printf("❌ Failed to unmarshal JSON: %v\n", err)
 			return false, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
-		fmt.Printf("✅ Control Gateway response for '%s': status=200, valid=%v, message=%s\n",
-			serviceName, result.Valid, result.Message)
 		return result.Valid, nil
 	}
 
@@ -94,8 +92,6 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 	if resp.StatusCode == http.StatusServiceUnavailable {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
-			fmt.Printf("⚠️  Control Gateway response for '%s': status=503, message=%s, maintenance=%s\n",
-				serviceName, result.Message, result.Maintenance)
 			return false, &GatewayValidationError{
 				Msg:         result.Message,
 				Code:        "SERVICE_UNAVAILABLE",
@@ -109,7 +105,6 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 	if resp.StatusCode == http.StatusInternalServerError {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err == nil && result.Message != "" {
-			fmt.Printf("❌ Control Gateway internal error for '%s': message=%s\n", serviceName, result.Message)
 			return false, &GatewayValidationError{
 				Msg:  result.Message,
 				Code: "INTERNAL_ERROR",
