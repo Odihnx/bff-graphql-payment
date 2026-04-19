@@ -36,11 +36,11 @@ const (
 // Mapea errores conocidos a su código correspondiente con el status HTTP apropiado.
 func New(ctx context.Context, err error) *gqlerror.Error {
 	code := resolveCode(err)
-	statusCode := resolveStatusCode(code)
+	status := resolveStatus(code)
 
 	ext := map[string]interface{}{
-		"code":       code,
-		"statusCode": statusCode,
+		"code":   code,
+		"status": status,
 	}
 
 	// Si es un error del gateway con mensaje de mantenimiento, incluirlo
@@ -117,8 +117,8 @@ func resolveCode(err error) string {
 	return CodeInternalServerError
 }
 
-// resolveStatusCode mapea el código de error al status HTTP correspondiente
-func resolveStatusCode(code string) int {
+// resolveStatus mapea el código de error al status HTTP correspondiente
+func resolveStatus(code string) int {
 	switch code {
 	case CodeBadRequest:
 		return StatusBadRequest
