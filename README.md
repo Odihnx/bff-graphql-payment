@@ -13,7 +13,7 @@ Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura
 - ✅ **Buf Registry Integration** para protos remotos
 - ✅ **Health Check** endpoint `/ping`
 - ✅ **CI/CD Pipeline** con GitHub Actions y AWS ECR
-- ✅ **GraphQL API** con 8 operaciones (5 queries, 2 mutations, 1 subscription)
+- ✅ **GraphQL API** con 9 operaciones (6 queries, 2 mutations, 1 subscription)
 
 ## 🏗️ Arquitectura
 
@@ -190,7 +190,10 @@ Actualmente solo **1 operación** requiere autenticación:
 |-----------|---------------|-------------|
 | `getBookingPayment` | `SUPER_ADMIN` | Historial de pagos y reservas |
 
-Todas las demás operaciones son **públicas** y no requieren token.
+Las otras **8 operaciones** son **públicas** y no requieren token:
+- 5 queries públicas
+- 2 mutations públicas  
+- 1 subscription pública
 
 #### Headers HTTP (Enviados por APISIX)
 
@@ -386,12 +389,13 @@ bff-graphql-payment/
 ---
 ### 📦 GraphQL Operations
 
-#### Queries (5)
+#### Queries (6)
 - `getPaymentInfraByQrValue` - Obtener infraestructura de pago por QR
 - `getAvailableLockersByRackIDAndBookingTime` - Obtener lockers disponibles por rack y horario
 - `validateDiscountCoupon` - Validar cupón de descuento
 - `getPurchaseOrderByPo` - Obtener orden de compra por PO
 - `checkBookingStatus` - Verificar estado de reserva
+- `getBookingPayment` - 🔒 Obtener historial de pagos y reservas **(requiere rol SUPER_ADMIN)**
 
 #### Mutations (2)
 - `generatePurchaseOrder` - Generar orden de compra
