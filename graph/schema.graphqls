@@ -1,3 +1,9 @@
+# ========== DIRECTIVES ==========
+# Directiva para requerir autenticación
+directive @auth on FIELD_DEFINITION
+# Directiva para requerir rol específico
+directive @hasRole(role: String!) on FIELD_DEFINITION
+
 type Query {
   # Payment Infrastructure by QR Value
   getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
@@ -15,7 +21,7 @@ type Query {
   checkBookingStatus(input: CheckBookingStatusInput!): CheckBookingStatusResponse!
 
   # Get Booking Payment History (service_name hardcoded as "payment-system")
-  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse!
+  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Mutation {

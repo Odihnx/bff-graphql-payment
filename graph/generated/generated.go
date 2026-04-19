@@ -45,6 +45,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	Auth    func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	HasRole func(ctx context.Context, obj any, next graphql.Resolver, role string) (res any, err error)
 }
 
 type ComplexityRoot struct {
@@ -1403,7 +1405,13 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `type Query {
+	{Name: "../schema.graphqls", Input: `# ========== DIRECTIVES ==========
+# Directiva para requerir autenticación
+directive @auth on FIELD_DEFINITION
+# Directiva para requerir rol específico
+directive @hasRole(role: String!) on FIELD_DEFINITION
+
+type Query {
   # Payment Infrastructure by QR Value
   getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
   
@@ -1420,7 +1428,7 @@ var sources = []*ast.Source{
   checkBookingStatus(input: CheckBookingStatusInput!): CheckBookingStatusResponse!
 
   # Get Booking Payment History (service_name hardcoded as "payment-system")
-  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse!
+  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Mutation {
@@ -1730,6 +1738,17 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["role"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_generateBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -7861,8 +7880,35 @@ func (ec *executionContext) _Query_getBookingPayment(ctx context.Context, field 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetBookingPayment(rctx, fc.Args["input"].(model.GetBookingPaymentInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetBookingPayment(rctx, fc.Args["input"].(model.GetBookingPaymentInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			role, err := ec.unmarshalNString2string(ctx, "SUPER_ADMIN")
+			if err != nil {
+				var zeroVal *model.BookingPaymentResponse
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal *model.BookingPaymentResponse
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.BookingPaymentResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *bff-graphql-payment/graph/model.BookingPaymentResponse`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

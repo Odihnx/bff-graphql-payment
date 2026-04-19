@@ -2,7 +2,9 @@ package main
 
 import (
 	"bff-graphql-payment/config"
+	"bff-graphql-payment/graph/directives"
 	"bff-graphql-payment/graph/generated"
+	"bff-graphql-payment/internal/infrastructure/inbound/middleware"
 	"context"
 	"log"
 	"net/http"
@@ -49,7 +51,13 @@ func main() {
 	// Crear servidor GraphQL con soporte completo para subscriptions vía WebSocket
 	srv := handler.New(
 		generated.NewExecutableSchema(
-			generated.Config{Resolvers: container.GraphQLResolver},
+			generated.Config{
+				Resolvers: container.GraphQLResolver,
+				Directives: generated.DirectiveRoot{
+					Auth:    directives.Auth,
+					HasRole: directives.HasRole,
+				},
+			},
 		),
 	)
 
@@ -142,7 +150,7 @@ func main() {
 	// Configurar rutas
 	mux := http.NewServeMux()
 
-	// Endpoint GraphQL con logging para debugging WebSocket
+	// Endpoint GraphQL con logging para debugging WebSocket y middleware de autenticación
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		msg := "📥 [" + r.Method + "] " + r.URL.Path
 		if origin := r.Header.Get("Origin"); origin != "" {
@@ -158,7 +166,8 @@ func main() {
 			msg += " | Sec-WebSocket-Key: " + wsKey
 		}
 		log.Println(msg)
-		c.Handler(srv).ServeHTTP(w, r)
+		// Aplicar middleware de autenticación -> CORS -> GraphQL handler
+		middleware.AuthMiddleware(c.Handler(srv)).ServeHTTP(w, r)
 	})
 
 	// GraphQL Playground
