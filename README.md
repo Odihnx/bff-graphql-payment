@@ -135,29 +135,40 @@ Este BFF implementa una **capa de autorización basada en roles** que trabaja en
 ```
 Cliente → APISIX Gateway → BFF Payment → Resolver
           ↓                 ↓              ↓
-    Valida JWT        Extrae Claims   Verifica Rol
-    con Cognito      de Headers       con @hasRole
+    Valida JWT        Lee Claims     Verifica Rol
+    (401 si falla)    de Headers     (403 si falla)
+    Envía headers     Inyecta en     con @hasRole
+    si es válido      Context        
 ```
+
+**⚠️ Importante:** Si una request llega al BFF, significa que APISIX **ya validó el JWT exitosamente**. El BFF **nunca valida tokens**, solo verifica permisos.
 
 #### Separación de Responsabilidades
 
-| Componente | Responsabilidad |
-|------------|----------------|
-| **APISIX Gateway** | **Autenticación**: Valida JWT con AWS Cognito JWKS |
-| **BFF Middleware** | **Extracción**: Lee claims del JWT desde headers HTTP |
-| **GraphQL Directives** | **Autorización**: Verifica roles y permisos del usuario |
+| Componente | Responsabilidad | Errores que Retorna |
+|------------|-----------------|---------------------|
+| **APISIX Gateway** | **Autenticación**: Valida JWT con AWS Cognito JWKS | 401 UNAUTHENTICATED |
+| **BFF Middleware** | **Extracción**: Lee claims validados desde headers HTTP | _(solo logs, nunca retorna error)_ |
+| **GraphQL Directives** | **Autorización**: Verifica roles y permisos del usuario | 403 FORBIDDEN |
 
 #### Directivas GraphQL Disponibles
 
 El BFF soporta dos directivas para control de acceso:
 
 ```graphql
-# Requiere que el usuario esté autenticado
+# DEPRECATED: Verifica que existan claims en el contexto
+# No recomendada - usar @hasRole en su lugar
 directive @auth on FIELD_DEFINITION
 
 # Requiere que el usuario tenga un rol específico
+# Esta es la directiva recomendada para proteger operaciones
 directive @hasRole(role: String!) on FIELD_DEFINITION
 ```
+
+**⚠️ Importante sobre `@auth`:**
+- `@auth` solo verifica que existan claims, pero **no autentica** (eso lo hace APISIX)
+- **Usar `@hasRole` en su lugar** - Es más específica y segura
+- Si una operación tiene `@hasRole`, APISIX debe marcarla como "private" en `routes-payment.json`
 
 #### Ejemplo de Uso
 
@@ -200,6 +211,149 @@ Cuando un usuario está autenticado, APISIX Gateway envía estos headers al BFF:
 }
 ```
 
+---
+
+## 📛 Códigos de Error HTTP Estándar
+
+Este BFF sigue los estándares **RFC 7231** y **RFC 9110** para códigos de error HTTP. Todas las respuestas de error incluyen:
+- `message`: Descripción legible del error
+- `extensions.code`: Código de error estándar
+- `extensions.status`: Código HTTP correspondiente
+
+#### Códigos HTTP y Extensions (BFF Payment)
+
+| Código HTTP | Código (`extensions.code`) | Descripción | Cuándo Ocurre |
+|-------------|----------------------------|-------------|---------------|
+| **400** | `BAD_REQUEST` | **Bad Request** | Validación fallida, input inválido (email inválido, coupon code vacío, formato incorrecto) |
+| **403** | `FORBIDDEN` | **Forbidden** | Autenticado pero sin permisos (usuario sin rol SUPER_ADMIN intenta acceder a operación protegida) |
+| **404** | `NOT_FOUND` | **Not Found** | Recurso no encontrado (payment rack, booking, purchase order, coupon) |
+| **500** | `INTERNAL_SERVER_ERROR` | **Internal Server Error** | Error interno del servidor (falla en generación de booking, error en base de datos) |
+| **503** | `SERVICE_UNAVAILABLE` | **Service Unavailable** | Servicio temporalmente no disponible (Control Gateway en mantenimiento, servicio gRPC caído) |
+
+#### Códigos HTTP de APISIX Gateway (Primera Capa)
+
+| Código HTTP | Código (`extensions.code`) | Descripción | Cuándo Ocurre |
+|-------------|----------------------------|-------------|---------------|
+| **400** | `BAD_REQUEST` | **Bad Request** | JSON inválido, body vacío, operación GraphQL no identificada |
+| **401** | `UNAUTHENTICATED` | **Unauthenticated** | Token ausente, inválido o expirado, formato Bearer incorrecto |
+| **404** | `NOT_FOUND` | **Not Found** | Operación GraphQL no registrada en routes file |
+| **500** | `INTERNAL_SERVER_ERROR` | **Internal Server Error** | Error en configuración del gateway, archivo de rutas no encontrado |
+
+**⚠️ Nota Importante:** Los errores **401 UNAUTHENTICATED** son manejados exclusivamente por **APISIX Gateway**. Si una request llega al BFF, significa que el JWT ya fue validado exitosamente. El BFF **nunca retorna 401**.
+
+#### Ejemplo de Respuesta de Error
+
+**Error de Validación (400):**
+```json
+{
+  "errors": [
+    {
+      "message": "Invalid email format",
+      "path": ["generateBooking"],
+      "extensions": {
+        "code": "BAD_REQUEST",
+        "status": 400
+      }
+    }
+  ],
+  "data": null
+}
+```
+
+**Error de Autorización (403) - Rol insuficiente:**
+```json
+{
+  "errors": [
+    {
+      "message": "role SUPER_ADMIN required, user has roles: [USER]",
+      "path": ["getBookingPayment"],
+      "extensions": {
+        "code": "FORBIDDEN",
+        "status": 403
+      }
+    }
+  ],
+  "data": null
+}
+```
+
+**Recurso No Encontrado (404):**
+```json
+{
+  "errors": [
+    {
+      "message": "Booking not found with id: abc123",
+      "path": ["checkBookingStatus"],
+      "extensions": {
+        "code": "NOT_FOUND",
+        "status": 404
+      }
+    }
+  ],
+  "data": null
+}
+```
+
+**Servicio en Mantenimiento (503):**
+```json
+{
+  "errors": [
+    {
+      "message": "Service is currently in maintenance mode",
+      "extensions": {
+        "code": "SERVICE_UNAVAILABLE",
+        "status": 503,
+        "maintenance": "Scheduled maintenance until 2026-04-20 03:00 UTC"
+      }
+    }
+  ],
+  "data": null
+}
+```
+
+#### Ejemplos de Errores de APISIX Gateway
+
+**Token Inválido o Expirado (401):**
+```json
+{
+  "errors": [
+    {
+      "message": "Invalid or expired JWT token",
+      "extensions": {
+        "code": "UNAUTHENTICATED",
+        "status": 401
+      }
+    }
+  ]
+}
+```
+
+**Operación GraphQL No Registrada (404):**
+```json
+{
+  "errors": [
+    {
+      "message": "GraphQL operation 'unknownOperation' not found in routes configuration",
+      "extensions": {
+        "code": "NOT_FOUND",
+        "status": 404
+      }
+    }
+  ]
+}
+```
+
+#### Diferencia: UNAUTHENTICATED vs FORBIDDEN
+
+| Código | Capa | Significado | Ejemplo |
+|--------|------|-------------|---------|
+| **401 UNAUTHENTICATED** | APISIX Gateway | "No sé quién eres" | Sin token JWT, token expirado, token inválido, formato Bearer incorrecto |
+| **403 FORBIDDEN** | BFF Payment | "Sé quién eres, pero no tienes permiso" | Usuario con rol ADMIN intenta acceder a endpoint SUPER_ADMIN |
+
+**En este BFF:**
+- **APISIX** valida autenticación → Retorna **401** si el token es inválido
+- **BFF** valida autorización → Retorna **403** si el usuario no tiene el rol requerido
+- `@hasRole` directive → Solo se ejecuta si APISIX ya validó el JWT exitosamente
 
 ---
 
