@@ -186,7 +186,7 @@ Todas las demás operaciones son **públicas** y no requieren token.
 Cuando un usuario está autenticado, APISIX Gateway envía estos headers al BFF:
 
 - `X-Auth-Validated: true` - Indica que el JWT fue validado exitosamente
-- `X-JWT-Claims: {...}` - **Todos los claims del JWT en formato JSON**, incluyendo roles en `custom:permissions`
+- `X-JWT-Claims: {...}` - Todos los claims del JWT en formato JSON
 - `X-User-ID: <sub>` - ID del usuario (claim `sub`)
 - `X-User-Email: <email>` - Email del usuario (claim `email`)
 
@@ -222,12 +222,8 @@ bff-graphql-payment/
 │       │   ├── graphql/   # GraphQL Resolvers
 │       │   └── middleware/ # Auth middleware (extracción de claims)
 │       └── outbound/grpc/  # Clientes gRPC
-├── proto/                  # Protos locales (solo para desarrollo)
 ├── gen/                    # Código Go generado desde protos
 ├── scripts/                # Scripts de automatización
-├── docs/                   # Documentación
-│   ├── DEPLOYMENT.md       # Guía de deployment y secretos
-│   └── AUTHORIZATION_LAYER_IMPLEMENTATION.md  # Detalles técnicos de auth
 ├── .github/workflows/      # CI/CD Pipelines
 ├── docker-compose.yml      # Para desarrollo local
 ├── Dockerfile              # Imagen de producción
