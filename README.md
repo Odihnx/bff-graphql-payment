@@ -6,6 +6,7 @@ Backend for Frontend (BFF) implementando **Clean Architecture** + **Arquitectura
 
 - ✅ **Clean Architecture** con separación clara de capas
 - ✅ **Arquitectura Hexagonal** con puertos e interfaces bien definidos
+- ✅ **Autenticación y Autorización** con APISIX Gateway + GraphQL Directives
 - ✅ **Control Gateway Integration** para validación de estado de servicios
 - ✅ **gRPC Clients** para Payment Manager y Booking Manager
 - ✅ **Mock/Real API Switch** para desarrollo local y producción
@@ -123,6 +124,84 @@ GraphQL Query → ServiceValidationMiddleware → Control Gateway → MySQL (con
 | Payment Manager | `buf.build/odihnx-prod/service-payment-manager` |
 | Booking Manager | `buf.build/odihnx-prod/service-booking-manager` |
 
+---
+
+## 🔐 Autenticación y Autorización
+
+Este BFF implementa una **capa de autorización basada en roles** que trabaja en conjunto con **APISIX Gateway** para proteger operaciones sensibles.
+
+#### Flujo de Seguridad 🛡️
+
+```
+Cliente → APISIX Gateway → BFF Payment → Resolver
+          ↓                 ↓              ↓
+    Valida JWT        Extrae Claims   Verifica Rol
+    con Cognito      de Headers       con @hasRole
+```
+
+#### Separación de Responsabilidades
+
+| Componente | Responsabilidad |
+|------------|----------------|
+| **APISIX Gateway** | **Autenticación**: Valida JWT con AWS Cognito JWKS |
+| **BFF Middleware** | **Extracción**: Lee claims del JWT desde headers HTTP |
+| **GraphQL Directives** | **Autorización**: Verifica roles y permisos del usuario |
+
+#### Directivas GraphQL Disponibles
+
+El BFF soporta dos directivas para control de acceso:
+
+```graphql
+# Requiere que el usuario esté autenticado
+directive @auth on FIELD_DEFINITION
+
+# Requiere que el usuario tenga un rol específico
+directive @hasRole(role: String!) on FIELD_DEFINITION
+```
+
+#### Ejemplo de Uso
+
+```graphql
+type Query {
+  # Operación pública - No requiere autenticación
+  getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
+  
+  # Operación privada - Solo SUPER_ADMIN puede acceder
+  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
+}
+```
+
+#### Operaciones Protegidas
+
+Actualmente solo **1 operación** requiere autenticación:
+
+| Operación | Rol Requerido | Descripción |
+|-----------|---------------|-------------|
+| `getBookingPayment` | `SUPER_ADMIN` | Historial de pagos y reservas |
+
+Todas las demás operaciones son **públicas** y no requieren token.
+
+#### Headers HTTP (Enviados por APISIX)
+
+Cuando un usuario está autenticado, APISIX Gateway envía estos headers al BFF:
+
+- `X-Auth-Validated: true` - Indica que el JWT fue validado exitosamente
+- `X-JWT-Claims: {...}` - **Todos los claims del JWT en formato JSON**, incluyendo roles en `custom:permissions`
+- `X-User-ID: <sub>` - ID del usuario (claim `sub`)
+- `X-User-Email: <email>` - Email del usuario (claim `email`)
+
+**Ejemplo de `X-JWT-Claims`:**
+```json
+{
+  "sub": "abc123-def456-...",
+  "email": "user@example.com",
+  "cognito:username": "admin",
+  "custom:permissions": "{\"roles\":[{\"id\":1,\"name\":\"SUPER_ADMIN\"}]}"
+}
+```
+
+
+---
 
 #### Estructura del Proyecto 🏗️
 
@@ -132,19 +211,23 @@ bff-graphql-payment/
 ├── config/                  # Config e inyección de dependencias
 ├── graph/                   # GraphQL schemas y código generado
 │   ├── schema.graphqls     # ← Schema GraphQL (editable)
+│   ├── directives/         # ← Directivas de autorización (@auth, @hasRole)
 │   ├── generated/          # ← Código autogenerado (NO EDITAR)
 │   └── model/              # ← Modelos GraphQL (autogenerados)
 ├── internal/
 │   ├── domain/             # CAPA DOMINIO (CORE)
 │   ├── application/        # CAPA APLICACIÓN (Use Cases)
 │   └── infrastructure/     # CAPA INFRAESTRUCTURA
-│       ├── inbound/graphql/   # GraphQL Resolvers
-│       └── outbound/grpc/     # Clientes gRPC
+│       ├── inbound/
+│       │   ├── graphql/   # GraphQL Resolvers
+│       │   └── middleware/ # Auth middleware (extracción de claims)
+│       └── outbound/grpc/  # Clientes gRPC
 ├── proto/                  # Protos locales (solo para desarrollo)
 ├── gen/                    # Código Go generado desde protos
 ├── scripts/                # Scripts de automatización
 ├── docs/                   # Documentación
-│   └── DEPLOYMENT.md       # Guía de deployment y secretos
+│   ├── DEPLOYMENT.md       # Guía de deployment y secretos
+│   └── AUTHORIZATION_LAYER_IMPLEMENTATION.md  # Detalles técnicos de auth
 ├── .github/workflows/      # CI/CD Pipelines
 ├── docker-compose.yml      # Para desarrollo local
 ├── Dockerfile              # Imagen de producción
