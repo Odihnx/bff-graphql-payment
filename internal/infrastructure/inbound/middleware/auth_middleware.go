@@ -14,13 +14,7 @@ const (
 	UserClaimsKey ContextKey = "user_claims"
 )
 
-// AuthMiddleware middleware que extrae los claims de APISIX Gateway
-//
-// ARQUITECTURA DE APISIX GATEWAY:
-//   - Cliente → ALB → APISIX Gateway → BFF
-//   - APISIX valida JWT con Cognito JWKS antes de enrutar al BFF
-//   - BFF recibe headers HTTP con los claims ya validados
-//
+// * AuthMiddleware middleware que extrae los claims de APISIX Gateway
 // RESPONSABILIDADES:
 //   - APISIX Gateway: AUTENTICACIÓN (valida JWT, verifica firma JWKS, expiration)
 //   - Este middleware: EXTRACCIÓN (lee claims de headers HTTP)
@@ -37,6 +31,7 @@ const (
 //   - Operaciones privadas sin token: Bloqueadas por APISIX, no llegan al BFF
 //   - Token inválido/expirado: Bloqueadas por APISIX, no llegan al BFF
 //   - Este middleware NUNCA devuelve 401 - si no hay claims, es solicitud pública
+
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestPath := r.URL.Path
