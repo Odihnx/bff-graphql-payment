@@ -12,20 +12,35 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-// Códigos de error para las extensiones GraphQL
+// Códigos de error estándar para las extensiones GraphQL (RFC 7231, RFC 9110)
 const (
-	CodeServiceUnavailable = "SERVICE_UNAVAILABLE"
-	CodeNotFound           = "NOT_FOUND"
-	CodeValidationFailed   = "VALIDATION_FAILED"
-	CodeInternalError      = "INTERNAL_ERROR"
+	CodeBadRequest          = "BAD_REQUEST"           // 400 - Validación fallida, input inválido
+	CodeUnauthenticated     = "UNAUTHENTICATED"       // 401 - Token ausente, inválido o expirado
+	CodeForbidden           = "FORBIDDEN"             // 403 - Autenticado pero sin permisos
+	CodeNotFound            = "NOT_FOUND"             // 404 - Recurso no encontrado
+	CodeInternalServerError = "INTERNAL_SERVER_ERROR" // 500 - Error interno del servidor
+	CodeServiceUnavailable  = "SERVICE_UNAVAILABLE"   // 503 - Servicio temporalmente no disponible
+)
+
+// Códigos HTTP asociados
+const (
+	StatusBadRequest          = 400
+	StatusUnauthenticated     = 401
+	StatusForbidden           = 403
+	StatusNotFound            = 404
+	StatusInternalServerError = 500
+	StatusServiceUnavailable  = 503
 )
 
 // New construye un gqlerror con extensions a partir de cualquier error.
-// Mapea errores conocidos a su código correspondiente.
+// Mapea errores conocidos a su código correspondiente con el status HTTP apropiado.
 func New(ctx context.Context, err error) *gqlerror.Error {
 	code := resolveCode(err)
+	statusCode := resolveStatusCode(code)
+
 	ext := map[string]interface{}{
-		"code": code,
+		"code":       code,
+		"statusCode": statusCode,
 	}
 
 	// Si es un error del gateway con mensaje de mantenimiento, incluirlo
@@ -76,7 +91,7 @@ func resolveCode(err error) string {
 		domainexception.ErrInvalidCurrentCode,
 		appexception.ErrValidationFailed,
 	) {
-		return CodeValidationFailed
+		return CodeBadRequest
 	}
 
 	// Errores de dominio - INTERNAL_ERROR (operaciones fallidas)
@@ -85,7 +100,7 @@ func resolveCode(err error) string {
 		domainexception.ErrBookingGenerationFailed,
 		domainexception.ErrExecuteOpenFailed,
 	) {
-		return CodeInternalError
+		return CodeInternalServerError
 	}
 
 	// Errores de aplicación - SERVICE_UNAVAILABLE
@@ -99,7 +114,27 @@ func resolveCode(err error) string {
 		return CodeServiceUnavailable
 	}
 
-	return CodeInternalError
+	return CodeInternalServerError
+}
+
+// resolveStatusCode mapea el código de error al status HTTP correspondiente
+func resolveStatusCode(code string) int {
+	switch code {
+	case CodeBadRequest:
+		return StatusBadRequest
+	case CodeUnauthenticated:
+		return StatusUnauthenticated
+	case CodeForbidden:
+		return StatusForbidden
+	case CodeNotFound:
+		return StatusNotFound
+	case CodeServiceUnavailable:
+		return StatusServiceUnavailable
+	case CodeInternalServerError:
+		return StatusInternalServerError
+	default:
+		return StatusInternalServerError
+	}
 }
 
 // isAny verifica si err coincide con alguno de los targets usando errors.Is.
