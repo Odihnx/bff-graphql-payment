@@ -166,8 +166,13 @@ func main() {
 			msg += " | Sec-WebSocket-Key: " + wsKey
 		}
 		log.Println(msg)
-		// Aplicar middleware de autenticación -> CORS -> GraphQL handler
-		middleware.AuthMiddleware(c.Handler(srv)).ServeHTTP(w, r)
+		// Aplicar middleware stack: HTTPStatus -> Auth -> CORS -> GraphQL handler
+		// HTTPStatusMiddleware debe ser el más externo para capturar la respuesta final
+		middleware.HTTPStatusMiddleware(
+			middleware.AuthMiddleware(
+				c.Handler(srv),
+			),
+		).ServeHTTP(w, r)
 	})
 
 	// GraphQL Playground
