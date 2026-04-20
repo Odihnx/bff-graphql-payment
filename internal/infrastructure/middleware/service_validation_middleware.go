@@ -8,6 +8,8 @@ import (
 
 	"bff-graphql-payment/internal/domain/model"
 	"bff-graphql-payment/internal/domain/ports"
+
+	"github.com/Odihnx/platform-core/tracing"
 )
 
 // ServiceValidationMiddleware envuelve PaymentInfraService para validar
@@ -36,6 +38,14 @@ func NewServiceValidationMiddleware(
 
 // validateServiceAvailability verifica si el servicio está disponible
 func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Context) error {
+	ctx, span := tracing.StartSpan(ctx, "middleware.validateServiceAvailability")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"service.name":          m.serviceName,
+		"middleware.bypass_on_error": fmt.Sprintf("%v", m.bypassOnError),
+	})
+
 	available, err := m.statusChecker.IsServiceAvailable(ctx, m.serviceName)
 
 	// Si hay error de ejecución (conexión, timeout, etc.)
@@ -52,23 +62,31 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 		if isInfrastructureError && m.bypassOnError {
 			// Error de infraestructura y tenemos bypass habilitado
 			log.Printf("⚠️  Service validation failed (bypassing): %v", err)
+			tracing.AddAttributes(span, map[string]string{
+				"middleware.result":  "bypassed",
+				"middleware.reason":  "infrastructure_error",
+			})
 			return nil
 		}
 
 		// Es un mensaje del gateway (servicio deshabilitado/mantenimiento)
 		// o un error de infraestructura sin bypass
 		log.Printf("🔴 Service validation error: %v", err)
+		tracing.RecordError(span, err)
 		return err
 	}
 
 	// Si available=false pero no hay error, algo está mal en la lógica
 	if !available {
 		log.Printf("❌ Service '%s' reported as unavailable without error details", m.serviceName)
-		return fmt.Errorf("service '%s' is not available", m.serviceName)
+		unavailableErr := fmt.Errorf("service '%s' is not available", m.serviceName)
+		tracing.RecordError(span, unavailableErr)
+		return unavailableErr
 	}
 
 	// Servicio disponible
 	log.Printf("🟢 Service '%s' is available", m.serviceName)
+	tracing.AddAttributes(span, map[string]string{"middleware.result": "available"})
 	return nil
 }
 

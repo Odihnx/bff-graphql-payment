@@ -97,6 +97,7 @@ jobs:
       - name: Build and Push Docker image
         run: |
           docker build \
+            --build-arg GITHUB_TOKEN=${{ secrets.PAT_GITHUB }} \
             --build-arg ENV=${{ env.ENVIRONMENT }} \
             --build-arg PORT=${{ vars.PORT }} \
             --build-arg HOST_API_PAYMENT=${{ vars.HOST_API_PAYMENT }} \
@@ -106,6 +107,7 @@ jobs:
             --build-arg HOST_GATEWAY_CONTROL=${{ vars.HOST_GATEWAY_CONTROL }} \
             --build-arg PORT_GATEWAY_CONTROL=${{ vars.PORT_GATEWAY_CONTROL }} \
             --build-arg TTL_CONTROL_CACHE=${{ vars.TTL_CONTROL_CACHE }} \
+            --build-arg OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }} \
             --build-arg USE_MOCK=false \
             -t ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
           

@@ -23,6 +23,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	"github.com/Odihnx/platform-core/tracing"
 )
 
 func main() {
@@ -33,6 +35,10 @@ func main() {
 
 	// Obtener configuración
 	cfg := getConfig()
+
+	// Inicializar Tracing
+	cleanup := tracing.Init("bff-building-system")
+	defer cleanup()
 
 	// Inicializar contenedor de dependencias
 	container, err := config.NewContainer(cfg)

@@ -41,3 +41,5 @@ temp/
 legacy/
 proto/
 docs/
+
+.claude
