@@ -268,11 +268,11 @@ func getConfig() config.Config {
 	if controlServiceName := os.Getenv("CONTROL_SERVICE_NAME"); controlServiceName != "" {
 		cfg.ControlGateway.ServiceName = controlServiceName
 	}
-	if gatewayCacheStr := os.Getenv("GATEWAY_CACHE"); gatewayCacheStr != "" {
+	if gatewayCacheStr := os.Getenv("TTL_CONTROL_CACHE"); gatewayCacheStr != "" {
 		if secs, err := strconv.Atoi(gatewayCacheStr); err == nil {
 			cfg.ControlGateway.CacheTTL = time.Duration(secs) * time.Second
 		} else {
-			log.Printf("⚠️  Invalid GATEWAY_CACHE value '%s', using default %s", gatewayCacheStr, cfg.ControlGateway.CacheTTL)
+			log.Printf("⚠️  Invalid TTL_CONTROL_CACHE value '%s', using default %s", gatewayCacheStr, cfg.ControlGateway.CacheTTL)
 		}
 	}
 
