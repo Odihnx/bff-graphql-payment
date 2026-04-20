@@ -558,5 +558,161 @@ func (c *PaymentServiceGRPCClient) mapGRPCError(err error) error {
 	}
 }
 
+// GetBookingPayment implementa PaymentInfraRepository.GetBookingPayment
+// Llama a BookingService.GetBookingHistory con service_name hardcodeado como "payment-system"
+func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	if c.useMock {
+		return &model.BookingPaymentHistory{
+			Bookings:    []*model.BookingPaymentRecord{},
+			TotalCount:  0,
+			CurrentPage: 1,
+			TotalPages:  0,
+			LastPage:    -1,
+			NextPage:    -1,
+		}, nil
+	}
+
+	req := &bookingpb.GetBookingHistoryRequest{
+		ServiceName: "payment-system",
+	}
+
+	if input.DeviceID != nil {
+		req.DeviceId = *input.DeviceID
+	}
+	if input.EmailRecipient != nil {
+		req.EmailRecipient = *input.EmailRecipient
+	}
+	if input.ActiveOnly != nil {
+		req.ActiveOnly = *input.ActiveOnly
+	}
+	if input.Page != nil {
+		req.Page = int32(*input.Page)
+	}
+	if input.PageSize != nil {
+		req.PageSize = int32(*input.PageSize)
+	}
+	if input.DateFrom != nil {
+		req.DateFrom = *input.DateFrom
+	}
+	if input.DateUntil != nil {
+		req.DateUntil = *input.DateUntil
+	}
+	if input.SortBy != nil {
+		req.SortBy = *input.SortBy
+	}
+	if input.Sort != nil {
+		switch *input.Sort {
+		case model.SortDirectionDesc:
+			req.Sort = bookingpb.Sort_DESC
+		default:
+			req.Sort = bookingpb.Sort_ASC
+		}
+	}
+
+	resp, err := c.bookingClient.GetBookingHistory(ctx, req)
+	if err != nil {
+		log.Printf("❌ GetBookingPayment gRPC call failed: %v", err)
+		return nil, c.mapGRPCError(err)
+	}
+
+	if resp == nil || resp.Bookings == nil {
+		return &model.BookingPaymentHistory{Bookings: []*model.BookingPaymentRecord{}}, nil
+	}
+
+	// collect booking IDs for batch purchase order lookup
+	bookingIDs := make([]int32, 0, len(resp.Bookings.Bookings))
+	for _, b := range resp.Bookings.Bookings {
+		bookingIDs = append(bookingIDs, b.Id)
+	}
+
+	// fetch purchase orders in parallel
+	type poResult struct {
+		orders []*paymentpb.PurchaseOrderRecord
+		err    error
+	}
+	poCh := make(chan poResult, 1)
+	go func() {
+		if len(bookingIDs) == 0 {
+			poCh <- poResult{}
+			return
+		}
+		poResp, err := c.grpcClient.GetPurchaseOrdersByBookingIDs(ctx, &paymentpb.GetPurchaseOrdersByBookingIDsRequest{
+			BookingIds: bookingIDs,
+		})
+		if err != nil {
+			log.Printf("⚠️ GetPurchaseOrdersByBookingIDs failed (non-fatal): %v", err)
+			poCh <- poResult{err: err}
+			return
+		}
+		poCh <- poResult{orders: poResp.PurchaseOrders}
+	}()
+
+	poRes := <-poCh
+
+	// build lookup map: booking_reference -> purchase order
+	poMap := make(map[int32]*paymentpb.PurchaseOrderRecord)
+	if poRes.err == nil {
+		for _, o := range poRes.orders {
+			poMap[o.BookingReference] = o
+		}
+	}
+
+	records := make([]*model.BookingPaymentRecord, 0, len(resp.Bookings.Bookings))
+	for _, b := range resp.Bookings.Bookings {
+		rec := &model.BookingPaymentRecord{
+			ID:                     int(b.Id),
+			ConfigurationBookingID: int(b.ConfigurationBookingId),
+			InitBooking:            b.InitBooking,
+			FinishBooking:          b.FinishBooking,
+			InstallationName:       b.InstallationName,
+			NumberLocker:           int(b.NumberLocker),
+			DeviceID:               b.DeviceId,
+			CurrentCode:            b.CurrentCode,
+			Openings:               int(b.Openings),
+			ServiceName:            b.ServiceName,
+			EmailRecipient:         b.EmailRecipient,
+			CreatedAt:              b.CreatedAt,
+			UpdatedAt:              b.UpdatedAt,
+		}
+		if po, ok := poMap[b.Id]; ok {
+			info := &model.PurchaseOrderInfo{
+				BookingReference:   int(po.BookingReference),
+				Oc:                 po.Oc,
+				Email:              po.Email,
+				Phone:              po.Phone,
+				Discount:           int(po.Discount),
+				ProductPrice:       int(po.ProductPrice),
+				FinalProductPrice:  int(po.FinalProductPrice),
+				ProductName:        po.ProductName,
+				ProductDescription: po.ProductDescription,
+				LockerPosition:     int(po.LockerPosition),
+				InstallationName:   po.InstallationName,
+				DeviceSerieNum:     po.DeviceSerieNum,
+				Status:             po.Status,
+				CreatedAt:          po.CreatedAt,
+				UpdatedAt:          po.UpdatedAt,
+			}
+			if po.CouponId != nil {
+				v := int(*po.CouponId)
+				info.CouponID = &v
+			}
+			rec.PurchaseOrder = info
+		}
+		records = append(records, rec)
+	}
+
+	return &model.BookingPaymentHistory{
+		Bookings:    records,
+		TotalCount:  int(resp.Bookings.TotalCount),
+		CurrentPage: int(resp.Bookings.CurrentPage),
+		TotalPages:  int(resp.Bookings.TotalPages),
+		LastPage:    int(resp.Bookings.LastPage),
+		NextPage:    int(resp.Bookings.NextPage),
+	}, nil
+}
+
 // Asegurar que PaymentServiceGRPCClient implementa PaymentInfraRepository
 var _ ports.PaymentInfraRepository = (*PaymentServiceGRPCClient)(nil)

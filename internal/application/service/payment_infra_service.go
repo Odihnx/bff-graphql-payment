@@ -199,3 +199,8 @@ func (s *PaymentInfraService) ExecuteOpenStream(ctx context.Context, serviceName
 
 	return resultChan, nil
 }
+
+// GetBookingPayment obtiene el historial de reservas asociadas al servicio de pago
+func (s *PaymentInfraService) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
+	return s.repo.GetBookingPayment(ctx, input)
+}

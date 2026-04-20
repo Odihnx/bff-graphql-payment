@@ -2,12 +2,15 @@ package main
 
 import (
 	"bff-graphql-payment/config"
+	"bff-graphql-payment/graph/directives"
 	"bff-graphql-payment/graph/generated"
+	"bff-graphql-payment/internal/infrastructure/inbound/middleware"
 	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -48,7 +51,13 @@ func main() {
 	// Crear servidor GraphQL con soporte completo para subscriptions vía WebSocket
 	srv := handler.New(
 		generated.NewExecutableSchema(
-			generated.Config{Resolvers: container.GraphQLResolver},
+			generated.Config{
+				Resolvers: container.GraphQLResolver,
+				Directives: generated.DirectiveRoot{
+					Auth:    directives.Auth,
+					HasRole: directives.HasRole,
+				},
+			},
 		),
 	)
 
@@ -141,17 +150,29 @@ func main() {
 	// Configurar rutas
 	mux := http.NewServeMux()
 
-	// Endpoint GraphQL con logging para debugging WebSocket
+	// Endpoint GraphQL con logging para debugging WebSocket y middleware de autenticación
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("📥 [%s] %s | Origin: %s | Upgrade: %s | Connection: %s | Sec-WebSocket-Key: %s",
-			r.Method,
-			r.URL.Path,
-			r.Header.Get("Origin"),
-			r.Header.Get("Upgrade"),
-			r.Header.Get("Connection"),
-			r.Header.Get("Sec-WebSocket-Key"),
-		)
-		c.Handler(srv).ServeHTTP(w, r)
+		msg := "📥 [" + r.Method + "] " + r.URL.Path
+		if origin := r.Header.Get("Origin"); origin != "" {
+			msg += " | Origin: " + origin
+		}
+		if upgrade := r.Header.Get("Upgrade"); upgrade != "" {
+			msg += " | Upgrade: " + upgrade
+		}
+		if conn := r.Header.Get("Connection"); conn != "" {
+			msg += " | Connection: " + conn
+		}
+		if wsKey := r.Header.Get("Sec-WebSocket-Key"); wsKey != "" {
+			msg += " | Sec-WebSocket-Key: " + wsKey
+		}
+		log.Println(msg)
+		// Aplicar middleware stack: HTTPStatus -> Auth -> CORS -> GraphQL handler
+		// HTTPStatusMiddleware debe ser el más externo para capturar la respuesta final
+		middleware.HTTPStatusMiddleware(
+			middleware.AuthMiddleware(
+				c.Handler(srv),
+			),
+		).ServeHTTP(w, r)
 	})
 
 	// GraphQL Playground
@@ -238,6 +259,23 @@ func getConfig() config.Config {
 		cfg.GRPC.BookingServiceAddress = hostBooking + ":" + portBooking
 	}
 
+	// Control Gateway configuration (concatenate HOST:PORT like legacy)
+	hostGatewayControl := os.Getenv("HOST_GATEWAY_CONTROL")
+	portGatewayControl := os.Getenv("PORT_GATEWAY_CONTROL")
+	if hostGatewayControl != "" && portGatewayControl != "" {
+		cfg.ControlGateway.BaseURL = "http://" + hostGatewayControl + ":" + portGatewayControl
+	}
+	if controlServiceName := os.Getenv("CONTROL_SERVICE_NAME"); controlServiceName != "" {
+		cfg.ControlGateway.ServiceName = controlServiceName
+	}
+	if gatewayCacheStr := os.Getenv("TTL_CONTROL_CACHE"); gatewayCacheStr != "" {
+		if secs, err := strconv.Atoi(gatewayCacheStr); err == nil {
+			cfg.ControlGateway.CacheTTL = time.Duration(secs) * time.Second
+		} else {
+			log.Printf("⚠️  Invalid TTL_CONTROL_CACHE value '%s', using default %s", gatewayCacheStr, cfg.ControlGateway.CacheTTL)
+		}
+	}
+
 	// Log configuration
 	log.Printf("🔧 Configuration loaded:")
 	log.Printf("   Environment: %s", cfg.General.Environment)
@@ -245,6 +283,11 @@ func getConfig() config.Config {
 	log.Printf("   Server Port: %s", cfg.Server.Port)
 	log.Printf("   Payment Service: %s", cfg.GRPC.PaymentServiceAddress)
 	log.Printf("   Booking Service: %s", cfg.GRPC.BookingServiceAddress)
+	log.Printf("   Control Gateway: %s (service: %s, bypass: %v, cache_ttl: %s)",
+		cfg.ControlGateway.BaseURL,
+		cfg.ControlGateway.ServiceName,
+		cfg.ControlGateway.BypassOnError,
+		cfg.ControlGateway.CacheTTL)
 
 	return cfg
 }

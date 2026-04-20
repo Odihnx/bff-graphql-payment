@@ -103,12 +103,13 @@ jobs:
             --build-arg PORT_API_PAYMENT=${{ vars.PORT_API_PAYMENT }} \
             --build-arg HOST_API_BOOKING=${{ vars.HOST_API_BOOKING }} \
             --build-arg PORT_API_BOOKING=${{ vars.PORT_API_BOOKING }} \
+            --build-arg HOST_GATEWAY_CONTROL=${{ vars.HOST_GATEWAY_CONTROL }} \
+            --build-arg PORT_GATEWAY_CONTROL=${{ vars.PORT_GATEWAY_CONTROL }} \
+            --build-arg TTL_CONTROL_CACHE=${{ vars.TTL_CONTROL_CACHE }} \
             --build-arg USE_MOCK=false \
-            -t $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
+            -t ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
           
-          docker push $ECR_REGISTRY/${{ env.IMAGE_NAME }}:$IMAGE_TAG
-        env:
-          IMAGE_TAG: ${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       # ------------------------
       # Paso 8: Checkout GitOps repo

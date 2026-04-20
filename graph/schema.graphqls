@@ -1,3 +1,9 @@
+# ========== DIRECTIVES ==========
+# Directiva para requerir autenticación
+directive @auth on FIELD_DEFINITION
+# Directiva para requerir rol específico
+directive @hasRole(role: String!) on FIELD_DEFINITION
+
 type Query {
   # Payment Infrastructure by QR Value
   getPaymentInfraByQrValue(input: GetPaymentInfraByQrValueInput!): PaymentInfraResponse!
@@ -13,6 +19,9 @@ type Query {
 
   # Check Booking Status
   checkBookingStatus(input: CheckBookingStatusInput!): CheckBookingStatusResponse!
+
+  # Get Booking Payment History (service_name hardcoded as "payment-system")
+  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Mutation {
@@ -79,6 +88,18 @@ input CheckBookingStatusInput {
 input ExecuteOpenInput {
   serviceName: String!
   currentCode: String!
+}
+
+input GetBookingPaymentInput {
+  deviceId: String
+  emailRecipient: String
+  activeOnly: Boolean
+  page: Int
+  pageSize: Int
+  dateFrom: String
+  dateUntil: String
+  sortBy: String
+  sort: SortDirection
 }
 
 # ========== RESPONSE TYPES ==========
@@ -252,4 +273,54 @@ enum PhysicalStatus {
   PHYSICAL_STATUS_FAILED
   PHYSICAL_STATUS_ALREADY_OPEN
   PHYSICAL_STATUS_UNEXPECTED
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type BookingPaymentRecord {
+  id: Int!
+  configurationBookingId: Int!
+  initBooking: String!
+  finishBooking: String!
+  installationName: String!
+  numberLocker: Int!
+  deviceId: String!
+  currentCode: String!
+  openings: Int!
+  serviceName: String!
+  emailRecipient: String!
+  createdAt: String!
+  updatedAt: String!
+  purchaseOrder: PurchaseOrderInfo
+}
+
+type PurchaseOrderInfo {
+  couponId: Int
+  bookingReference: Int!
+  oc: String!
+  email: String!
+  phone: String!
+  discount: Int!
+  productPrice: Int!
+  finalProductPrice: Int!
+  productName: String!
+  productDescription: String!
+  lockerPosition: Int!
+  installationName: String!
+  deviceSerieNum: String!
+  status: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type BookingPaymentResponse {
+  bookings: [BookingPaymentRecord!]!
+  totalCount: Int!
+  currentPage: Int!
+  totalPages: Int!
+  lastPage: Int!
+  nextPage: Int!
 }

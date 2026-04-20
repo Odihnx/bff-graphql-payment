@@ -25,6 +25,32 @@ type AvailablePaymentGroup struct {
 	ImageURL    string  `json:"imageUrl"`
 }
 
+type BookingPaymentRecord struct {
+	ID                     int                `json:"id"`
+	ConfigurationBookingID int                `json:"configurationBookingId"`
+	InitBooking            string             `json:"initBooking"`
+	FinishBooking          string             `json:"finishBooking"`
+	InstallationName       string             `json:"installationName"`
+	NumberLocker           int                `json:"numberLocker"`
+	DeviceID               string             `json:"deviceId"`
+	CurrentCode            string             `json:"currentCode"`
+	Openings               int                `json:"openings"`
+	ServiceName            string             `json:"serviceName"`
+	EmailRecipient         string             `json:"emailRecipient"`
+	CreatedAt              string             `json:"createdAt"`
+	UpdatedAt              string             `json:"updatedAt"`
+	PurchaseOrder          *PurchaseOrderInfo `json:"purchaseOrder,omitempty"`
+}
+
+type BookingPaymentResponse struct {
+	Bookings    []*BookingPaymentRecord `json:"bookings"`
+	TotalCount  int                     `json:"totalCount"`
+	CurrentPage int                     `json:"currentPage"`
+	TotalPages  int                     `json:"totalPages"`
+	LastPage    int                     `json:"lastPage"`
+	NextPage    int                     `json:"nextPage"`
+}
+
 type BookingStatusData struct {
 	ID                     int    `json:"id"`
 	ConfigurationBookingID int    `json:"configurationBookingId"`
@@ -106,6 +132,18 @@ type GetAvailableLockersByRackIDAndBookingTimeInput struct {
 	TraceID       string `json:"traceId"`
 }
 
+type GetBookingPaymentInput struct {
+	DeviceID       *string        `json:"deviceId,omitempty"`
+	EmailRecipient *string        `json:"emailRecipient,omitempty"`
+	ActiveOnly     *bool          `json:"activeOnly,omitempty"`
+	Page           *int           `json:"page,omitempty"`
+	PageSize       *int           `json:"pageSize,omitempty"`
+	DateFrom       *string        `json:"dateFrom,omitempty"`
+	DateUntil      *string        `json:"dateUntil,omitempty"`
+	SortBy         *string        `json:"sortBy,omitempty"`
+	Sort           *SortDirection `json:"sort,omitempty"`
+}
+
 type GetPaymentInfraByQRValueInput struct {
 	QRValue string `json:"qrValue"`
 }
@@ -173,6 +211,25 @@ type PurchaseOrderData struct {
 	InstallationName   string `json:"installationName"`
 	DeviceSerieNum     string `json:"deviceSerieNum"`
 	Status             string `json:"status"`
+}
+
+type PurchaseOrderInfo struct {
+	CouponID           *int   `json:"couponId,omitempty"`
+	BookingReference   int    `json:"bookingReference"`
+	Oc                 string `json:"oc"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Discount           int    `json:"discount"`
+	ProductPrice       int    `json:"productPrice"`
+	FinalProductPrice  int    `json:"finalProductPrice"`
+	ProductName        string `json:"productName"`
+	ProductDescription string `json:"productDescription"`
+	LockerPosition     int    `json:"lockerPosition"`
+	InstallationName   string `json:"installationName"`
+	DeviceSerieNum     string `json:"deviceSerieNum"`
+	Status             string `json:"status"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
 }
 
 type PurchaseOrderResponse struct {
@@ -324,6 +381,61 @@ func (e *PhysicalStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e PhysicalStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SortDirection string
+
+const (
+	SortDirectionAsc  SortDirection = "ASC"
+	SortDirectionDesc SortDirection = "DESC"
+)
+
+var AllSortDirection = []SortDirection{
+	SortDirectionAsc,
+	SortDirectionDesc,
+}
+
+func (e SortDirection) IsValid() bool {
+	switch e {
+	case SortDirectionAsc, SortDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e SortDirection) String() string {
+	return string(e)
+}
+
+func (e *SortDirection) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortDirection", str)
+	}
+	return nil
+}
+
+func (e SortDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SortDirection) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SortDirection) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

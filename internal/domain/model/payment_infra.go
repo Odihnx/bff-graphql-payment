@@ -188,3 +188,72 @@ const (
 	PhysicalStatusAlreadyOpen PhysicalStatus = "PHYSICAL_STATUS_ALREADY_OPEN"
 	PhysicalStatusUnexpected  PhysicalStatus = "PHYSICAL_STATUS_UNEXPECTED"
 )
+
+// SortDirection dirección de ordenamiento
+type SortDirection string
+
+const (
+	SortDirectionAsc  SortDirection = "ASC"
+	SortDirectionDesc SortDirection = "DESC"
+)
+
+// GetBookingPaymentInput parámetros de búsqueda del historial de reservas de pago
+type GetBookingPaymentInput struct {
+	DeviceID       *string
+	EmailRecipient *string
+	ActiveOnly     *bool
+	Page           *int
+	PageSize       *int
+	DateFrom       *string
+	DateUntil      *string
+	SortBy         *string
+	Sort           *SortDirection
+}
+
+// BookingPaymentRecord representa un registro del historial de reservas
+type BookingPaymentRecord struct {
+	ID                     int
+	ConfigurationBookingID int
+	InitBooking            string
+	FinishBooking          string
+	InstallationName       string
+	NumberLocker           int
+	DeviceID               string
+	CurrentCode            string
+	Openings               int
+	ServiceName            string
+	EmailRecipient         string
+	CreatedAt              string
+	UpdatedAt              string
+	PurchaseOrder          *PurchaseOrderInfo
+}
+
+// PurchaseOrderInfo representa los datos de una orden de compra asociada a una reserva
+type PurchaseOrderInfo struct {
+	CouponID           *int
+	BookingReference   int
+	Oc                 string
+	Email              string
+	Phone              string
+	Discount           int
+	ProductPrice       int
+	FinalProductPrice  int
+	ProductName        string
+	ProductDescription string
+	LockerPosition     int
+	InstallationName   string
+	DeviceSerieNum     string
+	Status             string
+	CreatedAt          string
+	UpdatedAt          string
+}
+
+// BookingPaymentHistory representa la respuesta paginada del historial de reservas
+type BookingPaymentHistory struct {
+	Bookings    []*BookingPaymentRecord
+	TotalCount  int
+	CurrentPage int
+	TotalPages  int
+	LastPage    int
+	NextPage    int
+}
