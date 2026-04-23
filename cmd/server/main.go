@@ -37,7 +37,7 @@ func main() {
 	cfg := getConfig()
 
 	// Inicializar Tracing
-	cleanup := tracing.Init("bff-building-system")
+	cleanup := tracing.Init("bff-building-system", "grpc")
 	defer cleanup()
 
 	// Inicializar contenedor de dependencias
