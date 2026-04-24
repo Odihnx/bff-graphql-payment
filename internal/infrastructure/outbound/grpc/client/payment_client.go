@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -47,6 +48,8 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 		conn, err = grpc.Dial(
 			paymentAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(traceUnaryInterceptor),
+			grpc.WithStreamInterceptor(traceStreamInterceptor),
 			grpc.WithBlock(),
 			grpc.WithTimeout(timeout),
 		)
@@ -60,6 +63,8 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 		bookingConn, err = grpc.Dial(
 			bookingAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(traceUnaryInterceptor),
+			grpc.WithStreamInterceptor(traceStreamInterceptor),
 			grpc.WithBlock(),
 			grpc.WithTimeout(timeout),
 		)
@@ -866,6 +871,26 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 		LastPage:    int(resp.Bookings.LastPage),
 		NextPage:    int(resp.Bookings.NextPage),
 	}, nil
+}
+
+// traceUnaryInterceptor inyecta el contexto de tracing (traceparent/tracestate) en los
+// gRPC metadata outbound de cada llamada unaria, propagando el trace al servicio downstream.
+func traceUnaryInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	propagationMap := tracing.GetPropagationMap(ctx)
+	if len(propagationMap) > 0 {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(propagationMap))
+	}
+	return invoker(ctx, method, req, reply, cc, opts...)
+}
+
+// traceStreamInterceptor inyecta el contexto de tracing en los gRPC metadata outbound
+// de cada llamada de streaming (e.g. ExecuteOpen).
+func traceStreamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	propagationMap := tracing.GetPropagationMap(ctx)
+	if len(propagationMap) > 0 {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(propagationMap))
+	}
+	return streamer(ctx, desc, cc, method, opts...)
 }
 
 // Asegurar que PaymentServiceGRPCClient implementa PaymentInfraRepository
