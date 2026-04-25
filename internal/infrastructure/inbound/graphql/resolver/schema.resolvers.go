@@ -10,11 +10,28 @@ import (
 	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
 	"context"
 	"fmt"
+	"strconv"
 	"time"
+
+	"github.com/Odihnx/platform-core/tracing"
 )
 
 // GeneratePurchaseOrder is the resolver for the generatePurchaseOrder field.
 func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.GeneratePurchaseOrder")
+	defer span.End()
+
+	hasCoupon := input.CouponCode != nil && *input.CouponCode != ""
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type":  "mutation",
+		"graphql.operation.name":  "generatePurchaseOrder",
+		"input.rack_id_reference": strconv.Itoa(input.RackIDReference),
+		"input.group_id":          strconv.Itoa(input.GroupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          input.TraceID,
+		"input.gateway_name":      input.GatewayName,
+	})
+
 	// Normalizar couponCode: si es un puntero a string vacío, convertir a nil
 	couponCode := input.CouponCode
 	if couponCode != nil && *couponCode == "" {
@@ -33,6 +50,7 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
 		fmt.Printf("❌ GraphQL Resolver - GeneratePurchaseOrder failed: %v\n", err)
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -43,6 +61,19 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 
 // GenerateBooking is the resolver for the generateBooking field.
 func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.GenerateBooking")
+	defer span.End()
+
+	hasCoupon := input.CouponCode != nil && *input.CouponCode != ""
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type":  "mutation",
+		"graphql.operation.name":  "generateBooking",
+		"input.rack_id_reference": strconv.Itoa(input.RackIDReference),
+		"input.group_id":          strconv.Itoa(input.GroupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          input.TraceID,
+	})
+
 	// Normalizar couponCode: si es un puntero a string vacío, convertir a nil
 	couponCode := input.CouponCode
 	if couponCode != nil && *couponCode == "" {
@@ -52,6 +83,7 @@ func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.Gene
 	// Llamar al caso de uso
 	booking, err := r.paymentInfraService.GenerateBooking(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -61,9 +93,19 @@ func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.Gene
 
 // GetPaymentInfraByQRValue is the resolver for the getPaymentInfraByQrValue field.
 func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.GetPaymentInfraByQRValue")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "getPaymentInfraByQrValue",
+		"input.qr_value":         input.QRValue,
+	})
+
 	// Llamar al caso de uso
 	paymentInfra, err := r.paymentInfraService.GetPaymentInfraByQrValue(ctx, input.QRValue)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -73,9 +115,21 @@ func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input mode
 
 // GetAvailableLockersByRackIDAndBookingTime is the resolver for the getAvailableLockersByRackIDAndBookingTime field.
 func (r *queryResolver) GetAvailableLockersByRackIDAndBookingTime(ctx context.Context, input model.GetAvailableLockersByRackIDAndBookingTimeInput) (*model.AvailableLockersByRackIDAndBookingTimeResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.GetAvailableLockersByRackIDAndBookingTime")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "getAvailableLockersByRackIDAndBookingTime",
+		"input.payment_rack_id":  strconv.Itoa(input.PaymentRackID),
+		"input.booking_time_id":  strconv.Itoa(input.BookingTimeID),
+		"input.trace_id":         input.TraceID,
+	})
+
 	// Llamar al caso de uso
 	lockers, err := r.paymentInfraService.GetAvailableLockers(ctx, input.PaymentRackID, input.BookingTimeID, input.TraceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -85,9 +139,21 @@ func (r *queryResolver) GetAvailableLockersByRackIDAndBookingTime(ctx context.Co
 
 // ValidateDiscountCoupon is the resolver for the validateDiscountCoupon field.
 func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.ValidateDiscountCouponInput) (*model.ValidateDiscountCouponResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.ValidateDiscountCoupon")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "validateDiscountCoupon",
+		"input.coupon_code":      input.CouponCode,
+		"input.rack_id":          strconv.Itoa(input.RackID),
+		"input.trace_id":         input.TraceID,
+	})
+
 	// Llamar al caso de uso
 	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode, input.RackID, input.TraceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -97,9 +163,20 @@ func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.
 
 // GetPurchaseOrderByPo is the resolver for the getPurchaseOrderByPo field.
 func (r *queryResolver) GetPurchaseOrderByPo(ctx context.Context, input model.GetPurchaseOrderByPoInput) (*model.PurchaseOrderResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.GetPurchaseOrderByPo")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "getPurchaseOrderByPo",
+		"input.purchase_order":   input.PurchaseOrder,
+		"input.trace_id":         input.TraceID,
+	})
+
 	// Llamar al caso de uso
 	orderData, err := r.paymentInfraService.GetPurchaseOrderByPo(ctx, input.PurchaseOrder, input.TraceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -109,9 +186,20 @@ func (r *queryResolver) GetPurchaseOrderByPo(ctx context.Context, input model.Ge
 
 // CheckBookingStatus is the resolver for the checkBookingStatus field.
 func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.CheckBookingStatusInput) (*model.CheckBookingStatusResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.CheckBookingStatus")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "checkBookingStatus",
+		"input.service_name":     input.ServiceName,
+		"input.current_code":     input.CurrentCode,
+	})
+
 	// Llamar al caso de uso
 	bookingStatus, err := r.paymentInfraService.CheckBookingStatus(ctx, input.ServiceName, input.CurrentCode)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -121,10 +209,41 @@ func (r *queryResolver) CheckBookingStatus(ctx context.Context, input model.Chec
 
 // GetBookingPayment is the resolver for the getBookingPayment field.
 func (r *queryResolver) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.query.GetBookingPayment")
+	defer span.End()
+
+	attrs := map[string]string{
+		"graphql.operation.type": "query",
+		"graphql.operation.name": "getBookingPayment",
+	}
+	if input.DeviceID != nil {
+		attrs["input.device_id"] = *input.DeviceID
+	}
+	if input.ActiveOnly != nil {
+		attrs["input.active_only"] = strconv.FormatBool(*input.ActiveOnly)
+	}
+	if input.Page != nil {
+		attrs["input.page"] = strconv.Itoa(*input.Page)
+	}
+	if input.PageSize != nil {
+		attrs["input.page_size"] = strconv.Itoa(*input.PageSize)
+	}
+	if input.DateFrom != nil {
+		attrs["input.date_from"] = *input.DateFrom
+	}
+	if input.DateUntil != nil {
+		attrs["input.date_until"] = *input.DateUntil
+	}
+	if input.SortBy != nil {
+		attrs["input.sort_by"] = *input.SortBy
+	}
+	tracing.AddAttributes(span, attrs)
+
 	domainInput := r.mapper.ToGetBookingPaymentInput(input)
 
 	history, err := r.paymentInfraService.GetBookingPayment(ctx, domainInput)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -133,6 +252,15 @@ func (r *queryResolver) GetBookingPayment(ctx context.Context, input model.GetBo
 
 // ExecuteOpen is the resolver for the executeOpen field.
 func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (<-chan *model.ExecuteOpenResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.subscription.ExecuteOpen")
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "subscription",
+		"graphql.operation.name": "executeOpen",
+		"input.service_name":     input.ServiceName,
+		"input.current_code":     input.CurrentCode,
+	})
+
 	// Log de entrada
 	fmt.Printf("🔷 GraphQL Subscription - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
 		input.ServiceName, input.CurrentCode)
@@ -141,6 +269,8 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 	domainChan, err := r.paymentInfraService.ExecuteOpenStream(ctx, input.ServiceName, input.CurrentCode)
 	if err != nil {
 		fmt.Printf("❌ GraphQL Subscription - ExecuteOpen FAILED to start: %v\n", err)
+		tracing.RecordError(span, err)
+		span.End()
 		return nil, gqlerrors.New(ctx, err)
 	}
 
@@ -149,6 +279,7 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 
 	// Goroutine para transformar y reenviar los mensajes del dominio a GraphQL
 	go func() {
+		defer span.End()
 		defer func() {
 			fmt.Printf("🔒 GraphQL Subscription - Closing output channel\n")
 			close(outputChan)
@@ -187,6 +318,11 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 		// El canal domainChan se cerró (ya se enviaron todos los mensajes)
 		fmt.Printf("✅ GraphQL Subscription - ExecuteOpen completed with %d messages, last status: %v\n",
 			messageCount, lastMessage.OpenStatus)
+
+		tracing.AddAttributes(span, map[string]string{
+			"subscription.message_count": strconv.Itoa(messageCount),
+			"subscription.final_status":  fmt.Sprintf("%v", lastMessage.OpenStatus),
+		})
 
 		// Pequeño delay para asegurar que el último mensaje se procese
 		time.Sleep(100 * time.Millisecond)

@@ -6,7 +6,10 @@ import (
 	domainException "bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
 	"context"
+	"strconv"
 	"strings"
+
+	"github.com/Odihnx/platform-core/tracing"
 )
 
 // PaymentInfraService implementa los casos de uso de infraestructura de pagos
@@ -23,14 +26,24 @@ func NewPaymentInfraService(repo ports.PaymentInfraRepository) *PaymentInfraServ
 
 // GetPaymentInfraByQrValue obtiene la infraestructura de pagos por valor QR
 func (s *PaymentInfraService) GetPaymentInfraByQrValue(ctx context.Context, qrValue string) (*model.PaymentInfra, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetPaymentInfraByQrValue")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.qr_value": qrValue,
+	})
+
 	// Validar entrada
 	if strings.TrimSpace(qrValue) == "" {
-		return nil, exception.ErrInvalidPaymentRackID
+		err := exception.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	paymentInfra, err := s.repo.GetPaymentInfraByQrValue(ctx, qrValue)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -39,22 +52,38 @@ func (s *PaymentInfraService) GetPaymentInfraByQrValue(ctx context.Context, qrVa
 
 // GetAvailableLockers obtiene los lockers disponibles por ID de rack y tiempo de reserva
 func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int, traceID string) (*model.AvailableLockers, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetAvailableLockers")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.payment_rack_id": strconv.Itoa(paymentRackID),
+		"input.booking_time_id": strconv.Itoa(bookingTimeID),
+		"input.trace_id":        traceID,
+	})
+
 	// Validar entrada
 	if paymentRackID <= 0 {
-		return nil, exception.ErrInvalidPaymentRackID
+		err := exception.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if bookingTimeID <= 0 {
-		return nil, exception.ErrInvalidBookingTimeID
+		err := exception.ErrInvalidBookingTimeID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(traceID) == "" {
-		return nil, exception.ErrInvalidTraceID
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	lockers, err := s.repo.GetAvailableLockers(ctx, paymentRackID, bookingTimeID, traceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -63,53 +92,99 @@ func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRa
 
 // ValidateDiscountCoupon valida un cupón de descuento
 func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.ValidateDiscountCoupon")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.coupon_code": couponCode,
+		"input.rack_id":     strconv.Itoa(rackID),
+		"input.trace_id":    traceID,
+	})
+
 	// Validar entrada
 	if strings.TrimSpace(couponCode) == "" {
-		return nil, exception.ErrInvalidCouponCode
+		err := exception.ErrInvalidCouponCode
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if rackID <= 0 {
-		return nil, exception.ErrInvalidPaymentRackID
+		err := exception.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(traceID) == "" {
-		return nil, exception.ErrInvalidTraceID
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
-	return s.repo.ValidateDiscountCoupon(ctx, couponCode, rackID, traceID)
+	result, err := s.repo.ValidateDiscountCoupon(ctx, couponCode, rackID, traceID)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // GeneratePurchaseOrder genera una orden de compra
 func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GeneratePurchaseOrder")
+	defer span.End()
+
+	hasCoupon := couponCode != nil
+	tracing.AddAttributes(span, map[string]string{
+		"input.rack_id_reference": strconv.Itoa(rackIdReference),
+		"input.group_id":          strconv.Itoa(groupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          traceID,
+		"input.gateway_name":      gatewayName,
+	})
+
 	// Validar entrada
 	if rackIdReference <= 0 {
-		return nil, domainException.ErrInvalidPaymentRackID
+		err := domainException.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if groupID <= 0 {
-		return nil, exception.ErrInvalidGroupID
+		err := exception.ErrInvalidGroupID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(userEmail) == "" {
-		return nil, exception.ErrInvalidEmail
+		err := exception.ErrInvalidEmail
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(userPhone) == "" {
-		return nil, exception.ErrInvalidPhone
+		err := exception.ErrInvalidPhone
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(traceID) == "" {
-		return nil, exception.ErrInvalidTraceID
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(gatewayName) == "" {
-		return nil, exception.ErrInvalidGatewayName
+		err := exception.ErrInvalidGatewayName
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	order, err := s.repo.GeneratePurchaseOrder(ctx, rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -118,22 +193,40 @@ func (s *PaymentInfraService) GeneratePurchaseOrder(ctx context.Context, rackIdR
 
 // GenerateBooking genera una reserva de locker
 func (s *PaymentInfraService) GenerateBooking(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string) (*model.Booking, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GenerateBooking")
+	defer span.End()
+
+	hasCoupon := couponCode != nil
+	tracing.AddAttributes(span, map[string]string{
+		"input.rack_id_reference": strconv.Itoa(rackIdReference),
+		"input.group_id":          strconv.Itoa(groupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          traceID,
+	})
+
 	// Validar entrada
 	if rackIdReference <= 0 {
-		return nil, domainException.ErrInvalidPaymentRackID
+		err := domainException.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if groupID <= 0 {
-		return nil, exception.ErrInvalidGroupID
+		err := exception.ErrInvalidGroupID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(traceID) == "" {
-		return nil, exception.ErrInvalidTraceID
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	booking, err := s.repo.GenerateBooking(ctx, rackIdReference, groupID, couponCode, userEmail, userPhone, traceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -142,18 +235,31 @@ func (s *PaymentInfraService) GenerateBooking(ctx context.Context, rackIdReferen
 
 // GetPurchaseOrderByPo obtiene una orden de compra por su PO
 func (s *PaymentInfraService) GetPurchaseOrderByPo(ctx context.Context, purchaseOrder string, traceID string) (*model.PurchaseOrderData, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetPurchaseOrderByPo")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.purchase_order": purchaseOrder,
+		"input.trace_id":       traceID,
+	})
+
 	// Validar entrada
 	if strings.TrimSpace(purchaseOrder) == "" {
-		return nil, exception.ErrInvalidPurchaseOrder
+		err := exception.ErrInvalidPurchaseOrder
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(traceID) == "" {
-		return nil, exception.ErrInvalidTraceID
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	orderData, err := s.repo.GetPurchaseOrderByPo(ctx, purchaseOrder, traceID)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -162,18 +268,31 @@ func (s *PaymentInfraService) GetPurchaseOrderByPo(ctx context.Context, purchase
 
 // CheckBookingStatus verifica el estado de una reserva
 func (s *PaymentInfraService) CheckBookingStatus(ctx context.Context, serviceName string, currentCode string) (*model.BookingStatusCheck, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.CheckBookingStatus")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.service_name": serviceName,
+		"input.current_code": currentCode,
+	})
+
 	// Validar entrada
 	if strings.TrimSpace(serviceName) == "" {
-		return nil, exception.ErrInvalidServiceName
+		err := exception.ErrInvalidServiceName
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(currentCode) == "" {
-		return nil, exception.ErrInvalidCurrentCode
+		err := exception.ErrInvalidCurrentCode
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio
 	bookingStatus, err := s.repo.CheckBookingStatus(ctx, serviceName, currentCode)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -182,18 +301,31 @@ func (s *PaymentInfraService) CheckBookingStatus(ctx context.Context, serviceNam
 
 // ExecuteOpenStream ejecuta la apertura de un locker con streaming de estados
 func (s *PaymentInfraService) ExecuteOpenStream(ctx context.Context, serviceName string, currentCode string) (<-chan *model.ExecuteOpenResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.ExecuteOpenStream")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.service_name": serviceName,
+		"input.current_code": currentCode,
+	})
+
 	// Validar entrada
 	if strings.TrimSpace(serviceName) == "" {
-		return nil, exception.ErrInvalidServiceName
+		err := exception.ErrInvalidServiceName
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	if strings.TrimSpace(currentCode) == "" {
-		return nil, exception.ErrInvalidCurrentCode
+		err := exception.ErrInvalidCurrentCode
+		tracing.RecordError(span, err)
+		return nil, err
 	}
 
 	// Llamar al repositorio que retorna un canal
 	resultChan, err := s.repo.ExecuteOpenStream(ctx, serviceName, currentCode)
 	if err != nil {
+		tracing.RecordError(span, err)
 		return nil, err
 	}
 
@@ -202,5 +334,31 @@ func (s *PaymentInfraService) ExecuteOpenStream(ctx context.Context, serviceName
 
 // GetBookingPayment obtiene el historial de reservas asociadas al servicio de pago
 func (s *PaymentInfraService) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
-	return s.repo.GetBookingPayment(ctx, input)
+	ctx, span := tracing.StartSpan(ctx, "application.GetBookingPayment")
+	defer span.End()
+
+	attrs := map[string]string{}
+	if input.DeviceID != nil {
+		attrs["input.device_id"] = *input.DeviceID
+	}
+	if input.ActiveOnly != nil {
+		attrs["input.active_only"] = strconv.FormatBool(*input.ActiveOnly)
+	}
+	if input.Page != nil {
+		attrs["input.page"] = strconv.Itoa(*input.Page)
+	}
+	if input.PageSize != nil {
+		attrs["input.page_size"] = strconv.Itoa(*input.PageSize)
+	}
+	if len(attrs) > 0 {
+		tracing.AddAttributes(span, attrs)
+	}
+
+	result, err := s.repo.GetBookingPayment(ctx, input)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 ENV GO111MODULE=on
@@ -9,6 +9,15 @@ ENV GO111MODULE=on
 
 # Instalar dependencias necesarias
 RUN apk add --no-cache git ca-certificates tzdata
+
+# usar proxy privado para dependencias de la organizacion
+ENV GOPRIVATE=github.com/Odihnx/*
+
+ARG GITHUB_TOKEN
+ENV GOPRIVATE=github.com/Odihnx/*
+
+# Configurar git para usar el token en lugar de password
+RUN git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/Odihnx".insteadOf "https://github.com/Odihnx"
 
 # Copiar go mod y sum
 COPY go.mod go.sum ./
@@ -46,6 +55,7 @@ ARG HOST_GATEWAY_CONTROL
 ARG PORT_GATEWAY_CONTROL
 ARG CONTROL_SERVICE_NAME=payment
 ARG TTL_CONTROL_CACHE=300
+ARG OTEL_EXPORTER_OTLP_ENDPOINT
 
 # --- Environment vars ---
 ENV ENV=${ENV}
@@ -59,6 +69,7 @@ ENV HOST_GATEWAY_CONTROL=${HOST_GATEWAY_CONTROL}
 ENV PORT_GATEWAY_CONTROL=${PORT_GATEWAY_CONTROL}
 ENV CONTROL_SERVICE_NAME=${CONTROL_SERVICE_NAME}
 ENV TTL_CONTROL_CACHE=${TTL_CONTROL_CACHE}
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
 
 # Expose port
 EXPOSE ${PORT}
