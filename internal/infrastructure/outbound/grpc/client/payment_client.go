@@ -12,11 +12,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"time"
 
+	"github.com/Odihnx/platform-core/tracing"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -45,6 +48,8 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 		conn, err = grpc.Dial(
 			paymentAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(traceUnaryInterceptor),
+			grpc.WithStreamInterceptor(traceStreamInterceptor),
 			grpc.WithBlock(),
 			grpc.WithTimeout(timeout),
 		)
@@ -58,6 +63,8 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 		bookingConn, err = grpc.Dial(
 			bookingAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(traceUnaryInterceptor),
+			grpc.WithStreamInterceptor(traceStreamInterceptor),
 			grpc.WithBlock(),
 			grpc.WithTimeout(timeout),
 		)
@@ -84,6 +91,16 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 
 // GetPaymentInfraByQrValue implementa PaymentInfraRepository.GetPaymentInfraByQrValue
 func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context, qrValue string) (*model.PaymentInfra, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetPaymentInfraByQrValue")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":   "grpc",
+		"rpc.service":  "PaymentService",
+		"rpc.method":   "GetPaymentInfraByQrValue",
+		"input.qr_value": qrValue,
+	})
+
 	// Crear contexto con timeout
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
@@ -105,7 +122,9 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 		grpcResponse, err := c.grpcClient.GetPaymentInfraByQrValue(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ gRPC call failed: %v", err)
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		// Mapear respuesta de gRPC a DTO
@@ -114,10 +133,12 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 
 	// Manejar errores
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrPaymentRackNotFound)
 		return nil, exception.ErrPaymentRackNotFound
 	}
 
@@ -127,6 +148,18 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 
 // GetAvailableLockers implementa PaymentInfraRepository.GetAvailableLockers
 func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paymentRackID int, bookingTimeID int, traceID string) (*model.AvailableLockers, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetAvailableLockers")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":            "grpc",
+		"rpc.service":           "PaymentService",
+		"rpc.method":            "GetAvailableLockersByRackIDAndBookingTime",
+		"input.payment_rack_id": strconv.Itoa(paymentRackID),
+		"input.booking_time_id": strconv.Itoa(bookingTimeID),
+		"input.trace_id":        traceID,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -148,7 +181,9 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 		grpcResponse, err := c.grpcClient.GetAvailableLockersByRackIDAndBookingTime(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ gRPC call failed: %v", err)
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		// Mapear respuesta de gRPC a DTO
@@ -156,10 +191,12 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 	}
 
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrNoLockersAvailable)
 		return nil, exception.ErrNoLockersAvailable
 	}
 
@@ -168,6 +205,18 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 
 // ValidateDiscountCoupon implementa PaymentInfraRepository.ValidateDiscountCoupon
 func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.ValidateDiscountCoupon")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":        "grpc",
+		"rpc.service":       "PaymentService",
+		"rpc.method":        "ValidateDiscountCoupon",
+		"input.coupon_code": couponCode,
+		"input.rack_id":     strconv.Itoa(rackID),
+		"input.trace_id":    traceID,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -189,7 +238,9 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 		grpcResponse, err := c.grpcClient.ValidateDiscountCoupon(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ ValidateDiscountCoupon gRPC call failed: %v", err)
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		// Mapear respuesta de gRPC a DTO
@@ -197,10 +248,12 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 	}
 
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrInvalidCoupon)
 		return nil, exception.ErrInvalidCoupon
 	}
 
@@ -209,6 +262,21 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 
 // GeneratePurchaseOrder implementa PaymentInfraRepository.GeneratePurchaseOrder
 func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string, gatewayName string) (*model.PurchaseOrder, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GeneratePurchaseOrder")
+	defer span.End()
+
+	hasCoupon := couponCode != nil
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":              "grpc",
+		"rpc.service":             "PaymentService",
+		"rpc.method":              "GeneratePurchaseOrder",
+		"input.rack_id_reference": strconv.Itoa(rackIdReference),
+		"input.group_id":          strconv.Itoa(groupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          traceID,
+		"input.gateway_name":      gatewayName,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -245,7 +313,9 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 		if err != nil {
 			log.Printf("❌ GeneratePurchaseOrder gRPC call failed: %v", err)
 			log.Printf("❌ Error details - Type: %T, Message: %s", err, err.Error())
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		log.Printf("✅ GeneratePurchaseOrder gRPC call succeeded")
@@ -255,11 +325,13 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 
 	if response == nil {
 		log.Printf("❌ GeneratePurchaseOrder - Response is nil")
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
 		log.Printf("❌ GeneratePurchaseOrder - Response status is ERROR: %s", response.Response.Message)
+		tracing.RecordError(span, exception.ErrPurchaseOrderFailed)
 		return nil, exception.ErrPurchaseOrderFailed
 	}
 
@@ -270,6 +342,20 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 
 // GenerateBooking implementa PaymentInfraRepository.GenerateBooking
 func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdReference int, groupID int, couponCode *string, userEmail string, userPhone string, traceID string) (*model.Booking, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GenerateBooking")
+	defer span.End()
+
+	hasCoupon := couponCode != nil
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":              "grpc",
+		"rpc.service":             "PaymentService",
+		"rpc.method":              "GenerateBooking",
+		"input.rack_id_reference": strconv.Itoa(rackIdReference),
+		"input.group_id":          strconv.Itoa(groupID),
+		"input.has_coupon":        strconv.FormatBool(hasCoupon),
+		"input.trace_id":          traceID,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -294,7 +380,9 @@ func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdRe
 		grpcResponse, err := c.grpcClient.GenerateBooking(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ GenerateBooking gRPC call failed: %v", err)
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		// Mapear respuesta de gRPC a DTO
@@ -302,10 +390,12 @@ func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdRe
 	}
 
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrBookingGenerationFailed)
 		return nil, exception.ErrBookingGenerationFailed
 	}
 
@@ -314,6 +404,17 @@ func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdRe
 
 // GetPurchaseOrderByPo implementa PaymentInfraRepository.GetPurchaseOrderByPo
 func (c *PaymentServiceGRPCClient) GetPurchaseOrderByPo(ctx context.Context, purchaseOrder string, traceID string) (*model.PurchaseOrderData, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetPurchaseOrderByPo")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":           "grpc",
+		"rpc.service":          "PaymentService",
+		"rpc.method":           "GetPurchaseOrderByPo",
+		"input.purchase_order": purchaseOrder,
+		"input.trace_id":       traceID,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -323,10 +424,12 @@ func (c *PaymentServiceGRPCClient) GetPurchaseOrderByPo(ctx context.Context, pur
 	response := c.mockGetPurchaseOrderByPo(request)
 
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrPurchaseOrderNotFound)
 		return nil, exception.ErrPurchaseOrderNotFound
 	}
 
@@ -335,6 +438,17 @@ func (c *PaymentServiceGRPCClient) GetPurchaseOrderByPo(ctx context.Context, pur
 
 // CheckBookingStatus implementa PaymentInfraRepository.CheckBookingStatus
 func (c *PaymentServiceGRPCClient) CheckBookingStatus(ctx context.Context, serviceName string, currentCode string) (*model.BookingStatusCheck, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.CheckBookingStatus")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":         "grpc",
+		"rpc.service":        "BookingService",
+		"rpc.method":         "CheckBookingStatus",
+		"input.service_name": serviceName,
+		"input.current_code": currentCode,
+	})
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -354,7 +468,9 @@ func (c *PaymentServiceGRPCClient) CheckBookingStatus(ctx context.Context, servi
 		grpcResponse, err := c.bookingClient.CheckBookingStatus(ctx, grpcRequest)
 		if err != nil {
 			log.Printf("❌ Booking gRPC call failed: %v", err)
-			return nil, c.mapGRPCError(err)
+			mappedErr := c.mapGRPCError(err)
+			tracing.RecordError(span, mappedErr)
+			return nil, mappedErr
 		}
 
 		// Mapear respuesta de gRPC a DTO
@@ -362,10 +478,12 @@ func (c *PaymentServiceGRPCClient) CheckBookingStatus(ctx context.Context, servi
 	}
 
 	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrBookingNotFound)
 		return nil, exception.ErrBookingNotFound
 	}
 
@@ -375,6 +493,17 @@ func (c *PaymentServiceGRPCClient) CheckBookingStatus(ctx context.Context, servi
 // ExecuteOpenStream implementa PaymentInfraRepository.ExecuteOpenStream con soporte de streaming
 // Retorna un canal que emite todos los estados progresivamente: RECEIVED -> REQUESTED -> SUCCESS/ERROR
 func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, serviceName string, currentCode string) (<-chan *model.ExecuteOpenResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.ExecuteOpenStream")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":         "grpc",
+		"rpc.service":        "BookingService",
+		"rpc.method":         "ExecuteOpen",
+		"input.service_name": serviceName,
+		"input.current_code": currentCode,
+	})
+
 	request := c.mapper.ToExecuteOpenRequest(serviceName, currentCode)
 
 	log.Printf("🔷 ExecuteOpenStream - Starting: serviceName=%s, currentCode=%s", serviceName, currentCode)
@@ -422,7 +551,9 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	if err != nil {
 		close(resultChan)
 		log.Printf("❌ ExecuteOpenStream failed to create stream: %v", err)
-		return nil, c.mapGRPCError(err)
+		mappedErr := c.mapGRPCError(err)
+		tracing.RecordError(span, mappedErr)
+		return nil, mappedErr
 	}
 
 	// Enviar request al stream
@@ -434,14 +565,18 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	if err := stream.Send(grpcRequest); err != nil {
 		close(resultChan)
 		log.Printf("❌ ExecuteOpenStream failed to send request: %v", err)
-		return nil, c.mapGRPCError(err)
+		mappedErr := c.mapGRPCError(err)
+		tracing.RecordError(span, mappedErr)
+		return nil, mappedErr
 	}
 
 	// Cerrar el envío
 	if err := stream.CloseSend(); err != nil {
 		close(resultChan)
 		log.Printf("❌ ExecuteOpenStream failed to close send: %v", err)
-		return nil, c.mapGRPCError(err)
+		mappedErr := c.mapGRPCError(err)
+		tracing.RecordError(span, mappedErr)
+		return nil, mappedErr
 	}
 
 	// Goroutine para recibir todos los mensajes del stream y emitirlos al canal
@@ -561,6 +696,28 @@ func (c *PaymentServiceGRPCClient) mapGRPCError(err error) error {
 // GetBookingPayment implementa PaymentInfraRepository.GetBookingPayment
 // Llama a BookingService.GetBookingHistory con service_name hardcodeado como "payment-system"
 func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetBookingPayment")
+	defer span.End()
+
+	attrs := map[string]string{
+		"rpc.system":  "grpc",
+		"rpc.service": "BookingService",
+		"rpc.method":  "GetBookingHistory",
+	}
+	if input.DeviceID != nil {
+		attrs["input.device_id"] = *input.DeviceID
+	}
+	if input.ActiveOnly != nil {
+		attrs["input.active_only"] = strconv.FormatBool(*input.ActiveOnly)
+	}
+	if input.Page != nil {
+		attrs["input.page"] = strconv.Itoa(*input.Page)
+	}
+	if input.PageSize != nil {
+		attrs["input.page_size"] = strconv.Itoa(*input.PageSize)
+	}
+	tracing.AddAttributes(span, attrs)
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -615,7 +772,9 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 	resp, err := c.bookingClient.GetBookingHistory(ctx, req)
 	if err != nil {
 		log.Printf("❌ GetBookingPayment gRPC call failed: %v", err)
-		return nil, c.mapGRPCError(err)
+		mappedErr := c.mapGRPCError(err)
+		tracing.RecordError(span, mappedErr)
+		return nil, mappedErr
 	}
 
 	if resp == nil || resp.Bookings == nil {
@@ -712,6 +871,26 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 		LastPage:    int(resp.Bookings.LastPage),
 		NextPage:    int(resp.Bookings.NextPage),
 	}, nil
+}
+
+// traceUnaryInterceptor inyecta el contexto de tracing (traceparent/tracestate) en los
+// gRPC metadata outbound de cada llamada unaria, propagando el trace al servicio downstream.
+func traceUnaryInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	propagationMap := tracing.GetPropagationMap(ctx)
+	if len(propagationMap) > 0 {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(propagationMap))
+	}
+	return invoker(ctx, method, req, reply, cc, opts...)
+}
+
+// traceStreamInterceptor inyecta el contexto de tracing en los gRPC metadata outbound
+// de cada llamada de streaming (e.g. ExecuteOpen).
+func traceStreamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	propagationMap := tracing.GetPropagationMap(ctx)
+	if len(propagationMap) > 0 {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(propagationMap))
+	}
+	return streamer(ctx, desc, cc, method, opts...)
 }
 
 // Asegurar que PaymentServiceGRPCClient implementa PaymentInfraRepository
