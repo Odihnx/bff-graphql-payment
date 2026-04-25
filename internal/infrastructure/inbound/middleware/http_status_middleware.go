@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 )
 
@@ -40,11 +42,26 @@ func (rw *responseWriter) WriteHeader(statusCode int) {
 	}
 }
 
+// Hijack implementa http.Hijacker para permitir upgrades a WebSocket.
+func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := rw.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, http.ErrNotSupported
+	}
+	return hijacker.Hijack()
+}
+
 // HTTPStatusMiddleware intercepta respuestas GraphQL y establece el código HTTP
 // basándose en el campo "status" de las extensions de los errores.
 // Por defecto, GraphQL siempre retorna HTTP 200, pero esto rompe el estándar HTTP.
 func HTTPStatusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// WebSocket upgrades must not be buffered — pass through directly.
+		if r.Header.Get("Upgrade") == "websocket" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// Crear un responseWriter que capture el cuerpo
 		rw := &responseWriter{
 			ResponseWriter: w,
