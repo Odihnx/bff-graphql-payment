@@ -39,8 +39,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Verificar si APISIX validó autenticación
 		authValidated := r.Header.Get("X-Auth-Validated")
 		if authValidated != "true" {
-			// No hay autenticación - solicitud pública
-			log.Printf("[AuthMiddleware] [%s] No authentication from APISIX - public request", requestPath)
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -60,9 +58,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-
-		log.Printf("[AuthMiddleware] [%s] Claims extracted from APISIX: user=%s email=%s roles=%v",
-			requestPath, claims.CognitoUsername, claims.Email, claims.GetRoles())
 
 		// Inyectar los claims en el context para autorización posterior
 		ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
