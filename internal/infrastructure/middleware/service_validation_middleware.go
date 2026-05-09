@@ -42,7 +42,7 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 	defer span.End()
 
 	tracing.AddAttributes(span, map[string]string{
-		"service.name":          m.serviceName,
+		"service.name":               m.serviceName,
 		"middleware.bypass_on_error": fmt.Sprintf("%v", m.bypassOnError),
 	})
 
@@ -62,8 +62,8 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 		if isInfrastructureError && m.bypassOnError {
 			// Error de infraestructura y tenemos bypass habilitado
 			tracing.AddAttributes(span, map[string]string{
-				"middleware.result":  "bypassed",
-				"middleware.reason":  "infrastructure_error",
+				"middleware.result": "bypassed",
+				"middleware.reason": "infrastructure_error",
 			})
 			return nil
 		}
