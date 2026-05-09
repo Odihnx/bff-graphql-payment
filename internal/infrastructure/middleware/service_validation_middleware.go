@@ -61,7 +61,6 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 
 		if isInfrastructureError && m.bypassOnError {
 			// Error de infraestructura y tenemos bypass habilitado
-			log.Printf("⚠️  Service validation failed (bypassing): %v", err)
 			tracing.AddAttributes(span, map[string]string{
 				"middleware.result":  "bypassed",
 				"middleware.reason":  "infrastructure_error",
@@ -71,21 +70,20 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 
 		// Es un mensaje del gateway (servicio deshabilitado/mantenimiento)
 		// o un error de infraestructura sin bypass
-		log.Printf("🔴 Service validation error: %v", err)
+		log.Printf("❌ ServiceValidation error: %v", err)
 		tracing.RecordError(span, err)
 		return err
 	}
 
 	// Si available=false pero no hay error, algo está mal en la lógica
 	if !available {
-		log.Printf("❌ Service '%s' reported as unavailable without error details", m.serviceName)
 		unavailableErr := fmt.Errorf("service '%s' is not available", m.serviceName)
+		log.Printf("❌ ServiceValidation error: %v", unavailableErr)
 		tracing.RecordError(span, unavailableErr)
 		return unavailableErr
 	}
 
 	// Servicio disponible
-	log.Printf("🟢 Service '%s' is available", m.serviceName)
 	tracing.AddAttributes(span, map[string]string{"middleware.result": "available"})
 	return nil
 }
