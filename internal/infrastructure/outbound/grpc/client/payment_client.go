@@ -44,7 +44,7 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 
 	// Solo intentar conectar si NO estamos usando mocks
 	if !useMock {
-		log.Printf("🔌 Connecting to Payment Service at %s (Real API)", paymentAddress)
+		log.Printf("➡️ NewPaymentServiceGRPCClient called: connecting to %s", paymentAddress)
 		conn, err = grpc.Dial(
 			paymentAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -57,9 +57,7 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 			return nil, fmt.Errorf("failed to connect to payment service: %w", err)
 		}
 		grpcClient = paymentpb.NewPaymentServiceClient(conn)
-		log.Printf("✅ Connected to Payment Service successfully")
 
-		log.Printf("🔌 Connecting to Booking Service at %s (Real API)", bookingAddress)
 		bookingConn, err = grpc.Dial(
 			bookingAddress,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -73,9 +71,6 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 			return nil, fmt.Errorf("failed to connect to booking service: %w", err)
 		}
 		bookingClient = bookingpb.NewBookingServiceClient(bookingConn)
-		log.Printf("✅ Connected to Booking Service successfully")
-	} else {
-		log.Printf("🧪 Using MOCK mode for Payment and Booking Services (no real connection)")
 	}
 
 	return &PaymentServiceGRPCClient{
@@ -121,7 +116,7 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 
 		grpcResponse, err := c.grpcClient.GetPaymentInfraByQrValue(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ gRPC call failed: %v", err)
+			log.Printf("❌ GetPaymentInfraByQrValue error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
@@ -180,7 +175,7 @@ func (c *PaymentServiceGRPCClient) GetAvailableLockers(ctx context.Context, paym
 
 		grpcResponse, err := c.grpcClient.GetAvailableLockersByRackIDAndBookingTime(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ gRPC call failed: %v", err)
+			log.Printf("❌ GetAvailableLockers error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
@@ -237,7 +232,7 @@ func (c *PaymentServiceGRPCClient) ValidateDiscountCoupon(ctx context.Context, c
 
 		grpcResponse, err := c.grpcClient.ValidateDiscountCoupon(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ ValidateDiscountCoupon gRPC call failed: %v", err)
+			log.Printf("❌ ValidateDiscountCoupon error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
@@ -280,62 +275,49 @@ func (c *PaymentServiceGRPCClient) GeneratePurchaseOrder(ctx context.Context, ra
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToGeneratePurchaseOrderRequest(rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
+	log.Printf("➡️ GeneratePurchaseOrder called")
 
-	// Log detallado del request
-	couponCodeValue := "nil"
-	if request.CouponCode != nil {
-		couponCodeValue = fmt.Sprintf("\"%s\"", *request.CouponCode)
-	}
-	log.Printf("🔵 GeneratePurchaseOrder - Request: rackId=%d, groupId=%d, couponCode=%s, email=%s, phone=%s, traceId=%s, gateway=%s",
-		request.RackIdReference, request.GroupId, couponCodeValue, request.UserEmail, request.UserPhone, request.TraceId, request.GatewayName)
+	request := c.mapper.ToGeneratePurchaseOrderRequest(rackIdReference, groupID, couponCode, userEmail, userPhone, traceID, gatewayName)
 
 	var response *dto.GeneratePurchaseOrderResponse
 
 	// Usar mock o llamada real según configuración
 	if c.useMock {
-		log.Printf("🟡 Using MOCK mode for GeneratePurchaseOrder")
 		response = c.mockGeneratePurchaseOrder(request)
 	} else {
 		// Llamada real al servicio gRPC
 		grpcRequest := &paymentpb.GeneratePurchaseOrderRequest{
 			RackIdReference: request.RackIdReference,
 			GroupId:         request.GroupId,
-			CouponCode:      request.CouponCode, // Se asigna directamente, nil si no se proporciona
+			CouponCode:      request.CouponCode,
 			UserEmail:       request.UserEmail,
 			UserPhone:       request.UserPhone,
 			TraceId:         request.TraceId,
 			GatewayName:     request.GatewayName,
 		}
 
-		log.Printf("🟢 Calling real gRPC service for GeneratePurchaseOrder")
 		grpcResponse, err := c.grpcClient.GeneratePurchaseOrder(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ GeneratePurchaseOrder gRPC call failed: %v", err)
-			log.Printf("❌ Error details - Type: %T, Message: %s", err, err.Error())
+			log.Printf("❌ GeneratePurchaseOrder error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
 		}
 
-		log.Printf("✅ GeneratePurchaseOrder gRPC call succeeded")
 		// Mapear respuesta de gRPC a DTO
 		response = c.mapper.FromGRPCGeneratePurchaseOrderResponse(grpcResponse)
 	}
 
 	if response == nil {
-		log.Printf("❌ GeneratePurchaseOrder - Response is nil")
 		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
 		return nil, exception.ErrPaymentInfraServiceUnavailable
 	}
 
 	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
-		log.Printf("❌ GeneratePurchaseOrder - Response status is ERROR: %s", response.Response.Message)
+		log.Printf("❌ GeneratePurchaseOrder error: %s", response.Response.Message)
 		tracing.RecordError(span, exception.ErrPurchaseOrderFailed)
 		return nil, exception.ErrPurchaseOrderFailed
 	}
-
-	log.Printf("✅ GeneratePurchaseOrder - Success: transactionId=%s, url=%s", response.Response.TransactionId, response.Url)
 
 	return c.mapper.ToPurchaseOrderDomain(response), nil
 }
@@ -379,7 +361,7 @@ func (c *PaymentServiceGRPCClient) GenerateBooking(ctx context.Context, rackIdRe
 
 		grpcResponse, err := c.grpcClient.GenerateBooking(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ GenerateBooking gRPC call failed: %v", err)
+			log.Printf("❌ GenerateBooking error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
@@ -467,7 +449,7 @@ func (c *PaymentServiceGRPCClient) CheckBookingStatus(ctx context.Context, servi
 
 		grpcResponse, err := c.bookingClient.CheckBookingStatus(ctx, grpcRequest)
 		if err != nil {
-			log.Printf("❌ Booking gRPC call failed: %v", err)
+			log.Printf("❌ CheckBookingStatus error: %v", err)
 			mappedErr := c.mapGRPCError(err)
 			tracing.RecordError(span, mappedErr)
 			return nil, mappedErr
@@ -504,9 +486,9 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 		"input.current_code": currentCode,
 	})
 
-	request := c.mapper.ToExecuteOpenRequest(serviceName, currentCode)
+	log.Printf("➡️ ExecuteOpenStream called")
 
-	log.Printf("🔷 ExecuteOpenStream - Starting: serviceName=%s, currentCode=%s", serviceName, currentCode)
+	request := c.mapper.ToExecuteOpenRequest(serviceName, currentCode)
 
 	// Crear canal para emitir resultados progresivos
 	resultChan := make(chan *model.ExecuteOpenResult, 10)
@@ -550,7 +532,7 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	stream, err := c.bookingClient.ExecuteOpen(ctx)
 	if err != nil {
 		close(resultChan)
-		log.Printf("❌ ExecuteOpenStream failed to create stream: %v", err)
+		log.Printf("❌ ExecuteOpenStream error creating stream: %v", err)
 		mappedErr := c.mapGRPCError(err)
 		tracing.RecordError(span, mappedErr)
 		return nil, mappedErr
@@ -564,7 +546,7 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 
 	if err := stream.Send(grpcRequest); err != nil {
 		close(resultChan)
-		log.Printf("❌ ExecuteOpenStream failed to send request: %v", err)
+		log.Printf("❌ ExecuteOpenStream error sending request: %v", err)
 		mappedErr := c.mapGRPCError(err)
 		tracing.RecordError(span, mappedErr)
 		return nil, mappedErr
@@ -573,7 +555,7 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	// Cerrar el envío
 	if err := stream.CloseSend(); err != nil {
 		close(resultChan)
-		log.Printf("❌ ExecuteOpenStream failed to close send: %v", err)
+		log.Printf("❌ ExecuteOpenStream error closing send: %v", err)
 		mappedErr := c.mapGRPCError(err)
 		tracing.RecordError(span, mappedErr)
 		return nil, mappedErr
@@ -588,10 +570,9 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 			resp, err := stream.Recv()
 			if err != nil {
 				if err == io.EOF {
-					log.Printf("✅ ExecuteOpenStream - Stream ended normally after %d messages", messageCount)
 					break
 				}
-				log.Printf("❌ ExecuteOpenStream recv error: %v", err)
+				log.Printf("❌ ExecuteOpenStream error: %v", err)
 
 				// Emitir error al canal
 				resultChan <- &model.ExecuteOpenResult{
@@ -631,22 +612,11 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 			// Convertir a modelo de dominio
 			domainResult := c.mapper.ToExecuteOpenDomain(dtoResponse)
 
-			log.Printf("📥 ExecuteOpenStream - Message %d: status=%v, message=%s",
-				messageCount, domainResult.OpenStatus, domainResult.Message)
-
 			// Emitir al canal
 			select {
 			case resultChan <- domainResult:
-				// Emitido exitosamente
 			case <-ctx.Done():
-				log.Printf("⚠️ ExecuteOpenStream - Context cancelled, stopping stream")
 				return
-			}
-
-			// Si recibimos un estado terminal, continuamos leyendo hasta EOF
-			if resp.Status == bookingpb.OpenStatus_OPEN_STATUS_SUCCESS ||
-				resp.Status == bookingpb.OpenStatus_OPEN_STATUS_ERROR {
-				log.Printf("🏁 ExecuteOpenStream - Terminal status received: %v", resp.Status)
 			}
 		}
 	}()
@@ -771,7 +741,7 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 
 	resp, err := c.bookingClient.GetBookingHistory(ctx, req)
 	if err != nil {
-		log.Printf("❌ GetBookingPayment gRPC call failed: %v", err)
+		log.Printf("❌ GetBookingPayment error: %v", err)
 		mappedErr := c.mapGRPCError(err)
 		tracing.RecordError(span, mappedErr)
 		return nil, mappedErr
