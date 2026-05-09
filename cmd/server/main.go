@@ -100,7 +100,6 @@ func main() {
 				// Verificar si origin está en lista permitida
 				for _, allowed := range allowedOrigins {
 					if origin == allowed {
-						log.Printf("✅ WebSocket origin allowed: %s", origin)
 						return true
 					}
 				}
@@ -156,24 +155,8 @@ func main() {
 	// Configurar rutas
 	mux := http.NewServeMux()
 
-	// Endpoint GraphQL con logging para debugging WebSocket y middleware de autenticación
+	// Endpoint GraphQL con middleware stack: HTTPStatus -> Auth -> CORS -> GraphQL handler
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		msg := "📥 [" + r.Method + "] " + r.URL.Path
-		if origin := r.Header.Get("Origin"); origin != "" {
-			msg += " | Origin: " + origin
-		}
-		if upgrade := r.Header.Get("Upgrade"); upgrade != "" {
-			msg += " | Upgrade: " + upgrade
-		}
-		if conn := r.Header.Get("Connection"); conn != "" {
-			msg += " | Connection: " + conn
-		}
-		if wsKey := r.Header.Get("Sec-WebSocket-Key"); wsKey != "" {
-			msg += " | Sec-WebSocket-Key: " + wsKey
-		}
-		log.Println(msg)
-		// Aplicar middleware stack: HTTPStatus -> Auth -> CORS -> GraphQL handler
-		// HTTPStatusMiddleware debe ser el más externo para capturar la respuesta final
 		middleware.HTTPStatusMiddleware(
 			middleware.AuthMiddleware(
 				c.Handler(srv),
@@ -281,19 +264,6 @@ func getConfig() config.Config {
 			log.Printf("⚠️  Invalid TTL_CONTROL_CACHE value '%s', using default %s", gatewayCacheStr, cfg.ControlGateway.CacheTTL)
 		}
 	}
-
-	// Log configuration
-	log.Printf("🔧 Configuration loaded:")
-	log.Printf("   Environment: %s", cfg.General.Environment)
-	log.Printf("   Use Mock: %v", cfg.General.UseMock)
-	log.Printf("   Server Port: %s", cfg.Server.Port)
-	log.Printf("   Payment Service: %s", cfg.GRPC.PaymentServiceAddress)
-	log.Printf("   Booking Service: %s", cfg.GRPC.BookingServiceAddress)
-	log.Printf("   Control Gateway: %s (service: %s, bypass: %v, cache_ttl: %s)",
-		cfg.ControlGateway.BaseURL,
-		cfg.ControlGateway.ServiceName,
-		cfg.ControlGateway.BypassOnError,
-		cfg.ControlGateway.CacheTTL)
 
 	return cfg
 }
