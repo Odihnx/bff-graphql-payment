@@ -90,9 +90,9 @@ func (c *PaymentServiceGRPCClient) GetPaymentInfraByQrValue(ctx context.Context,
 	defer span.End()
 
 	tracing.AddAttributes(span, map[string]string{
-		"rpc.system":   "grpc",
-		"rpc.service":  "PaymentService",
-		"rpc.method":   "GetPaymentInfraByQrValue",
+		"rpc.system":     "grpc",
+		"rpc.service":    "PaymentService",
+		"rpc.method":     "GetPaymentInfraByQrValue",
 		"input.qr_value": qrValue,
 	})
 
