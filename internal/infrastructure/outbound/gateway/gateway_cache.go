@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
@@ -55,8 +54,6 @@ func (c *CachedServiceChecker) IsServiceAvailable(ctx context.Context, serviceNa
 	c.mu.RUnlock()
 
 	if cacheValid && found {
-		remaining := (c.ttl - time.Since(c.refreshedAt)).Round(time.Second)
-		log.Printf("🗃️  Cache AVAILABLE | service='%s' expires_in=%s", serviceName, remaining)
 		return entry.available, entry.err
 	}
 
@@ -66,15 +63,11 @@ func (c *CachedServiceChecker) IsServiceAvailable(ctx context.Context, serviceNa
 	if isCacheable(err) {
 		c.mu.Lock()
 		if !cacheValid {
-			log.Printf("🗑️ Cache EXPIRED | cleared, refreshing (TTL=%s)", c.ttl)
 			c.entries = make(map[string]cacheEntry)
 			c.refreshedAt = time.Now()
 		}
 		c.entries[serviceName] = cacheEntry{available: available, err: err}
 		c.mu.Unlock()
-		log.Printf("💾 Cache STORED | service='%s' ttl=%s", serviceName, c.ttl)
-	} else {
-		log.Printf("🛝 Cache SKIP | service='%s' (transient error, not caching): %v", serviceName, err)
 	}
 
 	return available, err
