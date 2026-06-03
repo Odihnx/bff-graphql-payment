@@ -279,10 +279,10 @@ type GetBookingTimesResponse struct {
 
 // CreateRackPaymentRequest represents the request for creating a rack payment
 type CreateRackPaymentRequest struct {
-	RackReference     int32  `json:"rack_reference"`
-	PricingTemplateId int32  `json:"pricing_template_id"`
-	Notes             string `json:"notes"`
-	BookingTimeId     int32  `json:"booking_time_id"`
+	RackReference     int32   `json:"rack_reference"`
+	PricingTemplateId int32   `json:"pricing_template_id"`
+	Notes             string  `json:"notes"`
+	BookingTimeIds    []int32 `json:"booking_time_ids"`
 }
 
 // CreateRackPaymentResponse represents the response for creating a rack payment
