@@ -659,6 +659,74 @@ func (m *PaymentInfraGRPCMapper) ToCreateRackPaymentRequest(rackReference int, p
 	}
 }
 
+func (m *PaymentInfraGRPCMapper) FromGRPCGetPricingTemplatesResponse(proto *paymentpb.GetPricingTemplatesResponse) *dto.GetPricingTemplatesResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.GetPricingTemplatesResponse{}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	for _, pt := range proto.PricingTemplates {
+		result.PricingTemplates = append(result.PricingTemplates, &dto.PricingTemplateRecord{
+			Id:          pt.Id,
+			Name:        pt.Name,
+			Description: pt.Description,
+			CreatedAt:   pt.CreatedAt,
+		})
+	}
+	return result
+}
+
+func (m *PaymentInfraGRPCMapper) FromGRPCGetBookingTimesResponse(proto *paymentpb.GetBookingTimesResponse) *dto.GetBookingTimesResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.GetBookingTimesResponse{}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	for _, bt := range proto.BookingTimes {
+		result.BookingTimes = append(result.BookingTimes, &dto.BookingTimeFullRecord{
+			Id:              bt.Id,
+			Name:            bt.Name,
+			UnitMeasurement: bt.UnitMeasurement,
+			Amount:          bt.Amount,
+			Active:          bt.Active,
+			UpdatedAt:       bt.UpdatedAt,
+		})
+	}
+	return result
+}
+
+func (m *PaymentInfraGRPCMapper) FromGRPCCreateRackPaymentResponse(proto *paymentpb.CreateRackPaymentResponse) *dto.CreateRackPaymentResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.CreateRackPaymentResponse{
+		PaymentRackId: proto.PaymentRackId,
+	}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	return result
+}
+
 // FromGRPCCheckBookingStatusResponse mapea la respuesta proto de gRPC de booking al DTO interno
 func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *bookingpb.CheckBookingStatusResponse) *dto.CheckBookingStatusResponse {
 	if protoResp == nil {
