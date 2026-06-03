@@ -257,3 +257,48 @@ type BookingPaymentHistory struct {
 	LastPage    int
 	NextPage    int
 }
+
+// PricingTemplate representa una plantilla de precios
+type PricingTemplate struct {
+	ID          int
+	Name        string
+	Description string
+	CreatedAt   string
+}
+
+// PricingTemplateList representa la respuesta de listado de plantillas de precios
+type PricingTemplateList struct {
+	TransactionID    string
+	Message          string
+	Status           ResponseStatus
+	TraceID          string
+	PricingTemplates []PricingTemplate
+}
+
+// BookingTimeFull representa un tiempo de reserva con todos sus campos (uso admin)
+type BookingTimeFull struct {
+	ID              int
+	Name            string
+	UnitMeasurement string
+	Amount          int
+	Active          bool
+	UpdatedAt       string
+}
+
+// BookingTimeFullList representa la respuesta de listado de tiempos de reserva
+type BookingTimeFullList struct {
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+	BookingTimes  []BookingTimeFull
+}
+
+// RackPayment representa la respuesta de creación de un rack de pago
+type RackPayment struct {
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+	PaymentRackID int
+}

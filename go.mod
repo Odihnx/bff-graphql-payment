@@ -3,7 +3,7 @@ module bff-graphql-payment
 go 1.26
 
 require (
-	github.com/99designs/gqlgen v0.17.78
+	github.com/99designs/gqlgen v0.17.89
 	github.com/Odihnx/platform-core v1.0.0-dev
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.5.1

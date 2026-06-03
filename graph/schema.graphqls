@@ -22,6 +22,12 @@ type Query {
 
   # Get Booking Payment History (service_name hardcoded as "payment-system")
   getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
+
+  # Get all pricing templates (admin only)
+  getPricingTemplates: GetPricingTemplatesResponse! @hasRole(role: "SUPER_ADMIN")
+
+  # Get all booking times with full details (admin only)
+  getBookingTimes: GetBookingTimesResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Mutation {
@@ -30,6 +36,9 @@ type Mutation {
 
   # Generate Booking
   generateBooking(input: GenerateBookingInput!): GenerateBookingResponse!
+
+  # Create a rack payment and associate it to a booking time (admin only)
+  createRackPayment(input: CreateRackPaymentInput!): CreateRackPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Subscription {
@@ -88,6 +97,13 @@ input CheckBookingStatusInput {
 input ExecuteOpenInput {
   serviceName: String!
   currentCode: String!
+}
+
+input CreateRackPaymentInput {
+  rackReference: Int!
+  pricingTemplateId: Int!
+  notes: String!
+  bookingTimeIds: [Int!]!
 }
 
 input GetBookingPaymentInput {
@@ -278,6 +294,46 @@ enum PhysicalStatus {
 enum SortDirection {
   ASC
   DESC
+}
+
+type GetPricingTemplatesResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  pricingTemplates: [PricingTemplate!]!
+}
+
+type PricingTemplate {
+  id: Int!
+  name: String!
+  description: String!
+  createdAt: String!
+}
+
+type GetBookingTimesResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  bookingTimes: [BookingTimeFull!]!
+}
+
+type BookingTimeFull {
+  id: Int!
+  name: String!
+  unitMeasurement: String!
+  amount: Int!
+  active: Boolean!
+  updatedAt: String!
+}
+
+type CreateRackPaymentResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  paymentRackId: Int!
 }
 
 type BookingPaymentRecord {

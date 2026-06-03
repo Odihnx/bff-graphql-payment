@@ -6,6 +6,7 @@ import (
 	domainException "bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -330,6 +331,66 @@ func (s *PaymentInfraService) ExecuteOpenStream(ctx context.Context, serviceName
 	}
 
 	return resultChan, nil
+}
+
+// GetPricingTemplates obtiene todos los pricing templates disponibles
+func (s *PaymentInfraService) GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetPricingTemplates")
+	defer span.End()
+
+	result, err := s.repo.GetPricingTemplates(ctx)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GetBookingTimes obtiene todos los booking times disponibles
+func (s *PaymentInfraService) GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetBookingTimes")
+	defer span.End()
+
+	result, err := s.repo.GetBookingTimes(ctx)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// CreateRackPayment crea un payment_rack y lo asocia a un booking_time
+func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.CreateRackPayment")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.rack_reference":      strconv.Itoa(rackReference),
+		"input.pricing_template_id": strconv.Itoa(pricingTemplateID),
+		"input.booking_time_ids":    fmt.Sprintf("%v", bookingTimeIDs),
+	})
+
+	if rackReference <= 0 {
+		err := exception.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	if pricingTemplateID <= 0 || len(bookingTimeIDs) == 0 {
+		err := exception.ErrInvalidBookingTimeID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // GetBookingPayment obtiene el historial de reservas asociadas al servicio de pago
