@@ -6,6 +6,7 @@ import (
 	domainException "bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -361,14 +362,14 @@ func (s *PaymentInfraService) GetBookingTimes(ctx context.Context) (*model.Booki
 }
 
 // CreateRackPayment crea un payment_rack y lo asocia a un booking_time
-func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error) {
+func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
 	ctx, span := tracing.StartSpan(ctx, "application.CreateRackPayment")
 	defer span.End()
 
 	tracing.AddAttributes(span, map[string]string{
 		"input.rack_reference":      strconv.Itoa(rackReference),
 		"input.pricing_template_id": strconv.Itoa(pricingTemplateID),
-		"input.booking_time_id":     strconv.Itoa(bookingTimeID),
+		"input.booking_time_ids":    fmt.Sprintf("%v", bookingTimeIDs),
 	})
 
 	if rackReference <= 0 {
@@ -377,13 +378,13 @@ func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReferen
 		return nil, err
 	}
 
-	if pricingTemplateID <= 0 || bookingTimeID <= 0 {
+	if pricingTemplateID <= 0 || len(bookingTimeIDs) == 0 {
 		err := exception.ErrInvalidBookingTimeID
 		tracing.RecordError(span, err)
 		return nil, err
 	}
 
-	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeID)
+	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, err
