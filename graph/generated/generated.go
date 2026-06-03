@@ -1583,7 +1583,7 @@ input CreateRackPaymentInput {
   rackReference: Int!
   pricingTemplateId: Int!
   notes: String!
-  bookingTimeId: Int!
+  bookingTimeIds: [Int!]!
 }
 
 input GetBookingPaymentInput {
@@ -8921,7 +8921,7 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeId"}
+	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8949,13 +8949,19 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 				return it, err
 			}
 			it.Notes = data
-		case "bookingTimeId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingTimeId"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
+		case "bookingTimeIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingTimeIds"))
+			vSlice := graphql.CoerceList(v)
+			ids := make([]int, len(vSlice))
+			for i := range vSlice {
+				iCtx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+				id, err := ec.unmarshalNInt2int(iCtx, vSlice[i])
+				if err != nil {
+					return it, err
+				}
+				ids[i] = id
 			}
-			it.BookingTimeID = data
+			it.BookingTimeIDs = ids
 		}
 	}
 	return it, nil
