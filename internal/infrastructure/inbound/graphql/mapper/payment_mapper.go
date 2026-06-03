@@ -324,6 +324,73 @@ func (m *PaymentInfraGraphQLMapper) ToGetBookingPaymentInput(input model.GetBook
 	return domainInput
 }
 
+// ToPricingTemplatesResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToPricingTemplatesResponse(list *domainModel.PricingTemplateList) *model.GetPricingTemplatesResponse {
+	if list == nil {
+		return nil
+	}
+
+	templates := make([]*model.PricingTemplate, 0, len(list.PricingTemplates))
+	for _, pt := range list.PricingTemplates {
+		templates = append(templates, &model.PricingTemplate{
+			ID:          pt.ID,
+			Name:        pt.Name,
+			Description: pt.Description,
+			CreatedAt:   pt.CreatedAt,
+		})
+	}
+
+	return &model.GetPricingTemplatesResponse{
+		TransactionID:    list.TransactionID,
+		Message:          list.Message,
+		Status:           m.mapResponseStatus(list.Status),
+		TraceID:          list.TraceID,
+		PricingTemplates: templates,
+	}
+}
+
+// ToBookingTimesResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToBookingTimesResponse(list *domainModel.BookingTimeFullList) *model.GetBookingTimesResponse {
+	if list == nil {
+		return nil
+	}
+
+	times := make([]*model.BookingTimeFull, 0, len(list.BookingTimes))
+	for _, bt := range list.BookingTimes {
+		times = append(times, &model.BookingTimeFull{
+			ID:              bt.ID,
+			Name:            bt.Name,
+			UnitMeasurement: bt.UnitMeasurement,
+			Amount:          bt.Amount,
+			Active:          bt.Active,
+			UpdatedAt:       bt.UpdatedAt,
+		})
+	}
+
+	return &model.GetBookingTimesResponse{
+		TransactionID: list.TransactionID,
+		Message:       list.Message,
+		Status:        m.mapResponseStatus(list.Status),
+		TraceID:       list.TraceID,
+		BookingTimes:  times,
+	}
+}
+
+// ToCreateRackPaymentResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToCreateRackPaymentResponse(rackPayment *domainModel.RackPayment) *model.CreateRackPaymentResponse {
+	if rackPayment == nil {
+		return nil
+	}
+
+	return &model.CreateRackPaymentResponse{
+		TransactionID: rackPayment.TransactionID,
+		Message:       rackPayment.Message,
+		Status:        m.mapResponseStatus(rackPayment.Status),
+		TraceID:       rackPayment.TraceID,
+		PaymentRackID: rackPayment.PaymentRackID,
+	}
+}
+
 // ToBookingPaymentResponse convierte el modelo de dominio a respuesta GraphQL
 func (m *PaymentInfraGraphQLMapper) ToBookingPaymentResponse(history *domainModel.BookingPaymentHistory) *model.BookingPaymentResponse {
 	if history == nil {

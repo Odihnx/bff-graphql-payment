@@ -213,6 +213,83 @@ func (c *PaymentServiceGRPCClient) mockCheckBookingStatus(request *dto.CheckBook
 	}
 }
 
+// mockGetPricingTemplates simula el listado de pricing templates
+func (c *PaymentServiceGRPCClient) mockGetPricingTemplates() *dto.GetPricingTemplatesResponse {
+	return &dto.GetPricingTemplatesResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Success",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+			TraceId:       "trace-" + time.Now().Format("20060102150405"),
+		},
+		PricingTemplates: []*dto.PricingTemplateRecord{
+			{
+				Id:          1,
+				Name:        "Tarifa Estándar",
+				Description: "Tarifa base para lockers estándar",
+				CreatedAt:   time.Now().Add(-72 * time.Hour).Format(time.RFC3339),
+			},
+			{
+				Id:          2,
+				Name:        "Tarifa Premium",
+				Description: "Tarifa para lockers de mayor tamaño",
+				CreatedAt:   time.Now().Add(-48 * time.Hour).Format(time.RFC3339),
+			},
+		},
+	}
+}
+
+// mockGetBookingTimes simula el listado de booking times completos
+func (c *PaymentServiceGRPCClient) mockGetBookingTimes() *dto.GetBookingTimesResponse {
+	return &dto.GetBookingTimesResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Success",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+			TraceId:       "trace-" + time.Now().Format("20060102150405"),
+		},
+		BookingTimes: []*dto.BookingTimeFullRecord{
+			{
+				Id:              1,
+				Name:            "Express (1 día)",
+				UnitMeasurement: "DAY",
+				Amount:          1,
+				Active:          true,
+				UpdatedAt:       time.Now().Format(time.RFC3339),
+			},
+			{
+				Id:              2,
+				Name:            "Normal (3 días)",
+				UnitMeasurement: "DAY",
+				Amount:          3,
+				Active:          true,
+				UpdatedAt:       time.Now().Format(time.RFC3339),
+			},
+			{
+				Id:              3,
+				Name:            "Admin",
+				UnitMeasurement: "HOUR",
+				Amount:          1,
+				Active:          false,
+				UpdatedAt:       time.Now().Format(time.RFC3339),
+			},
+		},
+	}
+}
+
+// mockCreateRackPayment simula la creación de un rack de pago
+func (c *PaymentServiceGRPCClient) mockCreateRackPayment(request *dto.CreateRackPaymentRequest) *dto.CreateRackPaymentResponse {
+	return &dto.CreateRackPaymentResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Rack de pago creado exitosamente",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+			TraceId:       "trace-" + time.Now().Format("20060102150405"),
+		},
+		PaymentRackId: request.RackReference,
+	}
+}
+
 // mockExecuteOpen simula la apertura de locker
 func (c *PaymentServiceGRPCClient) mockExecuteOpen(request *dto.ExecuteOpenRequest) *dto.ExecuteOpenResponse {
 	return &dto.ExecuteOpenResponse{

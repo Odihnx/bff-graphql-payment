@@ -624,6 +624,101 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	return resultChan, nil
 }
 
+// GetPricingTemplates implementa PaymentInfraRepository.GetPricingTemplates
+// TODO: activar llamada real cuando se regeneren los stubs con `buf generate`
+func (c *PaymentServiceGRPCClient) GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetPricingTemplates")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":  "grpc",
+		"rpc.service": "PaymentService",
+		"rpc.method":  "GetPricingTemplates",
+	})
+
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	response := c.mockGetPricingTemplates()
+
+	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	return c.mapper.ToPricingTemplatesDomain(response), nil
+}
+
+// GetBookingTimes implementa PaymentInfraRepository.GetBookingTimes
+// TODO: activar llamada real cuando se regeneren los stubs con `buf generate`
+func (c *PaymentServiceGRPCClient) GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetBookingTimes")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":  "grpc",
+		"rpc.service": "PaymentService",
+		"rpc.method":  "GetBookingTimes",
+	})
+
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	response := c.mockGetBookingTimes()
+
+	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	return c.mapper.ToBookingTimesDomain(response), nil
+}
+
+// CreateRackPayment implementa PaymentInfraRepository.CreateRackPayment
+// TODO: activar llamada real cuando se regeneren los stubs con `buf generate`
+func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.CreateRackPayment")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":                "grpc",
+		"rpc.service":               "PaymentService",
+		"rpc.method":                "CreateRackPayment",
+		"input.rack_reference":      strconv.Itoa(rackReference),
+		"input.pricing_template_id": strconv.Itoa(pricingTemplateID),
+		"input.booking_time_id":     strconv.Itoa(bookingTimeID),
+	})
+
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	request := c.mapper.ToCreateRackPaymentRequest(rackReference, pricingTemplateID, notes, bookingTimeID)
+	response := c.mockCreateRackPayment(request)
+
+	if response == nil {
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	if response.Response != nil && response.Response.Status == dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR {
+		log.Printf("❌ CreateRackPayment error: %s", response.Response.Message)
+		tracing.RecordError(span, exception.ErrPaymentInfraServiceUnavailable)
+		return nil, exception.ErrPaymentInfraServiceUnavailable
+	}
+
+	return c.mapper.ToRackPaymentDomain(response), nil
+}
+
 // Close cierra las conexiones gRPC
 func (c *PaymentServiceGRPCClient) Close() error {
 	var err error

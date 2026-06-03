@@ -569,6 +569,96 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGenerateBookingResponse(protoResp *paym
 	return response
 }
 
+// ToPricingTemplatesDomain mapea el DTO de respuesta al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToPricingTemplatesDomain(response *dto.GetPricingTemplatesResponse) *model.PricingTemplateList {
+	if response == nil {
+		return nil
+	}
+
+	result := &model.PricingTemplateList{
+		PricingTemplates: make([]model.PricingTemplate, 0),
+	}
+
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+
+	for _, pt := range response.PricingTemplates {
+		result.PricingTemplates = append(result.PricingTemplates, model.PricingTemplate{
+			ID:          int(pt.Id),
+			Name:        pt.Name,
+			Description: pt.Description,
+			CreatedAt:   pt.CreatedAt,
+		})
+	}
+
+	return result
+}
+
+// ToBookingTimesDomain mapea el DTO de respuesta al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToBookingTimesDomain(response *dto.GetBookingTimesResponse) *model.BookingTimeFullList {
+	if response == nil {
+		return nil
+	}
+
+	result := &model.BookingTimeFullList{
+		BookingTimes: make([]model.BookingTimeFull, 0),
+	}
+
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+
+	for _, bt := range response.BookingTimes {
+		result.BookingTimes = append(result.BookingTimes, model.BookingTimeFull{
+			ID:              int(bt.Id),
+			Name:            bt.Name,
+			UnitMeasurement: bt.UnitMeasurement,
+			Amount:          int(bt.Amount),
+			Active:          bt.Active,
+			UpdatedAt:       bt.UpdatedAt,
+		})
+	}
+
+	return result
+}
+
+// ToRackPaymentDomain mapea el DTO de respuesta al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToRackPaymentDomain(response *dto.CreateRackPaymentResponse) *model.RackPayment {
+	if response == nil {
+		return nil
+	}
+
+	result := &model.RackPayment{
+		PaymentRackID: int(response.PaymentRackId),
+	}
+
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+
+	return result
+}
+
+// ToCreateRackPaymentRequest mapea los parámetros al DTO de request
+func (m *PaymentInfraGRPCMapper) ToCreateRackPaymentRequest(rackReference int, pricingTemplateID int, notes string, bookingTimeID int) *dto.CreateRackPaymentRequest {
+	return &dto.CreateRackPaymentRequest{
+		RackReference:     int32(rackReference),
+		PricingTemplateId: int32(pricingTemplateID),
+		Notes:             notes,
+		BookingTimeId:     int32(bookingTimeID),
+	}
+}
+
 // FromGRPCCheckBookingStatusResponse mapea la respuesta proto de gRPC de booking al DTO interno
 func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *bookingpb.CheckBookingStatusResponse) *dto.CheckBookingStatusResponse {
 	if protoResp == nil {

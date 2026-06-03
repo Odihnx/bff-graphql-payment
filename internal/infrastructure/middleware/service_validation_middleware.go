@@ -159,3 +159,27 @@ func (m *ServiceValidationMiddleware) GetBookingPayment(ctx context.Context, inp
 	}
 	return m.next.GetBookingPayment(ctx, input)
 }
+
+// GetPricingTemplates obtiene todos los pricing templates disponibles
+func (m *ServiceValidationMiddleware) GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error) {
+	if err := m.validateServiceAvailability(ctx); err != nil {
+		return nil, err
+	}
+	return m.next.GetPricingTemplates(ctx)
+}
+
+// GetBookingTimes obtiene todos los booking times disponibles
+func (m *ServiceValidationMiddleware) GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error) {
+	if err := m.validateServiceAvailability(ctx); err != nil {
+		return nil, err
+	}
+	return m.next.GetBookingTimes(ctx)
+}
+
+// CreateRackPayment crea un payment_rack y lo asocia a un booking_time
+func (m *ServiceValidationMiddleware) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error) {
+	if err := m.validateServiceAvailability(ctx); err != nil {
+		return nil, err
+	}
+	return m.next.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeID)
+}
