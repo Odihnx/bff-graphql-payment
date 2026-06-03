@@ -177,9 +177,9 @@ func (m *ServiceValidationMiddleware) GetBookingTimes(ctx context.Context) (*mod
 }
 
 // CreateRackPayment crea un payment_rack y lo asocia a un booking_time
-func (m *ServiceValidationMiddleware) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error) {
+func (m *ServiceValidationMiddleware) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
 	if err := m.validateServiceAvailability(ctx); err != nil {
 		return nil, err
 	}
-	return m.next.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeID)
+	return m.next.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs)
 }

@@ -103,7 +103,7 @@ input CreateRackPaymentInput {
   rackReference: Int!
   pricingTemplateId: Int!
   notes: String!
-  bookingTimeId: Int!
+  bookingTimeIds: [Int!]!
 }
 
 input GetBookingPaymentInput {

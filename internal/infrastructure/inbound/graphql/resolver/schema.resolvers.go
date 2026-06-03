@@ -102,10 +102,10 @@ func (r *mutationResolver) CreateRackPayment(ctx context.Context, input model.Cr
 		"graphql.operation.name":    "createRackPayment",
 		"input.rack_reference":      strconv.Itoa(input.RackReference),
 		"input.pricing_template_id": strconv.Itoa(input.PricingTemplateID),
-		"input.booking_time_id":     strconv.Itoa(input.BookingTimeID),
+		"input.booking_time_ids":    fmt.Sprintf("%v", input.BookingTimeIDs),
 	})
 
-	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, input.PricingTemplateID, input.Notes, input.BookingTimeID)
+	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, input.PricingTemplateID, input.Notes, input.BookingTimeIDs)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)

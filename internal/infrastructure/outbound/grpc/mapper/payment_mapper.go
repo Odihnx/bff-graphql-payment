@@ -650,12 +650,16 @@ func (m *PaymentInfraGRPCMapper) ToRackPaymentDomain(response *dto.CreateRackPay
 }
 
 // ToCreateRackPaymentRequest mapea los parámetros al DTO de request
-func (m *PaymentInfraGRPCMapper) ToCreateRackPaymentRequest(rackReference int, pricingTemplateID int, notes string, bookingTimeID int) *dto.CreateRackPaymentRequest {
+func (m *PaymentInfraGRPCMapper) ToCreateRackPaymentRequest(rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) *dto.CreateRackPaymentRequest {
+	ids := make([]int32, len(bookingTimeIDs))
+	for i, id := range bookingTimeIDs {
+		ids[i] = int32(id)
+	}
 	return &dto.CreateRackPaymentRequest{
 		RackReference:     int32(rackReference),
 		PricingTemplateId: int32(pricingTemplateID),
 		Notes:             notes,
-		BookingTimeId:     int32(bookingTimeID),
+		BookingTimeIds:    ids,
 	}
 }
 

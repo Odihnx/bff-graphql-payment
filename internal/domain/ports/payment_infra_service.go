@@ -18,5 +18,5 @@ type PaymentInfraService interface {
 	GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error)
 	GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error)
 	GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error)
-	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error)
+	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error)
 }
