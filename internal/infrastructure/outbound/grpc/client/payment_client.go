@@ -709,7 +709,7 @@ func (c *PaymentServiceGRPCClient) GetBookingTimes(ctx context.Context) (*model.
 }
 
 // CreateRackPayment implementa PaymentInfraRepository.CreateRackPayment
-func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeID int) (*model.RackPayment, error) {
+func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
 	ctx, span := tracing.StartSpan(ctx, "grpc.CreateRackPayment")
 	defer span.End()
 
@@ -719,13 +719,13 @@ func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackRe
 		"rpc.method":                "CreateRackPayment",
 		"input.rack_reference":      strconv.Itoa(rackReference),
 		"input.pricing_template_id": strconv.Itoa(pricingTemplateID),
-		"input.booking_time_id":     strconv.Itoa(bookingTimeID),
+		"input.booking_time_ids":    fmt.Sprintf("%v", bookingTimeIDs),
 	})
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToCreateRackPaymentRequest(rackReference, pricingTemplateID, notes, bookingTimeID)
+	request := c.mapper.ToCreateRackPaymentRequest(rackReference, pricingTemplateID, notes, bookingTimeIDs)
 
 	var response *dto.CreateRackPaymentResponse
 
@@ -736,7 +736,7 @@ func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackRe
 			RackReference:     request.RackReference,
 			PricingTemplateId: request.PricingTemplateId,
 			Notes:             request.Notes,
-			BookingTimeId:     request.BookingTimeId,
+			BookingTimeIds:    request.BookingTimeIds,
 		})
 		if err != nil {
 			log.Printf("❌ CreateRackPayment error: %v", err)
