@@ -92,7 +92,7 @@ type CreateRackPaymentInput struct {
 	RackReference     int    `json:"rackReference"`
 	PricingTemplateID int    `json:"pricingTemplateId"`
 	Notes             string `json:"notes"`
-	BookingTimeID     int    `json:"bookingTimeId"`
+	BookingTimeIDs    []int  `json:"bookingTimeIds"`
 }
 
 type CreateRackPaymentResponse struct {
