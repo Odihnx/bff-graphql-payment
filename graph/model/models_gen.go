@@ -67,6 +67,15 @@ type BookingStatusData struct {
 	UpdatedAt              string `json:"updatedAt"`
 }
 
+type BookingTimeFull struct {
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	UnitMeasurement string `json:"unitMeasurement"`
+	Amount          int    `json:"amount"`
+	Active          bool   `json:"active"`
+	UpdatedAt       string `json:"updatedAt"`
+}
+
 type CheckBookingStatusInput struct {
 	ServiceName string `json:"serviceName"`
 	CurrentCode string `json:"currentCode"`
@@ -77,6 +86,21 @@ type CheckBookingStatusResponse struct {
 	Message       string             `json:"message"`
 	Status        ResponseStatus     `json:"status"`
 	Booking       *BookingStatusData `json:"booking,omitempty"`
+}
+
+type CreateRackPaymentInput struct {
+	RackReference     int    `json:"rackReference"`
+	PricingTemplateID int    `json:"pricingTemplateId"`
+	Notes             string `json:"notes"`
+	BookingTimeIds    []int  `json:"bookingTimeIds"`
+}
+
+type CreateRackPaymentResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+	PaymentRackID int            `json:"paymentRackId"`
 }
 
 type ExecuteOpenInput struct {
@@ -161,8 +185,24 @@ type GetBookingPaymentInput struct {
 	Sort           *SortDirection `json:"sort,omitempty"`
 }
 
+type GetBookingTimesResponse struct {
+	TransactionID string             `json:"transactionId"`
+	Message       string             `json:"message"`
+	Status        ResponseStatus     `json:"status"`
+	TraceID       string             `json:"traceId"`
+	BookingTimes  []*BookingTimeFull `json:"bookingTimes"`
+}
+
 type GetPaymentInfraByQRValueInput struct {
 	QRValue string `json:"qrValue"`
+}
+
+type GetPricingTemplatesResponse struct {
+	TransactionID    string             `json:"transactionId"`
+	Message          string             `json:"message"`
+	Status           ResponseStatus     `json:"status"`
+	TraceID          string             `json:"traceId"`
+	PricingTemplates []*PricingTemplate `json:"pricingTemplates"`
 }
 
 type GetPurchaseOrderByPoInput struct {
@@ -211,6 +251,13 @@ type PaymentRack struct {
 	ID          int    `json:"id"`
 	Description string `json:"description"`
 	Address     string `json:"address"`
+}
+
+type PricingTemplate struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type PurchaseOrderData struct {

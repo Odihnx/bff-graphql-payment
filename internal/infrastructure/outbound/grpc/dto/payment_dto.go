@@ -260,3 +260,53 @@ const (
 	PhysicalStatus_PHYSICAL_STATUS_ALREADY_OPEN PhysicalStatus = 4
 	PhysicalStatus_PHYSICAL_STATUS_UNEXPECTED   PhysicalStatus = 5
 )
+
+// GetPricingTemplatesRequest represents the request for listing pricing templates
+type GetPricingTemplatesRequest struct{}
+
+// PricingTemplateRecord represents a pricing template
+type PricingTemplateRecord struct {
+	Id          int32  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	CreatedAt   string `json:"created_at"`
+}
+
+// GetPricingTemplatesResponse represents the response for listing pricing templates
+type GetPricingTemplatesResponse struct {
+	Response         *PaymentManagerGenericResponse `json:"response"`
+	PricingTemplates []*PricingTemplateRecord        `json:"pricing_templates"`
+}
+
+// GetBookingTimesRequest represents the request for listing booking times
+type GetBookingTimesRequest struct{}
+
+// BookingTimeFullRecord represents a booking time with all fields
+type BookingTimeFullRecord struct {
+	Id              int32  `json:"id"`
+	Name            string `json:"name"`
+	UnitMeasurement string `json:"unit_measurement"`
+	Amount          int32  `json:"amount"`
+	Active          bool   `json:"active"`
+	UpdatedAt       string `json:"updated_at"`
+}
+
+// GetBookingTimesResponse represents the response for listing booking times
+type GetBookingTimesResponse struct {
+	Response     *PaymentManagerGenericResponse `json:"response"`
+	BookingTimes []*BookingTimeFullRecord        `json:"booking_times"`
+}
+
+// CreateRackPaymentRequest represents the request for creating a rack payment
+type CreateRackPaymentRequest struct {
+	RackReference     int32   `json:"rack_reference"`
+	PricingTemplateId int32   `json:"pricing_template_id"`
+	Notes             string  `json:"notes"`
+	BookingTimeIds    []int32 `json:"booking_time_ids"`
+}
+
+// CreateRackPaymentResponse represents the response for creating a rack payment
+type CreateRackPaymentResponse struct {
+	Response      *PaymentManagerGenericResponse `json:"response"`
+	PaymentRackId int32                          `json:"payment_rack_id"`
+}
