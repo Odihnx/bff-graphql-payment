@@ -10,6 +10,7 @@ import (
 	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -38,23 +39,22 @@ func (r *mutationResolver) GeneratePurchaseOrder(ctx context.Context, input mode
 		couponCode = nil
 	}
 
-	// Log para debug
 	couponCodeLog := "nil"
 	if couponCode != nil {
-		couponCodeLog = fmt.Sprintf("\"%s\"", *couponCode)
+		couponCodeLog = fmt.Sprintf("%q", *couponCode)
 	}
-	fmt.Printf("🔷 GraphQL Resolver - GeneratePurchaseOrder: rackId=%d, groupId=%d, couponCode=%s, email=%s, phone=%s, traceId=%s, gateway=%s\n",
-		input.RackIDReference, input.GroupID, couponCodeLog, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
+	log.Printf("RESOLVER [generatePurchaseOrder] >> recibido | rack=%d grupo=%d cupon=%s email=%s gateway=%s trace=%s",
+		input.RackIDReference, input.GroupID, couponCodeLog, input.UserEmail, input.GatewayName, input.TraceID)
 
 	// Llamar al caso de uso
 	order, err := r.paymentInfraService.GeneratePurchaseOrder(ctx, input.RackIDReference, input.GroupID, couponCode, input.UserEmail, input.UserPhone, input.TraceID, input.GatewayName)
 	if err != nil {
-		fmt.Printf("❌ GraphQL Resolver - GeneratePurchaseOrder failed: %v\n", err)
+		log.Printf("RESOLVER [generatePurchaseOrder] ERROR | causa=%v | rack=%d grupo=%d trace=%s", err, input.RackIDReference, input.GroupID, input.TraceID)
 		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
-	fmt.Printf("✅ GraphQL Resolver - GeneratePurchaseOrder succeeded\n")
+	log.Printf("RESOLVER [generatePurchaseOrder] << OK | rack=%d grupo=%d trace=%s", input.RackIDReference, input.GroupID, input.TraceID)
 	// Mapear a respuesta GraphQL
 	return r.mapper.ToPurchaseOrderResponse(order), nil
 }
@@ -89,6 +89,33 @@ func (r *mutationResolver) GenerateBooking(ctx context.Context, input model.Gene
 
 	// Mapear a respuesta GraphQL
 	return r.mapper.ToBookingResponse(booking), nil
+}
+
+// GenerateCoupon is the resolver for the generateCoupon field.
+func (r *mutationResolver) GenerateCoupon(ctx context.Context, input model.GenerateCouponInput) (*model.GenerateCouponResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.GenerateCoupon")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "mutation",
+		"graphql.operation.name": "generateCoupon",
+		"input.rack_id":          strconv.Itoa(input.RackID),
+		"input.amount":           strconv.Itoa(input.Amount),
+		"input.trace_id":         input.TraceID,
+	})
+	log.Printf("RESOLVER [generateCoupon] >> recibido | rack=%d monto=%d sizes=%v trace=%s", input.RackID, input.Amount, input.GroupIds, input.TraceID)
+
+	// Llamar al caso de uso
+	generation, err := r.paymentInfraService.GenerateCoupon(ctx, input.RackID, input.GroupIds, input.Amount, input.InitAt, input.FinishAt, input.TraceID)
+	if err != nil {
+		log.Printf("RESOLVER [generateCoupon] ERROR | causa=%v | rack=%d monto=%d trace=%s", err, input.RackID, input.Amount, input.TraceID)
+		tracing.RecordError(span, err)
+		return nil, gqlerrors.New(ctx, err)
+	}
+
+	log.Printf("RESOLVER [generateCoupon] << OK | codigo=%s | rack=%d trace=%s", generation.CouponCode, input.RackID, input.TraceID)
+	// Mapear a respuesta GraphQL
+	return r.mapper.ToGenerateCouponResponse(generation), nil
 }
 
 // GetPaymentInfraByQRValue is the resolver for the getPaymentInfraByQrValue field.
@@ -147,16 +174,20 @@ func (r *queryResolver) ValidateDiscountCoupon(ctx context.Context, input model.
 		"graphql.operation.name": "validateDiscountCoupon",
 		"input.coupon_code":      input.CouponCode,
 		"input.rack_id":          strconv.Itoa(input.RackID),
+		"input.group_id":         strconv.Itoa(input.GroupID),
 		"input.trace_id":         input.TraceID,
 	})
+	log.Printf("RESOLVER [validateDiscountCoupon] >> recibido | rack=%d cupon=%q grupo=%d trace=%s", input.RackID, input.CouponCode, input.GroupID, input.TraceID)
 
 	// Llamar al caso de uso
-	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode, input.RackID, input.TraceID)
+	validation, err := r.paymentInfraService.ValidateDiscountCoupon(ctx, input.CouponCode, input.RackID, input.GroupID, input.TraceID)
 	if err != nil {
+		log.Printf("RESOLVER [validateDiscountCoupon] ERROR | causa=%v | rack=%d cupon=%q grupo=%d trace=%s", err, input.RackID, input.CouponCode, input.GroupID, input.TraceID)
 		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
+	log.Printf("RESOLVER [validateDiscountCoupon] << OK | aplica=%t tipo=%s monto=%d pct=%.2f | rack=%d cupon=%q grupo=%d trace=%s", validation.Applies, validation.DiscountType, validation.DiscountAmount, validation.DiscountPercentage, input.RackID, input.CouponCode, input.GroupID, input.TraceID)
 	// Mapear a respuesta GraphQL
 	return r.mapper.ToValidateCouponResponse(validation), nil
 }
@@ -261,14 +292,12 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 		"input.current_code":     input.CurrentCode,
 	})
 
-	// Log de entrada
-	fmt.Printf("🔷 GraphQL Subscription - ExecuteOpen REQUEST: serviceName=%s, currentCode=%s\n",
-		input.ServiceName, input.CurrentCode)
+	log.Printf("RESOLVER-SUB [executeOpen] >> recibido | servicio=%s code=%s", input.ServiceName, input.CurrentCode)
 
 	// Obtener el canal del servicio que emite los 3 estados progresivamente
 	domainChan, err := r.paymentInfraService.ExecuteOpenStream(ctx, input.ServiceName, input.CurrentCode)
 	if err != nil {
-		fmt.Printf("❌ GraphQL Subscription - ExecuteOpen FAILED to start: %v\n", err)
+		log.Printf("RESOLVER-SUB [executeOpen] ERROR no se pudo iniciar el stream | causa=%v | servicio=%s code=%s", err, input.ServiceName, input.CurrentCode)
 		tracing.RecordError(span, err)
 		span.End()
 		return nil, gqlerrors.New(ctx, err)
@@ -281,7 +310,7 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 	go func() {
 		defer span.End()
 		defer func() {
-			fmt.Printf("🔒 GraphQL Subscription - Closing output channel\n")
+			log.Printf("RESOLVER-SUB [executeOpen] paso: cerrando canal de salida | servicio=%s code=%s", input.ServiceName, input.CurrentCode)
 			close(outputChan)
 		}()
 
@@ -291,9 +320,8 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 		for domainResult := range domainChan {
 			messageCount++
 
-			// Log del estado recibido
-			fmt.Printf("📥 GraphQL Subscription - Message %d: openStatus=%v, message=%s\n",
-				messageCount, domainResult.OpenStatus, domainResult.Message)
+			log.Printf("RESOLVER-SUB [executeOpen] paso: mensaje %d recibido del stream | openStatus=%v mensaje=%s code=%s",
+				messageCount, domainResult.OpenStatus, domainResult.Message, input.CurrentCode)
 
 			// Mapear de dominio a GraphQL
 			graphQLResponse := r.mapper.ToExecuteOpenResponse(domainResult)
@@ -302,22 +330,22 @@ func (r *subscriptionResolver) ExecuteOpen(ctx context.Context, input model.Exec
 			// Enviar al frontend de forma no bloqueante con timeout
 			select {
 			case outputChan <- graphQLResponse:
-				fmt.Printf("✅ GraphQL Subscription - Sent message %d to frontend: status=%v\n",
-					messageCount, graphQLResponse.OpenStatus)
+				log.Printf("RESOLVER-SUB [executeOpen] paso: mensaje %d enviado al frontend | status=%v code=%s",
+					messageCount, graphQLResponse.OpenStatus, input.CurrentCode)
 			case <-ctx.Done():
-				fmt.Printf("⚠️ GraphQL Subscription - Context cancelled after %d messages\n", messageCount)
+				log.Printf("RESOLVER-SUB [executeOpen] AVISO contexto cancelado tras %d mensajes | code=%s", messageCount, input.CurrentCode)
 				return
 			}
 
 			// Log si es un estado terminal pero NO salimos, esperamos a que el canal se vacíe
 			if domainResult.OpenStatus == "OPEN_STATUS_SUCCESS" || domainResult.OpenStatus == "OPEN_STATUS_ERROR" {
-				fmt.Printf("🏁 GraphQL Subscription - Terminal status sent (%v), waiting for channel drain\n", domainResult.OpenStatus)
+				log.Printf("RESOLVER-SUB [executeOpen] paso: estado terminal enviado (%v), esperando vaciar el canal | code=%s", domainResult.OpenStatus, input.CurrentCode)
 			}
 		}
 
 		// El canal domainChan se cerró (ya se enviaron todos los mensajes)
-		fmt.Printf("✅ GraphQL Subscription - ExecuteOpen completed with %d messages, last status: %v\n",
-			messageCount, lastMessage.OpenStatus)
+		log.Printf("RESOLVER-SUB [executeOpen] << OK | completado con %d mensajes, ultimo status=%v | code=%s",
+			messageCount, lastMessage.OpenStatus, input.CurrentCode)
 
 		tracing.AddAttributes(span, map[string]string{
 			"subscription.message_count": strconv.Itoa(messageCount),

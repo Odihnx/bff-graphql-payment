@@ -6,6 +6,7 @@ import (
 	domainException "bff-graphql-payment/internal/domain/exception"
 	"bff-graphql-payment/internal/domain/model"
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -90,14 +91,15 @@ func (s *PaymentInfraService) GetAvailableLockers(ctx context.Context, paymentRa
 	return lockers, nil
 }
 
-// ValidateDiscountCoupon valida un cupón de descuento
-func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
+// ValidateDiscountCoupon valida un cupón de descuento para un size (group) dado
+func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, groupID int, traceID string) (*model.DiscountCouponValidation, error) {
 	ctx, span := tracing.StartSpan(ctx, "application.ValidateDiscountCoupon")
 	defer span.End()
 
 	tracing.AddAttributes(span, map[string]string{
 		"input.coupon_code": couponCode,
 		"input.rack_id":     strconv.Itoa(rackID),
+		"input.group_id":    strconv.Itoa(groupID),
 		"input.trace_id":    traceID,
 	})
 
@@ -114,6 +116,12 @@ func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, coupon
 		return nil, err
 	}
 
+	if groupID <= 0 {
+		err := exception.ErrInvalidGroupID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
 	if strings.TrimSpace(traceID) == "" {
 		err := exception.ErrInvalidTraceID
 		tracing.RecordError(span, err)
@@ -121,7 +129,54 @@ func (s *PaymentInfraService) ValidateDiscountCoupon(ctx context.Context, coupon
 	}
 
 	// Llamar al repositorio
-	result, err := s.repo.ValidateDiscountCoupon(ctx, couponCode, rackID, traceID)
+	result, err := s.repo.ValidateDiscountCoupon(ctx, couponCode, rackID, groupID, traceID)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GenerateCoupon genera un cupón (uso admin): monto fijo, asociado a uno o más sizes y de un solo uso
+func (s *PaymentInfraService) GenerateCoupon(ctx context.Context, rackID int, groupIDs []int, amount int, initAt *string, finishAt *string, traceID string) (*model.CouponGeneration, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GenerateCoupon")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"input.rack_id":   strconv.Itoa(rackID),
+		"input.amount":    strconv.Itoa(amount),
+		"input.group_ids": fmt.Sprintf("%v", groupIDs),
+		"input.trace_id":  traceID,
+	})
+
+	// Validar entrada
+	if rackID <= 0 {
+		err := exception.ErrInvalidPaymentRackID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	if len(groupIDs) == 0 {
+		err := exception.ErrInvalidGroupID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	if amount <= 0 {
+		err := exception.ErrInvalidCouponAmount
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	if strings.TrimSpace(traceID) == "" {
+		err := exception.ErrInvalidTraceID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	// Llamar al repositorio
+	result, err := s.repo.GenerateCoupon(ctx, rackID, groupIDs, amount, initAt, finishAt, traceID)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, err

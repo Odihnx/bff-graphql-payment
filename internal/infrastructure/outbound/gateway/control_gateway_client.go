@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -55,7 +56,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 		"gateway.service_name": serviceName,
 	})
 
-	fmt.Printf("🌐 Calling Control Gateway: URL=%s, service=%s\n", url, serviceName)
+	log.Printf("GATEWAY [control] -> verificando disponibilidad | url=%s servicio=%s", url, serviceName)
 
 	reqBody := serviceValidationRequest{
 		ServiceName: serviceName,
@@ -63,14 +64,14 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
-		fmt.Printf("❌ Failed to marshal request: %v\n", err)
+		log.Printf("GATEWAY [control] ERROR serializando request | causa=%v | servicio=%s", err, serviceName)
 		tracing.RecordError(span, err)
 		return false, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		fmt.Printf("❌ Failed to create request: %v\n", err)
+		log.Printf("GATEWAY [control] ERROR creando request HTTP | causa=%v | servicio=%s", err, serviceName)
 		tracing.RecordError(span, err)
 		return false, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -78,7 +79,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		fmt.Printf("❌ Failed to execute HTTP request: %v\n", err)
+		log.Printf("GATEWAY [control] ERROR ejecutando request HTTP | causa=%v | url=%s servicio=%s", err, url, serviceName)
 		tracing.RecordError(span, err)
 		return false, fmt.Errorf("failed to execute request: %w", err)
 	}
@@ -90,18 +91,18 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("❌ Failed to read response body: %v\n", err)
+		log.Printf("GATEWAY [control] ERROR leyendo body de respuesta | causa=%v | servicio=%s", err, serviceName)
 		tracing.RecordError(span, err)
 		return false, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	fmt.Printf("🌐 Control Gateway HTTP Response: status=%d, body=%s\n", resp.StatusCode, string(body))
+	log.Printf("GATEWAY [control] <- respuesta | status=%d body=%s | servicio=%s", resp.StatusCode, string(body), serviceName)
 
 	// HTTP 200 = servicio disponible
 	if resp.StatusCode == http.StatusOK {
 		var result serviceValidationResponse
 		if err := json.Unmarshal(body, &result); err != nil {
-			fmt.Printf("❌ Failed to unmarshal JSON: %v\n", err)
+			log.Printf("GATEWAY [control] ERROR deserializando JSON de respuesta | causa=%v | servicio=%s", err, serviceName)
 			tracing.RecordError(span, err)
 			return false, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
@@ -153,7 +154,7 @@ func (c *ControlGatewayClient) IsServiceAvailable(ctx context.Context, serviceNa
 	}
 
 	// Cualquier otro código es un error
-	fmt.Printf("❌ Unexpected status code: %d\n", resp.StatusCode)
+	log.Printf("GATEWAY [control] ERROR codigo de estado inesperado | status=%d | servicio=%s", resp.StatusCode, serviceName)
 	unexpectedErr := fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
 	tracing.RecordError(span, unexpectedErr)
 	return false, unexpectedErr

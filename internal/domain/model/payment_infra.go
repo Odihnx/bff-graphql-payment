@@ -90,6 +90,18 @@ type DiscountCouponValidation struct {
 	Status             ResponseStatus
 	TraceID            string
 	DiscountPercentage float64
+	DiscountType       string // "PERCENTAGE" | "AMOUNT"
+	DiscountAmount     int    // monto fijo (pesos) cuando DiscountType == AMOUNT
+	Applies            bool   // true si el cupón es válido y aplica al size consultado
+}
+
+// CouponGeneration representa el resultado de generar un cupón (uso admin)
+type CouponGeneration struct {
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+	CouponCode    string
 }
 
 // PurchaseOrder representa una orden de compra generada

@@ -144,6 +144,24 @@ func (m *PaymentInfraGraphQLMapper) ToValidateCouponResponse(validation *domainM
 		Status:             m.mapResponseStatus(validation.Status),
 		TraceID:            validation.TraceID,
 		DiscountPercentage: validation.DiscountPercentage,
+		DiscountType:       validation.DiscountType,
+		DiscountAmount:     validation.DiscountAmount,
+		Applies:            validation.Applies,
+	}
+}
+
+// ToGenerateCouponResponse mapea el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToGenerateCouponResponse(generation *domainModel.CouponGeneration) *model.GenerateCouponResponse {
+	if generation == nil {
+		return nil
+	}
+
+	return &model.GenerateCouponResponse{
+		TransactionID: generation.TransactionID,
+		Message:       generation.Message,
+		Status:        m.mapResponseStatus(generation.Status),
+		TraceID:       generation.TraceID,
+		CouponCode:    generation.CouponCode,
 	}
 }
 
