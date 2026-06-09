@@ -117,14 +117,26 @@ Copy `.env.example` to `.env` for local development.
 
 ## GraphQL Operations
 
-| Operation | Type | Auth |
-|---|---|---|
-| `getPaymentInfraByQrValue` | Query | none |
-| `getAvailableLockersByRackIDAndBookingTime` | Query | none |
-| `validateDiscountCoupon` | Query | none |
-| `getPurchaseOrderByPo` | Query | none |
-| `checkBookingStatus` | Query | none |
-| `getBookingPayment` | Query | `@hasRole(role: "SUPER_ADMIN")` |
-| `generatePurchaseOrder` | Mutation | none |
-| `generateBooking` | Mutation | none |
-| `executeOpen` | Subscription | none |
+| Operation | Type | Auth | APISIX `type` |
+|---|---|---|---|
+| `getPaymentInfraByQrValue` | Query | none | public |
+| `getAvailableLockersByRackIDAndBookingTime` | Query | none | public |
+| `validateDiscountCoupon` | Query | none | public |
+| `getPurchaseOrderByPo` | Query | none | public |
+| `checkBookingStatus` | Query | none | public |
+| `getBookingPayment` | Query | `@hasRole(role: "SUPER_ADMIN")` | private |
+| `getPricingTemplates` | Query | `@hasRole(role: "SUPER_ADMIN")` | private |
+| `getBookingTimes` | Query | `@hasRole(role: "SUPER_ADMIN")` | private |
+| `generatePurchaseOrder` | Mutation | none | public |
+| `generateBooking` | Mutation | none | public |
+| `generateCoupon` | Mutation | `@hasRole(role: "SUPER_ADMIN")` | private |
+| `createRackPayment` | Mutation | `@hasRole(role: "SUPER_ADMIN")` | private |
+| `executeOpen` | Subscription | none | public |
+
+> ⚠️ **Registrar cada operación nueva en APISIX.** Este BFF está detrás del APISIX Gateway,
+> cuyo plugin `graphql-auth` solo enruta operaciones que estén en su routes file. Al agregar
+> una operación al schema, también hay que darla de alta en
+> `apisix-gateway/config/graphql-auth/bff-payment/routes-payment.json` (con `type: public` o
+> `private` según lleve `@hasRole`/`@auth` o no). Si falta, el gateway responde **antes** de
+> llegar al BFF con `404 NOT_FOUND: "Operation not registered: <op>"`. Las operaciones `private`
+> exigen `Authorization: Bearer <JWT Cognito>` con el rol correspondiente.
