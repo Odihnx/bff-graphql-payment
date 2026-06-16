@@ -105,16 +105,37 @@ func (c *PaymentServiceGRPCClient) mockValidateCoupon(request *dto.ValidateDisco
 		"GRATIS":      100.0,
 	}
 
-	discount, _ := validCoupons[request.CouponCode]
+	discount, ok := validCoupons[request.CouponCode]
+
+	status := dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK
+	if !ok {
+		status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR
+	}
 
 	return &dto.ValidateDiscountCouponResponse{
 		Response: &dto.PaymentManagerGenericResponse{
 			TransactionId: time.Now().Format("20060102150405"),
 			Message:       "Coupon validation completed",
-			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+			Status:        status,
 			TraceId:       request.TraceId,
 		},
 		DiscountPercentage: discount,
+		DiscountType:       "PERCENTAGE",
+		DiscountAmount:     0,
+		Applies:            ok,
+	}
+}
+
+// mockGenerateCoupon simula la generación de un cupón (admin)
+func (c *PaymentServiceGRPCClient) mockGenerateCoupon(request *dto.GenerateCouponRequest) *dto.GenerateCouponResponse {
+	return &dto.GenerateCouponResponse{
+		Response: &dto.PaymentManagerGenericResponse{
+			TransactionId: time.Now().Format("20060102150405"),
+			Message:       "Cupón generado correctamente",
+			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
+			TraceId:       request.TraceId,
+		},
+		CouponCode: "MOCKCP",
 	}
 }
 

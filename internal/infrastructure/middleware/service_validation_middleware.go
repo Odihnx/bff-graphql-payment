@@ -70,7 +70,7 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 
 		// Es un mensaje del gateway (servicio deshabilitado/mantenimiento)
 		// o un error de infraestructura sin bypass
-		log.Printf("❌ ServiceValidation error: %v", err)
+		log.Printf("MW [serviceValidation] ERROR servicio no disponible o fallo al verificar estado | causa=%v | servicio=%s", err, m.serviceName)
 		tracing.RecordError(span, err)
 		return err
 	}
@@ -78,7 +78,7 @@ func (m *ServiceValidationMiddleware) validateServiceAvailability(ctx context.Co
 	// Si available=false pero no hay error, algo está mal en la lógica
 	if !available {
 		unavailableErr := fmt.Errorf("service '%s' is not available", m.serviceName)
-		log.Printf("❌ ServiceValidation error: %v", unavailableErr)
+		log.Printf("MW [serviceValidation] ERROR servicio marcado como no disponible | causa=%v | servicio=%s", unavailableErr, m.serviceName)
 		tracing.RecordError(span, unavailableErr)
 		return unavailableErr
 	}
@@ -105,11 +105,19 @@ func (m *ServiceValidationMiddleware) GetAvailableLockers(ctx context.Context, p
 }
 
 // ValidateDiscountCoupon valida un cupón de descuento
-func (m *ServiceValidationMiddleware) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, traceID string) (*model.DiscountCouponValidation, error) {
+func (m *ServiceValidationMiddleware) ValidateDiscountCoupon(ctx context.Context, couponCode string, rackID int, groupID int, traceID string) (*model.DiscountCouponValidation, error) {
 	if err := m.validateServiceAvailability(ctx); err != nil {
 		return nil, err
 	}
-	return m.next.ValidateDiscountCoupon(ctx, couponCode, rackID, traceID)
+	return m.next.ValidateDiscountCoupon(ctx, couponCode, rackID, groupID, traceID)
+}
+
+// GenerateCoupon genera un cupón (uso admin)
+func (m *ServiceValidationMiddleware) GenerateCoupon(ctx context.Context, rackID int, groupIDs []int, amount int, initAt *string, finishAt *string, traceID string) (*model.CouponGeneration, error) {
+	if err := m.validateServiceAvailability(ctx); err != nil {
+		return nil, err
+	}
+	return m.next.GenerateCoupon(ctx, rackID, groupIDs, amount, initAt, finishAt, traceID)
 }
 
 // GeneratePurchaseOrder genera una orden de compra

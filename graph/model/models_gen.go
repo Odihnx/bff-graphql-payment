@@ -92,7 +92,7 @@ type CreateRackPaymentInput struct {
 	RackReference     int    `json:"rackReference"`
 	PricingTemplateID int    `json:"pricingTemplateId"`
 	Notes             string `json:"notes"`
-	BookingTimeIDs    []int  `json:"bookingTimeIds"`
+	BookingTimeIds    []int  `json:"bookingTimeIds"`
 }
 
 type CreateRackPaymentResponse struct {
@@ -130,6 +130,23 @@ type GenerateBookingResponse struct {
 	Status        ResponseStatus `json:"status"`
 	TraceID       string         `json:"traceId"`
 	Code          string         `json:"code"`
+}
+
+type GenerateCouponInput struct {
+	RackID   int     `json:"rackId"`
+	GroupIds []int   `json:"groupIds"`
+	Amount   int     `json:"amount"`
+	InitAt   *string `json:"initAt,omitempty"`
+	FinishAt *string `json:"finishAt,omitempty"`
+	TraceID  string  `json:"traceId"`
+}
+
+type GenerateCouponResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+	CouponCode    string         `json:"couponCode"`
 }
 
 type GeneratePurchaseOrderInput struct {
@@ -296,6 +313,7 @@ type Subscription struct {
 type ValidateDiscountCouponInput struct {
 	CouponCode string `json:"couponCode"`
 	RackID     int    `json:"rackId"`
+	GroupID    int    `json:"groupId"`
 	TraceID    string `json:"traceId"`
 }
 
@@ -305,6 +323,9 @@ type ValidateDiscountCouponResponse struct {
 	Status             ResponseStatus `json:"status"`
 	TraceID            string         `json:"traceId"`
 	DiscountPercentage float64        `json:"discountPercentage"`
+	DiscountType       string         `json:"discountType"`
+	DiscountAmount     int            `json:"discountAmount"`
+	Applies            bool           `json:"applies"`
 }
 
 type OpenStatus string

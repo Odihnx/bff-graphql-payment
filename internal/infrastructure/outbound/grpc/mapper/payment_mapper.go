@@ -153,10 +153,11 @@ func (m *PaymentInfraGRPCMapper) ToAvailableLockersDomain(response *dto.GetAvail
 }
 
 // ToValidateCouponRequest mapea a solicitud gRPC para validación de cupón
-func (m *PaymentInfraGRPCMapper) ToValidateCouponRequest(couponCode string, rackID int, traceID string) *dto.ValidateDiscountCouponRequest {
+func (m *PaymentInfraGRPCMapper) ToValidateCouponRequest(couponCode string, rackID int, groupID int, traceID string) *dto.ValidateDiscountCouponRequest {
 	return &dto.ValidateDiscountCouponRequest{
 		CouponCode: couponCode,
 		RackId:     int32(rackID),
+		GroupId:    int32(groupID),
 		TraceId:    traceID,
 	}
 }
@@ -169,6 +170,9 @@ func (m *PaymentInfraGRPCMapper) ToCouponValidationDomain(response *dto.Validate
 
 	validation := &model.DiscountCouponValidation{
 		DiscountPercentage: response.DiscountPercentage,
+		DiscountType:       response.DiscountType,
+		DiscountAmount:     int(response.DiscountAmount),
+		Applies:            response.Applies,
 	}
 
 	if response.Response != nil {
@@ -179,6 +183,54 @@ func (m *PaymentInfraGRPCMapper) ToCouponValidationDomain(response *dto.Validate
 	}
 
 	return validation
+}
+
+// ToGenerateCouponRequest mapea a solicitud gRPC para generación de cupón (admin)
+func (m *PaymentInfraGRPCMapper) ToGenerateCouponRequest(rackID int, groupIDs []int, amount int, initAt *string, finishAt *string, traceID string) *dto.GenerateCouponRequest {
+	gids := make([]int32, len(groupIDs))
+	for i, g := range groupIDs {
+		gids[i] = int32(g)
+	}
+	return &dto.GenerateCouponRequest{
+		RackId:   int32(rackID),
+		GroupIds: gids,
+		Amount:   int32(amount),
+		InitAt:   initAt,
+		FinishAt: finishAt,
+		TraceId:  traceID,
+	}
+}
+
+// ToGenerateCouponDomain mapea la respuesta gRPC al modelo de dominio de generación de cupón
+func (m *PaymentInfraGRPCMapper) ToGenerateCouponDomain(response *dto.GenerateCouponResponse) *model.CouponGeneration {
+	if response == nil {
+		return nil
+	}
+
+	generation := &model.CouponGeneration{
+		CouponCode: response.CouponCode,
+	}
+
+	if response.Response != nil {
+		generation.TransactionID = response.Response.TransactionId
+		generation.Message = response.Response.Message
+		generation.Status = m.mapResponseStatus(response.Response.Status)
+		generation.TraceID = response.Response.TraceId
+	}
+
+	return generation
+}
+
+// mapDiscountType convierte el enum DiscountType de proto a su representación de dominio (string)
+func (m *PaymentInfraGRPCMapper) mapDiscountType(dt paymentpb.DiscountType) string {
+	switch dt {
+	case paymentpb.DiscountType_DISCOUNT_TYPE_PERCENTAGE:
+		return "PERCENTAGE"
+	case paymentpb.DiscountType_DISCOUNT_TYPE_AMOUNT:
+		return "AMOUNT"
+	default:
+		return ""
+	}
 }
 
 // ToGeneratePurchaseOrderRequest mapea a solicitud gRPC para orden de compra
@@ -515,8 +567,33 @@ func (m *PaymentInfraGRPCMapper) FromGRPCValidateDiscountCouponResponse(protoRes
 		}
 	}
 
-	// Mapear DiscountPercentage (double en proto -> float64 en Go)
+	// Mapear DiscountPercentage (double en proto -> float64 en Go) y los campos de cupon admin
 	response.DiscountPercentage = protoResp.DiscountPercentage
+	response.DiscountType = m.mapDiscountType(protoResp.DiscountType)
+	response.DiscountAmount = protoResp.DiscountAmount
+	response.Applies = protoResp.Applies
+
+	return response
+}
+
+// FromGRPCGenerateCouponResponse mapea la respuesta proto de gRPC al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCGenerateCouponResponse(protoResp *paymentpb.GenerateCouponResponse) *dto.GenerateCouponResponse {
+	if protoResp == nil {
+		return nil
+	}
+
+	response := &dto.GenerateCouponResponse{}
+
+	if protoResp.Response != nil {
+		response.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: protoResp.Response.TransactionId,
+			Message:       protoResp.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(protoResp.Response.Status),
+			TraceId:       protoResp.Response.TraceId,
+		}
+	}
+
+	response.CouponCode = protoResp.CouponCode
 
 	return response
 }

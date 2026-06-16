@@ -135,6 +135,14 @@ type ComplexityRoot struct {
 		TransactionID func(childComplexity int) int
 	}
 
+	GenerateCouponResponse struct {
+		CouponCode    func(childComplexity int) int
+		Message       func(childComplexity int) int
+		Status        func(childComplexity int) int
+		TraceID       func(childComplexity int) int
+		TransactionID func(childComplexity int) int
+	}
+
 	GeneratePurchaseOrderResponse struct {
 		Message       func(childComplexity int) int
 		Status        func(childComplexity int) int
@@ -162,6 +170,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateRackPayment     func(childComplexity int, input model.CreateRackPaymentInput) int
 		GenerateBooking       func(childComplexity int, input model.GenerateBookingInput) int
+		GenerateCoupon        func(childComplexity int, input model.GenerateCouponInput) int
 		GeneratePurchaseOrder func(childComplexity int, input model.GeneratePurchaseOrderInput) int
 	}
 
@@ -272,7 +281,10 @@ type ComplexityRoot struct {
 	}
 
 	ValidateDiscountCouponResponse struct {
+		Applies            func(childComplexity int) int
+		DiscountAmount     func(childComplexity int) int
 		DiscountPercentage func(childComplexity int) int
+		DiscountType       func(childComplexity int) int
 		Message            func(childComplexity int) int
 		Status             func(childComplexity int) int
 		TraceID            func(childComplexity int) int
@@ -283,6 +295,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	GeneratePurchaseOrder(ctx context.Context, input model.GeneratePurchaseOrderInput) (*model.GeneratePurchaseOrderResponse, error)
 	GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error)
+	GenerateCoupon(ctx context.Context, input model.GenerateCouponInput) (*model.GenerateCouponResponse, error)
 	CreateRackPayment(ctx context.Context, input model.CreateRackPaymentInput) (*model.CreateRackPaymentResponse, error)
 }
 type QueryResolver interface {
@@ -725,6 +738,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.GenerateBookingResponse.TransactionID(childComplexity), true
 
+	case "GenerateCouponResponse.couponCode":
+		if e.ComplexityRoot.GenerateCouponResponse.CouponCode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateCouponResponse.CouponCode(childComplexity), true
+	case "GenerateCouponResponse.message":
+		if e.ComplexityRoot.GenerateCouponResponse.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateCouponResponse.Message(childComplexity), true
+	case "GenerateCouponResponse.status":
+		if e.ComplexityRoot.GenerateCouponResponse.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateCouponResponse.Status(childComplexity), true
+	case "GenerateCouponResponse.traceId":
+		if e.ComplexityRoot.GenerateCouponResponse.TraceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateCouponResponse.TraceID(childComplexity), true
+	case "GenerateCouponResponse.transactionId":
+		if e.ComplexityRoot.GenerateCouponResponse.TransactionID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateCouponResponse.TransactionID(childComplexity), true
+
 	case "GeneratePurchaseOrderResponse.message":
 		if e.ComplexityRoot.GeneratePurchaseOrderResponse.Message == nil {
 			break
@@ -840,6 +884,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.GenerateBooking(childComplexity, args["input"].(model.GenerateBookingInput)), true
+	case "Mutation.generateCoupon":
+		if e.ComplexityRoot.Mutation.GenerateCoupon == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_generateCoupon_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.GenerateCoupon(childComplexity, args["input"].(model.GenerateCouponInput)), true
 	case "Mutation.generatePurchaseOrder":
 		if e.ComplexityRoot.Mutation.GeneratePurchaseOrder == nil {
 			break
@@ -1337,12 +1392,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Subscription.ExecuteOpen(childComplexity, args["input"].(model.ExecuteOpenInput)), true
 
+	case "ValidateDiscountCouponResponse.applies":
+		if e.ComplexityRoot.ValidateDiscountCouponResponse.Applies == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ValidateDiscountCouponResponse.Applies(childComplexity), true
+	case "ValidateDiscountCouponResponse.discountAmount":
+		if e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountAmount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountAmount(childComplexity), true
 	case "ValidateDiscountCouponResponse.discountPercentage":
 		if e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountPercentage == nil {
 			break
 		}
 
 		return e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountPercentage(childComplexity), true
+	case "ValidateDiscountCouponResponse.discountType":
+		if e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ValidateDiscountCouponResponse.DiscountType(childComplexity), true
 	case "ValidateDiscountCouponResponse.message":
 		if e.ComplexityRoot.ValidateDiscountCouponResponse.Message == nil {
 			break
@@ -1380,6 +1453,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateRackPaymentInput,
 		ec.unmarshalInputExecuteOpenInput,
 		ec.unmarshalInputGenerateBookingInput,
+		ec.unmarshalInputGenerateCouponInput,
 		ec.unmarshalInputGeneratePurchaseOrderInput,
 		ec.unmarshalInputGetAvailableLockersByRackIDAndBookingTimeInput,
 		ec.unmarshalInputGetBookingPaymentInput,
@@ -1517,6 +1591,8 @@ type Mutation {
   # Generate Booking
   generateBooking(input: GenerateBookingInput!): GenerateBookingResponse!
 
+  # Generate Coupon (admin): fixed-amount, single-use, scoped to one or more locker sizes
+  generateCoupon(input: GenerateCouponInput!): GenerateCouponResponse! @hasRole(role: "SUPER_ADMIN")
   # Create a rack payment and associate it to a booking time (admin only)
   createRackPayment(input: CreateRackPaymentInput!): CreateRackPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
@@ -1542,6 +1618,16 @@ input GetAvailableLockersByRackIDAndBookingTimeInput {
 input ValidateDiscountCouponInput {
   couponCode: String!
   rackId: Int!
+  groupId: Int!
+  traceId: String!
+}
+
+input GenerateCouponInput {
+  rackId: Int!
+  groupIds: [Int!]!
+  amount: Int!
+  initAt: String
+  finishAt: String
   traceId: String!
 }
 
@@ -1625,6 +1711,17 @@ type ValidateDiscountCouponResponse {
   status: ResponseStatus!
   traceId: String!
   discountPercentage: Float!
+  discountType: String!
+  discountAmount: Int!
+  applies: Boolean!
+}
+
+type GenerateCouponResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  couponCode: String!
 }
 
 type GeneratePurchaseOrderResponse {
@@ -1894,6 +1991,17 @@ func (ec *executionContext) field_Mutation_generateBooking_args(ctx context.Cont
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGenerateBookingInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateBookingInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_generateCoupon_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGenerateCouponInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateCouponInput)
 	if err != nil {
 		return nil, err
 	}
@@ -4099,6 +4207,151 @@ func (ec *executionContext) fieldContext_GenerateBookingResponse_code(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _GenerateCouponResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.GenerateCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GenerateCouponResponse_transactionId,
+		func(ctx context.Context) (any, error) {
+			return obj.TransactionID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GenerateCouponResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GenerateCouponResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.GenerateCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GenerateCouponResponse_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GenerateCouponResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GenerateCouponResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.GenerateCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GenerateCouponResponse_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GenerateCouponResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ResponseStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GenerateCouponResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.GenerateCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GenerateCouponResponse_traceId,
+		func(ctx context.Context) (any, error) {
+			return obj.TraceID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GenerateCouponResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GenerateCouponResponse_couponCode(ctx context.Context, field graphql.CollectedField, obj *model.GenerateCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GenerateCouponResponse_couponCode,
+		func(ctx context.Context) (any, error) {
+			return obj.CouponCode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GenerateCouponResponse_couponCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GeneratePurchaseOrderResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.GeneratePurchaseOrderResponse) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4658,6 +4911,77 @@ func (ec *executionContext) fieldContext_Mutation_generateBooking(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_generateBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_generateCoupon(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_generateCoupon,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().GenerateCoupon(ctx, fc.Args["input"].(model.GenerateCouponInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				role, err := ec.unmarshalNString2string(ctx, "SUPER_ADMIN")
+				if err != nil {
+					var zeroVal *model.GenerateCouponResponse
+					return zeroVal, err
+				}
+				if ec.Directives.HasRole == nil {
+					var zeroVal *model.GenerateCouponResponse
+					return zeroVal, errors.New("directive hasRole is not implemented")
+				}
+				return ec.Directives.HasRole(ctx, nil, directive0, role)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalNGenerateCouponResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateCouponResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_generateCoupon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transactionId":
+				return ec.fieldContext_GenerateCouponResponse_transactionId(ctx, field)
+			case "message":
+				return ec.fieldContext_GenerateCouponResponse_message(ctx, field)
+			case "status":
+				return ec.fieldContext_GenerateCouponResponse_status(ctx, field)
+			case "traceId":
+				return ec.fieldContext_GenerateCouponResponse_traceId(ctx, field)
+			case "couponCode":
+				return ec.fieldContext_GenerateCouponResponse_couponCode(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GenerateCouponResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_generateCoupon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6810,6 +7134,12 @@ func (ec *executionContext) fieldContext_Query_validateDiscountCoupon(ctx contex
 				return ec.fieldContext_ValidateDiscountCouponResponse_traceId(ctx, field)
 			case "discountPercentage":
 				return ec.fieldContext_ValidateDiscountCouponResponse_discountPercentage(ctx, field)
+			case "discountType":
+				return ec.fieldContext_ValidateDiscountCouponResponse_discountType(ctx, field)
+			case "discountAmount":
+				return ec.fieldContext_ValidateDiscountCouponResponse_discountAmount(ctx, field)
+			case "applies":
+				return ec.fieldContext_ValidateDiscountCouponResponse_applies(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ValidateDiscountCouponResponse", field.Name)
 		},
@@ -7422,6 +7752,93 @@ func (ec *executionContext) fieldContext_ValidateDiscountCouponResponse_discount
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidateDiscountCouponResponse_discountType(ctx context.Context, field graphql.CollectedField, obj *model.ValidateDiscountCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ValidateDiscountCouponResponse_discountType,
+		func(ctx context.Context) (any, error) {
+			return obj.DiscountType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ValidateDiscountCouponResponse_discountType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidateDiscountCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidateDiscountCouponResponse_discountAmount(ctx context.Context, field graphql.CollectedField, obj *model.ValidateDiscountCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ValidateDiscountCouponResponse_discountAmount,
+		func(ctx context.Context) (any, error) {
+			return obj.DiscountAmount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ValidateDiscountCouponResponse_discountAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidateDiscountCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ValidateDiscountCouponResponse_applies(ctx context.Context, field graphql.CollectedField, obj *model.ValidateDiscountCouponResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ValidateDiscountCouponResponse_applies,
+		func(ctx context.Context) (any, error) {
+			return obj.Applies, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ValidateDiscountCouponResponse_applies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ValidateDiscountCouponResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8951,17 +9368,11 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 			it.Notes = data
 		case "bookingTimeIds":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingTimeIds"))
-			vSlice := graphql.CoerceList(v)
-			ids := make([]int, len(vSlice))
-			for i := range vSlice {
-				iCtx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-				id, err := ec.unmarshalNInt2int(iCtx, vSlice[i])
-				if err != nil {
-					return it, err
-				}
-				ids[i] = id
+			data, err := ec.unmarshalNInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
 			}
-			it.BookingTimeIDs = ids
+			it.BookingTimeIds = data
 		}
 	}
 	return it, nil
@@ -9057,6 +9468,71 @@ func (ec *executionContext) unmarshalInputGenerateBookingInput(ctx context.Conte
 				return it, err
 			}
 			it.UserPhone = data
+		case "traceId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("traceId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TraceID = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGenerateCouponInput(ctx context.Context, obj any) (model.GenerateCouponInput, error) {
+	var it model.GenerateCouponInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"rackId", "groupIds", "amount", "initAt", "finishAt", "traceId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "rackId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rackId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RackID = data
+		case "groupIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupIds"))
+			data, err := ec.unmarshalNInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GroupIds = data
+		case "amount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Amount = data
+		case "initAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("initAt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InitAt = data
+		case "finishAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("finishAt"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FinishAt = data
 		case "traceId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("traceId"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -9349,7 +9825,7 @@ func (ec *executionContext) unmarshalInputValidateDiscountCouponInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"couponCode", "rackId", "traceId"}
+	fieldsInOrder := [...]string{"couponCode", "rackId", "groupId", "traceId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9370,6 +9846,13 @@ func (ec *executionContext) unmarshalInputValidateDiscountCouponInput(ctx contex
 				return it, err
 			}
 			it.RackID = data
+		case "groupId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GroupID = data
 		case "traceId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("traceId"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -10059,6 +10542,65 @@ func (ec *executionContext) _GenerateBookingResponse(ctx context.Context, sel as
 	return out
 }
 
+var generateCouponResponseImplementors = []string{"GenerateCouponResponse"}
+
+func (ec *executionContext) _GenerateCouponResponse(ctx context.Context, sel ast.SelectionSet, obj *model.GenerateCouponResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, generateCouponResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GenerateCouponResponse")
+		case "transactionId":
+			out.Values[i] = ec._GenerateCouponResponse_transactionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._GenerateCouponResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._GenerateCouponResponse_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traceId":
+			out.Values[i] = ec._GenerateCouponResponse_traceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "couponCode":
+			out.Values[i] = ec._GenerateCouponResponse_couponCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var generatePurchaseOrderResponseImplementors = []string{"GeneratePurchaseOrderResponse"}
 
 func (ec *executionContext) _GeneratePurchaseOrderResponse(ctx context.Context, sel ast.SelectionSet, obj *model.GeneratePurchaseOrderResponse) graphql.Marshaler {
@@ -10265,6 +10807,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "generateBooking":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_generateBooking(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generateCoupon":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_generateCoupon(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11195,6 +11744,21 @@ func (ec *executionContext) _ValidateDiscountCouponResponse(ctx context.Context,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "discountType":
+			out.Values[i] = ec._ValidateDiscountCouponResponse_discountType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "discountAmount":
+			out.Values[i] = ec._ValidateDiscountCouponResponse_discountAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "applies":
+			out.Values[i] = ec._ValidateDiscountCouponResponse_applies(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11767,6 +12331,25 @@ func (ec *executionContext) marshalNGenerateBookingResponse2ᚖbffᚑgraphqlᚑp
 	return ec._GenerateBookingResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNGenerateCouponInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateCouponInput(ctx context.Context, v any) (model.GenerateCouponInput, error) {
+	res, err := ec.unmarshalInputGenerateCouponInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGenerateCouponResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateCouponResponse(ctx context.Context, sel ast.SelectionSet, v model.GenerateCouponResponse) graphql.Marshaler {
+	return ec._GenerateCouponResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGenerateCouponResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGenerateCouponResponse(ctx context.Context, sel ast.SelectionSet, v *model.GenerateCouponResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GenerateCouponResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNGeneratePurchaseOrderInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGeneratePurchaseOrderInput(ctx context.Context, v any) (model.GeneratePurchaseOrderInput, error) {
 	res, err := ec.unmarshalInputGeneratePurchaseOrderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11848,6 +12431,36 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v any) ([]int, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNOpenStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOpenStatus(ctx context.Context, v any) (model.OpenStatus, error) {

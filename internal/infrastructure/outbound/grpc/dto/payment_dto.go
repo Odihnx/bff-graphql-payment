@@ -103,6 +103,7 @@ type AvailablePaymentGroupRecord struct {
 type ValidateDiscountCouponRequest struct {
 	CouponCode string `json:"coupon_code"`
 	RackId     int32  `json:"rack_id"`
+	GroupId    int32  `json:"group_id"`
 	TraceId    string `json:"trace_id"`
 }
 
@@ -110,6 +111,25 @@ type ValidateDiscountCouponRequest struct {
 type ValidateDiscountCouponResponse struct {
 	Response           *PaymentManagerGenericResponse `json:"response"`
 	DiscountPercentage float64                        `json:"discount_percentage"` // double in proto, float64 in Go
+	DiscountType       string                         `json:"discount_type"`       // "PERCENTAGE" | "AMOUNT"
+	DiscountAmount     int32                          `json:"discount_amount"`     // monto fijo (pesos) cuando AMOUNT
+	Applies            bool                           `json:"applies"`             // true si aplica al size consultado
+}
+
+// GenerateCouponRequest represents the request for generating a coupon (admin)
+type GenerateCouponRequest struct {
+	RackId   int32   `json:"rack_id"`
+	GroupIds []int32 `json:"group_ids"`
+	Amount   int32   `json:"amount"`
+	InitAt   *string `json:"init_at"`
+	FinishAt *string `json:"finish_at"`
+	TraceId  string  `json:"trace_id"`
+}
+
+// GenerateCouponResponse represents the response for generating a coupon
+type GenerateCouponResponse struct {
+	Response   *PaymentManagerGenericResponse `json:"response"`
+	CouponCode string                         `json:"coupon_code"`
 }
 
 // GeneratePurchaseOrderRequest represents the request for generating a purchase order

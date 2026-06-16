@@ -30,6 +30,9 @@ var (
 	// ErrInvalidGroupID se devuelve cuando el ID del grupo es inválido
 	ErrInvalidGroupID = errors.New("invalid group ID")
 
+	// ErrInvalidCouponAmount se devuelve cuando el monto del cupón es inválido
+	ErrInvalidCouponAmount = errors.New("invalid coupon amount")
+
 	// ErrInvalidEmail se devuelve cuando el email es inválido
 	ErrInvalidEmail = errors.New("invalid email")
 
@@ -50,6 +53,9 @@ var (
 
 	// ErrBookingGenerationFailed se devuelve cuando falla la generación de la reserva
 	ErrBookingGenerationFailed = errors.New("booking generation failed")
+
+	// ErrCouponGenerationFailed se devuelve cuando falla la generación del cupón
+	ErrCouponGenerationFailed = errors.New("coupon generation failed")
 
 	// ErrPurchaseOrderNotFound se devuelve cuando no se encuentra la orden de compra
 	ErrPurchaseOrderNotFound = errors.New("purchase order not found")

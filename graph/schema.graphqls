@@ -37,6 +37,8 @@ type Mutation {
   # Generate Booking
   generateBooking(input: GenerateBookingInput!): GenerateBookingResponse!
 
+  # Generate Coupon (admin): fixed-amount, single-use, scoped to one or more locker sizes
+  generateCoupon(input: GenerateCouponInput!): GenerateCouponResponse! @hasRole(role: "SUPER_ADMIN")
   # Create a rack payment and associate it to a booking time (admin only)
   createRackPayment(input: CreateRackPaymentInput!): CreateRackPaymentResponse! @hasRole(role: "SUPER_ADMIN")
 }
@@ -62,6 +64,16 @@ input GetAvailableLockersByRackIDAndBookingTimeInput {
 input ValidateDiscountCouponInput {
   couponCode: String!
   rackId: Int!
+  groupId: Int!
+  traceId: String!
+}
+
+input GenerateCouponInput {
+  rackId: Int!
+  groupIds: [Int!]!
+  amount: Int!
+  initAt: String
+  finishAt: String
   traceId: String!
 }
 
@@ -145,6 +157,17 @@ type ValidateDiscountCouponResponse {
   status: ResponseStatus!
   traceId: String!
   discountPercentage: Float!
+  discountType: String!
+  discountAmount: Int!
+  applies: Boolean!
+}
+
+type GenerateCouponResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  couponCode: String!
 }
 
 type GeneratePurchaseOrderResponse {
