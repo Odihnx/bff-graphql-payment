@@ -664,11 +664,22 @@ func (m *PaymentInfraGRPCMapper) ToPricingTemplatesDomain(response *dto.GetPrici
 	}
 
 	for _, pt := range response.PricingTemplates {
+		var groupProducts []model.PricingTemplateGroupProduct
+		for _, gp := range pt.GroupProducts {
+			groupProducts = append(groupProducts, model.PricingTemplateGroupProduct{
+				GroupID:     int(gp.GroupId),
+				Name:        gp.Name,
+				Price:       float64(gp.Price),
+				Description: gp.Description,
+				ImageURL:    gp.ImageUrl,
+			})
+		}
 		result.PricingTemplates = append(result.PricingTemplates, model.PricingTemplate{
-			ID:          int(pt.Id),
-			Name:        pt.Name,
-			Description: pt.Description,
-			CreatedAt:   pt.CreatedAt,
+			ID:            int(pt.Id),
+			Name:          pt.Name,
+			Description:   pt.Description,
+			CreatedAt:     pt.CreatedAt,
+			GroupProducts: groupProducts,
 		})
 	}
 
@@ -754,11 +765,22 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPricingTemplatesResponse(proto *paym
 		}
 	}
 	for _, pt := range proto.PricingTemplates {
+		var groupProducts []*dto.AvailablePaymentGroupRecord
+		for _, gp := range pt.GroupProducts {
+			groupProducts = append(groupProducts, &dto.AvailablePaymentGroupRecord{
+				GroupId:     gp.GroupId,
+				Name:        gp.Name,
+				Price:       gp.Price,
+				Description: gp.Description,
+				ImageUrl:    gp.ImageUrl,
+			})
+		}
 		result.PricingTemplates = append(result.PricingTemplates, &dto.PricingTemplateRecord{
-			Id:          pt.Id,
-			Name:        pt.Name,
-			Description: pt.Description,
-			CreatedAt:   pt.CreatedAt,
+			Id:            pt.Id,
+			Name:          pt.Name,
+			Description:   pt.Description,
+			CreatedAt:     pt.CreatedAt,
+			GroupProducts: groupProducts,
 		})
 	}
 	return result
