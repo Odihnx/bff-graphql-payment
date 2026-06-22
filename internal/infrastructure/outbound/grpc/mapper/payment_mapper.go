@@ -664,14 +664,24 @@ func (m *PaymentInfraGRPCMapper) ToPricingTemplatesDomain(response *dto.GetPrici
 	}
 
 	for _, pt := range response.PricingTemplates {
-		var groupProducts []model.PricingTemplateGroupProduct
-		for _, gp := range pt.GroupProducts {
-			groupProducts = append(groupProducts, model.PricingTemplateGroupProduct{
-				GroupID:     int(gp.GroupId),
-				Name:        gp.Name,
-				Price:       float64(gp.Price),
-				Description: gp.Description,
-				ImageURL:    gp.ImageUrl,
+		var bookingGroups []model.PricingTemplateBookingGroup
+		for _, bg := range pt.BookingGroups {
+			var products []model.PricingTemplateProduct
+			for _, p := range bg.Products {
+				products = append(products, model.PricingTemplateProduct{
+					GroupID:     int(p.GroupId),
+					Name:        p.Name,
+					Price:       float64(p.Price),
+					Description: p.Description,
+					ImageURL:    p.ImageUrl,
+				})
+			}
+			bookingGroups = append(bookingGroups, model.PricingTemplateBookingGroup{
+				BookingTimeID:   int(bg.BookingTimeId),
+				BookingTimeName: bg.BookingTimeName,
+				UnitMeasurement: bg.UnitMeasurement,
+				Amount:          int(bg.Amount),
+				Products:        products,
 			})
 		}
 		result.PricingTemplates = append(result.PricingTemplates, model.PricingTemplate{
@@ -679,7 +689,7 @@ func (m *PaymentInfraGRPCMapper) ToPricingTemplatesDomain(response *dto.GetPrici
 			Name:          pt.Name,
 			Description:   pt.Description,
 			CreatedAt:     pt.CreatedAt,
-			GroupProducts: groupProducts,
+			BookingGroups: bookingGroups,
 		})
 	}
 
@@ -765,14 +775,24 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPricingTemplatesResponse(proto *paym
 		}
 	}
 	for _, pt := range proto.PricingTemplates {
-		var groupProducts []*dto.AvailablePaymentGroupRecord
-		for _, gp := range pt.GroupProducts {
-			groupProducts = append(groupProducts, &dto.AvailablePaymentGroupRecord{
-				GroupId:     gp.GroupId,
-				Name:        gp.Name,
-				Price:       gp.Price,
-				Description: gp.Description,
-				ImageUrl:    gp.ImageUrl,
+		var bookingGroups []*dto.PricingTemplateBookingGroupRecord
+		for _, bg := range pt.BookingGroups {
+			var products []*dto.AvailablePaymentGroupRecord
+			for _, p := range bg.Products {
+				products = append(products, &dto.AvailablePaymentGroupRecord{
+					GroupId:     p.GroupId,
+					Name:        p.Name,
+					Price:       p.Price,
+					Description: p.Description,
+					ImageUrl:    p.ImageUrl,
+				})
+			}
+			bookingGroups = append(bookingGroups, &dto.PricingTemplateBookingGroupRecord{
+				BookingTimeId:   bg.BookingTimeId,
+				BookingTimeName: bg.BookingTimeName,
+				UnitMeasurement: bg.UnitMeasurement,
+				Amount:          bg.Amount,
+				Products:        products,
 			})
 		}
 		result.PricingTemplates = append(result.PricingTemplates, &dto.PricingTemplateRecord{
@@ -780,7 +800,7 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPricingTemplatesResponse(proto *paym
 			Name:          pt.Name,
 			Description:   pt.Description,
 			CreatedAt:     pt.CreatedAt,
-			GroupProducts: groupProducts,
+			BookingGroups: bookingGroups,
 		})
 	}
 	return result
