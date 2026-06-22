@@ -215,10 +215,19 @@ type ComplexityRoot struct {
 	}
 
 	PricingTemplate struct {
-		CreatedAt   func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		Description   func(childComplexity int) int
+		GroupProducts func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+	}
+
+	PricingTemplateGroupProduct struct {
 		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
+		GroupID     func(childComplexity int) int
+		ImageURL    func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Price       func(childComplexity int) int
 	}
 
 	PurchaseOrderData struct {
@@ -1074,6 +1083,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PricingTemplate.Description(childComplexity), true
+	case "PricingTemplate.groupProducts":
+		if e.ComplexityRoot.PricingTemplate.GroupProducts == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplate.GroupProducts(childComplexity), true
 	case "PricingTemplate.id":
 		if e.ComplexityRoot.PricingTemplate.ID == nil {
 			break
@@ -1086,6 +1101,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PricingTemplate.Name(childComplexity), true
+
+	case "PricingTemplateGroupProduct.description":
+		if e.ComplexityRoot.PricingTemplateGroupProduct.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateGroupProduct.Description(childComplexity), true
+	case "PricingTemplateGroupProduct.groupId":
+		if e.ComplexityRoot.PricingTemplateGroupProduct.GroupID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateGroupProduct.GroupID(childComplexity), true
+	case "PricingTemplateGroupProduct.imageUrl":
+		if e.ComplexityRoot.PricingTemplateGroupProduct.ImageURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateGroupProduct.ImageURL(childComplexity), true
+	case "PricingTemplateGroupProduct.name":
+		if e.ComplexityRoot.PricingTemplateGroupProduct.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateGroupProduct.Name(childComplexity), true
+	case "PricingTemplateGroupProduct.price":
+		if e.ComplexityRoot.PricingTemplateGroupProduct.Price == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateGroupProduct.Price(childComplexity), true
 
 	case "PurchaseOrderData.bookingReference":
 		if e.ComplexityRoot.PurchaseOrderData.BookingReference == nil {
@@ -1886,6 +1932,15 @@ type PricingTemplate {
   name: String!
   description: String!
   createdAt: String!
+  groupProducts: [PricingTemplateGroupProduct!]!
+}
+
+type PricingTemplateGroupProduct {
+  groupId: Int!
+  name: String!
+  price: Float!
+  description: String!
+  imageUrl: String!
 }
 
 type GetBookingTimesResponse {
@@ -4804,6 +4859,8 @@ func (ec *executionContext) fieldContext_GetPricingTemplatesResponse_pricingTemp
 				return ec.fieldContext_PricingTemplate_description(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_PricingTemplate_createdAt(ctx, field)
+			case "groupProducts":
+				return ec.fieldContext_PricingTemplate_groupProducts(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PricingTemplate", field.Name)
 		},
@@ -5932,6 +5989,192 @@ func (ec *executionContext) _PricingTemplate_createdAt(ctx context.Context, fiel
 func (ec *executionContext) fieldContext_PricingTemplate_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PricingTemplate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplate_groupProducts(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplate_groupProducts,
+		func(ctx context.Context) (any, error) {
+			return obj.GroupProducts, nil
+		},
+		nil,
+		ec.marshalNPricingTemplateGroupProduct2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateGroupProductᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplate_groupProducts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "groupId":
+				return ec.fieldContext_PricingTemplateGroupProduct_groupId(ctx, field)
+			case "name":
+				return ec.fieldContext_PricingTemplateGroupProduct_name(ctx, field)
+			case "price":
+				return ec.fieldContext_PricingTemplateGroupProduct_price(ctx, field)
+			case "description":
+				return ec.fieldContext_PricingTemplateGroupProduct_description(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_PricingTemplateGroupProduct_imageUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PricingTemplateGroupProduct", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateGroupProduct_groupId(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateGroupProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplateGroupProduct_groupId,
+		func(ctx context.Context) (any, error) {
+			return obj.GroupID, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateGroupProduct_groupId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplateGroupProduct",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateGroupProduct_name(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateGroupProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplateGroupProduct_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateGroupProduct_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplateGroupProduct",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateGroupProduct_price(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateGroupProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplateGroupProduct_price,
+		func(ctx context.Context) (any, error) {
+			return obj.Price, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateGroupProduct_price(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplateGroupProduct",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateGroupProduct_description(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateGroupProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplateGroupProduct_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateGroupProduct_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplateGroupProduct",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateGroupProduct_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateGroupProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplateGroupProduct_imageUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageURL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateGroupProduct_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplateGroupProduct",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11134,6 +11377,65 @@ func (ec *executionContext) _PaymentRack(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var pricingTemplateGroupProductImplementors = []string{"PricingTemplateGroupProduct"}
+
+func (ec *executionContext) _PricingTemplateGroupProduct(ctx context.Context, sel ast.SelectionSet, obj *model.PricingTemplateGroupProduct) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pricingTemplateGroupProductImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PricingTemplateGroupProduct")
+		case "groupId":
+			out.Values[i] = ec._PricingTemplateGroupProduct_groupId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PricingTemplateGroupProduct_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "price":
+			out.Values[i] = ec._PricingTemplateGroupProduct_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._PricingTemplateGroupProduct_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "imageUrl":
+			out.Values[i] = ec._PricingTemplateGroupProduct_imageUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var pricingTemplateImplementors = []string{"PricingTemplate"}
 
 func (ec *executionContext) _PricingTemplate(ctx context.Context, sel ast.SelectionSet, obj *model.PricingTemplate) graphql.Marshaler {
@@ -11162,6 +11464,11 @@ func (ec *executionContext) _PricingTemplate(ctx context.Context, sel ast.Select
 			}
 		case "createdAt":
 			out.Values[i] = ec._PricingTemplate_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "groupProducts":
+			out.Values[i] = ec._PricingTemplate_groupProducts(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12521,6 +12828,32 @@ func (ec *executionContext) unmarshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋg
 
 func (ec *executionContext) marshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPhysicalStatus(ctx context.Context, sel ast.SelectionSet, v model.PhysicalStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNPricingTemplateGroupProduct2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateGroupProductᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplateGroupProduct) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPricingTemplateGroupProduct2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateGroupProduct(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPricingTemplateGroupProduct2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateGroupProduct(ctx context.Context, sel ast.SelectionSet, v *model.PricingTemplateGroupProduct) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PricingTemplateGroupProduct(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPricingTemplate2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplate) graphql.Marshaler {
