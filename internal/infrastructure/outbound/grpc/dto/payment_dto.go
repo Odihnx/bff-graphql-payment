@@ -264,13 +264,22 @@ const (
 // GetPricingTemplatesRequest represents the request for listing pricing templates
 type GetPricingTemplatesRequest struct{}
 
+// PricingTemplateBookingGroupRecord groups products by booking time
+type PricingTemplateBookingGroupRecord struct {
+	BookingTimeId   int32                          `json:"booking_time_id"`
+	BookingTimeName string                         `json:"booking_time_name"`
+	UnitMeasurement string                         `json:"unit_measurement"`
+	Amount          int32                          `json:"amount"`
+	Products        []*AvailablePaymentGroupRecord `json:"products"`
+}
+
 // PricingTemplateRecord represents a pricing template
 type PricingTemplateRecord struct {
-	Id            int32                        `json:"id"`
-	Name          string                       `json:"name"`
-	Description   string                       `json:"description"`
-	CreatedAt     string                       `json:"created_at"`
-	GroupProducts []*AvailablePaymentGroupRecord `json:"group_products"`
+	Id            int32                                `json:"id"`
+	Name          string                               `json:"name"`
+	Description   string                               `json:"description"`
+	CreatedAt     string                               `json:"created_at"`
+	BookingGroups []*PricingTemplateBookingGroupRecord `json:"booking_groups"`
 }
 
 // GetPricingTemplatesResponse represents the response for listing pricing templates
