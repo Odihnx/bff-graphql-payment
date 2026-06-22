@@ -266,10 +266,11 @@ type GetPricingTemplatesRequest struct{}
 
 // PricingTemplateRecord represents a pricing template
 type PricingTemplateRecord struct {
-	Id          int32  `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreatedAt   string `json:"created_at"`
+	Id            int32                        `json:"id"`
+	Name          string                       `json:"name"`
+	Description   string                       `json:"description"`
+	CreatedAt     string                       `json:"created_at"`
+	GroupProducts []*AvailablePaymentGroupRecord `json:"group_products"`
 }
 
 // GetPricingTemplatesResponse represents the response for listing pricing templates
