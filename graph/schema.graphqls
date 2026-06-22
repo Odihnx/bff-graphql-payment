@@ -332,10 +332,18 @@ type PricingTemplate {
   name: String!
   description: String!
   createdAt: String!
-  groupProducts: [PricingTemplateGroupProduct!]!
+  bookingGroups: [PricingTemplateBookingGroup!]!
 }
 
-type PricingTemplateGroupProduct {
+type PricingTemplateBookingGroup {
+  bookingTimeId: Int!
+  bookingTimeName: String!
+  unitMeasurement: String!
+  amount: Int!
+  products: [PricingTemplateProduct!]!
+}
+
+type PricingTemplateProduct {
   groupId: Int!
   name: String!
   price: Float!
