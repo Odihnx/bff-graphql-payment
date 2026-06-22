@@ -270,13 +270,22 @@ type BookingPaymentHistory struct {
 	NextPage    int
 }
 
-// PricingTemplateGroupProduct representa un grupo de productos asociado a una plantilla de precios
-type PricingTemplateGroupProduct struct {
+// PricingTemplateProduct representa un producto dentro de un grupo de reserva
+type PricingTemplateProduct struct {
 	GroupID     int
 	Name        string
 	Price       float64
 	Description string
 	ImageURL    string
+}
+
+// PricingTemplateBookingGroup agrupa productos por tiempo de reserva
+type PricingTemplateBookingGroup struct {
+	BookingTimeID   int
+	BookingTimeName string
+	UnitMeasurement string
+	Amount          int
+	Products        []PricingTemplateProduct
 }
 
 // PricingTemplate representa una plantilla de precios
@@ -285,7 +294,7 @@ type PricingTemplate struct {
 	Name          string
 	Description   string
 	CreatedAt     string
-	GroupProducts []PricingTemplateGroupProduct
+	BookingGroups []PricingTemplateBookingGroup
 }
 
 // PricingTemplateList representa la respuesta de listado de plantillas de precios
