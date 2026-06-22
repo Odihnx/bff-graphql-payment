@@ -350,11 +350,22 @@ func (m *PaymentInfraGraphQLMapper) ToPricingTemplatesResponse(list *domainModel
 
 	templates := make([]*model.PricingTemplate, 0, len(list.PricingTemplates))
 	for _, pt := range list.PricingTemplates {
+		groupProducts := make([]*model.PricingTemplateGroupProduct, 0, len(pt.GroupProducts))
+		for _, gp := range pt.GroupProducts {
+			groupProducts = append(groupProducts, &model.PricingTemplateGroupProduct{
+				GroupID:     gp.GroupID,
+				Name:        gp.Name,
+				Price:       gp.Price,
+				Description: gp.Description,
+				ImageURL:    gp.ImageURL,
+			})
+		}
 		templates = append(templates, &model.PricingTemplate{
-			ID:          pt.ID,
-			Name:        pt.Name,
-			Description: pt.Description,
-			CreatedAt:   pt.CreatedAt,
+			ID:            pt.ID,
+			Name:          pt.Name,
+			Description:   pt.Description,
+			CreatedAt:     pt.CreatedAt,
+			GroupProducts: groupProducts,
 		})
 	}
 
