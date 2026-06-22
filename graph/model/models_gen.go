@@ -254,10 +254,19 @@ type PaymentRack struct {
 }
 
 type PricingTemplate struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreatedAt   string `json:"createdAt"`
+	ID            int                           `json:"id"`
+	Name          string                        `json:"name"`
+	Description   string                        `json:"description"`
+	CreatedAt     string                        `json:"createdAt"`
+	GroupProducts []*PricingTemplateGroupProduct `json:"groupProducts"`
+}
+
+type PricingTemplateGroupProduct struct {
+	GroupID     int     `json:"groupId"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+	ImageURL    string  `json:"imageUrl"`
 }
 
 type PurchaseOrderData struct {
