@@ -215,10 +215,27 @@ type ComplexityRoot struct {
 	}
 
 	PricingTemplate struct {
-		CreatedAt   func(childComplexity int) int
+		BookingGroups func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		Description   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+	}
+
+	PricingTemplateBookingGroup struct {
+		Amount          func(childComplexity int) int
+		BookingTimeID   func(childComplexity int) int
+		BookingTimeName func(childComplexity int) int
+		Products        func(childComplexity int) int
+		UnitMeasurement func(childComplexity int) int
+	}
+
+	PricingTemplateProduct struct {
 		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
+		GroupID     func(childComplexity int) int
+		ImageURL    func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Price       func(childComplexity int) int
 	}
 
 	PurchaseOrderData struct {
@@ -1074,6 +1091,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PricingTemplate.Description(childComplexity), true
+	case "PricingTemplate.bookingGroups":
+		if e.ComplexityRoot.PricingTemplate.BookingGroups == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplate.BookingGroups(childComplexity), true
 	case "PricingTemplate.id":
 		if e.ComplexityRoot.PricingTemplate.ID == nil {
 			break
@@ -1086,6 +1109,68 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PricingTemplate.Name(childComplexity), true
+
+	case "PricingTemplateBookingGroup.amount":
+		if e.ComplexityRoot.PricingTemplateBookingGroup.Amount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateBookingGroup.Amount(childComplexity), true
+	case "PricingTemplateBookingGroup.bookingTimeId":
+		if e.ComplexityRoot.PricingTemplateBookingGroup.BookingTimeID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateBookingGroup.BookingTimeID(childComplexity), true
+	case "PricingTemplateBookingGroup.bookingTimeName":
+		if e.ComplexityRoot.PricingTemplateBookingGroup.BookingTimeName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateBookingGroup.BookingTimeName(childComplexity), true
+	case "PricingTemplateBookingGroup.products":
+		if e.ComplexityRoot.PricingTemplateBookingGroup.Products == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateBookingGroup.Products(childComplexity), true
+	case "PricingTemplateBookingGroup.unitMeasurement":
+		if e.ComplexityRoot.PricingTemplateBookingGroup.UnitMeasurement == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateBookingGroup.UnitMeasurement(childComplexity), true
+
+	case "PricingTemplateProduct.description":
+		if e.ComplexityRoot.PricingTemplateProduct.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateProduct.Description(childComplexity), true
+	case "PricingTemplateProduct.groupId":
+		if e.ComplexityRoot.PricingTemplateProduct.GroupID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateProduct.GroupID(childComplexity), true
+	case "PricingTemplateProduct.imageUrl":
+		if e.ComplexityRoot.PricingTemplateProduct.ImageURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateProduct.ImageURL(childComplexity), true
+	case "PricingTemplateProduct.name":
+		if e.ComplexityRoot.PricingTemplateProduct.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateProduct.Name(childComplexity), true
+	case "PricingTemplateProduct.price":
+		if e.ComplexityRoot.PricingTemplateProduct.Price == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplateProduct.Price(childComplexity), true
 
 	case "PurchaseOrderData.bookingReference":
 		if e.ComplexityRoot.PurchaseOrderData.BookingReference == nil {
@@ -1886,6 +1971,23 @@ type PricingTemplate {
   name: String!
   description: String!
   createdAt: String!
+  bookingGroups: [PricingTemplateBookingGroup!]!
+}
+
+type PricingTemplateBookingGroup {
+  bookingTimeId: Int!
+  bookingTimeName: String!
+  unitMeasurement: String!
+  amount: Int!
+  products: [PricingTemplateProduct!]!
+}
+
+type PricingTemplateProduct {
+  groupId: Int!
+  name: String!
+  price: Float!
+  description: String!
+  imageUrl: String!
 }
 
 type GetBookingTimesResponse {
@@ -4804,6 +4906,8 @@ func (ec *executionContext) fieldContext_GetPricingTemplatesResponse_pricingTemp
 				return ec.fieldContext_PricingTemplate_description(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_PricingTemplate_createdAt(ctx, field)
+			case "bookingGroups":
+				return ec.fieldContext_PricingTemplate_bookingGroups(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PricingTemplate", field.Name)
 		},
@@ -5935,6 +6039,251 @@ func (ec *executionContext) fieldContext_PricingTemplate_createdAt(_ context.Con
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplate_bookingGroups(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplate_bookingGroups,
+		func(ctx context.Context) (any, error) {
+			return obj.BookingGroups, nil
+		},
+		nil,
+		ec.marshalNPricingTemplateBookingGroup2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateBookingGroupᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplate_bookingGroups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bookingTimeId":
+				return ec.fieldContext_PricingTemplateBookingGroup_bookingTimeId(ctx, field)
+			case "bookingTimeName":
+				return ec.fieldContext_PricingTemplateBookingGroup_bookingTimeName(ctx, field)
+			case "unitMeasurement":
+				return ec.fieldContext_PricingTemplateBookingGroup_unitMeasurement(ctx, field)
+			case "amount":
+				return ec.fieldContext_PricingTemplateBookingGroup_amount(ctx, field)
+			case "products":
+				return ec.fieldContext_PricingTemplateBookingGroup_products(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PricingTemplateBookingGroup", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateBookingGroup_bookingTimeId(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateBookingGroup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateBookingGroup_bookingTimeId,
+		func(ctx context.Context) (any, error) { return obj.BookingTimeID, nil },
+		nil, ec.marshalNInt2int, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateBookingGroup_bookingTimeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateBookingGroup", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateBookingGroup_bookingTimeName(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateBookingGroup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateBookingGroup_bookingTimeName,
+		func(ctx context.Context) (any, error) { return obj.BookingTimeName, nil },
+		nil, ec.marshalNString2string, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateBookingGroup_bookingTimeName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateBookingGroup", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateBookingGroup_unitMeasurement(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateBookingGroup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateBookingGroup_unitMeasurement,
+		func(ctx context.Context) (any, error) { return obj.UnitMeasurement, nil },
+		nil, ec.marshalNString2string, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateBookingGroup_unitMeasurement(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateBookingGroup", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateBookingGroup_amount(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateBookingGroup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateBookingGroup_amount,
+		func(ctx context.Context) (any, error) { return obj.Amount, nil },
+		nil, ec.marshalNInt2int, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateBookingGroup_amount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateBookingGroup", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateBookingGroup_products(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateBookingGroup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateBookingGroup_products,
+		func(ctx context.Context) (any, error) { return obj.Products, nil },
+		nil,
+		ec.marshalNPricingTemplateProduct2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateProductᚄ,
+		true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateBookingGroup_products(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateBookingGroup", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "groupId":
+				return ec.fieldContext_PricingTemplateProduct_groupId(ctx, field)
+			case "name":
+				return ec.fieldContext_PricingTemplateProduct_name(ctx, field)
+			case "price":
+				return ec.fieldContext_PricingTemplateProduct_price(ctx, field)
+			case "description":
+				return ec.fieldContext_PricingTemplateProduct_description(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_PricingTemplateProduct_imageUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PricingTemplateProduct", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateProduct_groupId(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateProduct_groupId,
+		func(ctx context.Context) (any, error) { return obj.GroupID, nil },
+		nil, ec.marshalNInt2int, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateProduct_groupId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateProduct", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateProduct_name(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateProduct_name,
+		func(ctx context.Context) (any, error) { return obj.Name, nil },
+		nil, ec.marshalNString2string, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateProduct_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateProduct", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateProduct_price(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateProduct_price,
+		func(ctx context.Context) (any, error) { return obj.Price, nil },
+		nil, ec.marshalNFloat2float64, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateProduct_price(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateProduct", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateProduct_description(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateProduct_description,
+		func(ctx context.Context) (any, error) { return obj.Description, nil },
+		nil, ec.marshalNString2string, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateProduct_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateProduct", Field: field, IsMethod: false, IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplateProduct_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplateProduct) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx, ec.OperationContext, field,
+		ec.fieldContext_PricingTemplateProduct_imageUrl,
+		func(ctx context.Context) (any, error) { return obj.ImageURL, nil },
+		nil, ec.marshalNString2string, true, true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplateProduct_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object: "PricingTemplateProduct", Field: field, IsMethod: false, IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -11134,6 +11483,124 @@ func (ec *executionContext) _PaymentRack(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var pricingTemplateBookingGroupImplementors = []string{"PricingTemplateBookingGroup"}
+
+func (ec *executionContext) _PricingTemplateBookingGroup(ctx context.Context, sel ast.SelectionSet, obj *model.PricingTemplateBookingGroup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pricingTemplateBookingGroupImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PricingTemplateBookingGroup")
+		case "bookingTimeId":
+			out.Values[i] = ec._PricingTemplateBookingGroup_bookingTimeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bookingTimeName":
+			out.Values[i] = ec._PricingTemplateBookingGroup_bookingTimeName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "unitMeasurement":
+			out.Values[i] = ec._PricingTemplateBookingGroup_unitMeasurement(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "amount":
+			out.Values[i] = ec._PricingTemplateBookingGroup_amount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "products":
+			out.Values[i] = ec._PricingTemplateBookingGroup_products(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var pricingTemplateProductImplementors = []string{"PricingTemplateProduct"}
+
+func (ec *executionContext) _PricingTemplateProduct(ctx context.Context, sel ast.SelectionSet, obj *model.PricingTemplateProduct) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pricingTemplateProductImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PricingTemplateProduct")
+		case "groupId":
+			out.Values[i] = ec._PricingTemplateProduct_groupId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PricingTemplateProduct_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "price":
+			out.Values[i] = ec._PricingTemplateProduct_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._PricingTemplateProduct_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "imageUrl":
+			out.Values[i] = ec._PricingTemplateProduct_imageUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var pricingTemplateImplementors = []string{"PricingTemplate"}
 
 func (ec *executionContext) _PricingTemplate(ctx context.Context, sel ast.SelectionSet, obj *model.PricingTemplate) graphql.Marshaler {
@@ -11162,6 +11629,11 @@ func (ec *executionContext) _PricingTemplate(ctx context.Context, sel ast.Select
 			}
 		case "createdAt":
 			out.Values[i] = ec._PricingTemplate_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bookingGroups":
+			out.Values[i] = ec._PricingTemplate_bookingGroups(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12521,6 +12993,58 @@ func (ec *executionContext) unmarshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋg
 
 func (ec *executionContext) marshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPhysicalStatus(ctx context.Context, sel ast.SelectionSet, v model.PhysicalStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNPricingTemplateBookingGroup2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateBookingGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplateBookingGroup) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPricingTemplateBookingGroup2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateBookingGroup(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPricingTemplateBookingGroup2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateBookingGroup(ctx context.Context, sel ast.SelectionSet, v *model.PricingTemplateBookingGroup) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PricingTemplateBookingGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPricingTemplateProduct2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateProductᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplateProduct) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPricingTemplateProduct2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateProduct(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPricingTemplateProduct2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateProduct(ctx context.Context, sel ast.SelectionSet, v *model.PricingTemplateProduct) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PricingTemplateProduct(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPricingTemplate2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplate) graphql.Marshaler {

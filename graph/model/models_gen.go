@@ -254,10 +254,27 @@ type PaymentRack struct {
 }
 
 type PricingTemplate struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreatedAt   string `json:"createdAt"`
+	ID            int                            `json:"id"`
+	Name          string                         `json:"name"`
+	Description   string                         `json:"description"`
+	CreatedAt     string                         `json:"createdAt"`
+	BookingGroups []*PricingTemplateBookingGroup `json:"bookingGroups"`
+}
+
+type PricingTemplateBookingGroup struct {
+	BookingTimeID   int                        `json:"bookingTimeId"`
+	BookingTimeName string                     `json:"bookingTimeName"`
+	UnitMeasurement string                     `json:"unitMeasurement"`
+	Amount          int                        `json:"amount"`
+	Products        []*PricingTemplateProduct  `json:"products"`
+}
+
+type PricingTemplateProduct struct {
+	GroupID     int     `json:"groupId"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+	ImageURL    string  `json:"imageUrl"`
 }
 
 type PurchaseOrderData struct {
