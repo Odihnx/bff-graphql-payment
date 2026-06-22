@@ -332,6 +332,15 @@ type PricingTemplate {
   name: String!
   description: String!
   createdAt: String!
+  groupProducts: [PricingTemplateGroupProduct!]!
+}
+
+type PricingTemplateGroupProduct {
+  groupId: Int!
+  name: String!
+  price: Float!
+  description: String!
+  imageUrl: String!
 }
 
 type GetBookingTimesResponse {
