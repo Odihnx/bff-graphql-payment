@@ -211,15 +211,16 @@ const (
 
 // GetBookingPaymentInput parámetros de búsqueda del historial de reservas de pago
 type GetBookingPaymentInput struct {
-	DeviceID       *string
-	EmailRecipient *string
-	ActiveOnly     *bool
-	Page           *int
-	PageSize       *int
-	DateFrom       *string
-	DateUntil      *string
-	SortBy         *string
-	Sort           *SortDirection
+	DeviceID          *string
+	EmailRecipient    *string
+	ActiveOnly        *bool
+	Page              *int
+	PageSize          *int
+	DateFrom          *string
+	DateUntil         *string
+	SortBy            *string
+	Sort              *SortDirection
+	InstallationsName []string // filtro por instalaciones (ADMIN); nil = todas (SUPER_ADMIN)
 }
 
 // BookingPaymentRecord representa un registro del historial de reservas
