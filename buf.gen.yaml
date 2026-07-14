@@ -8,10 +8,14 @@ managed:
     - file_option: go_package_prefix
       value: bff-graphql-payment/gen/go/proto/booking
       module: buf.build/odihnx-prod/service-booking-manager
+    - file_option: go_package_prefix
+      value: bff-graphql-payment/gen/go/proto/infra
+      module: buf.build/odihnx-prod/service-infraestructure-manager
 
 inputs:
   - module: buf.build/odihnx-prod/service-payment-manager
   - module: buf.build/odihnx-prod/service-booking-manager
+  - module: buf.build/odihnx-prod/service-infraestructure-manager
 
 plugins:
   - local: protoc-gen-go

@@ -17,6 +17,7 @@ type PaymentInfraRepository interface {
 	CheckBookingStatus(ctx context.Context, serviceName string, currentCode string) (*model.BookingStatusCheck, error)
 	ExecuteOpenStream(ctx context.Context, serviceName string, currentCode string) (<-chan *model.ExecuteOpenResult, error)
 	GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error)
+	GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error)
 	GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error)
 	GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error)
 	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error)

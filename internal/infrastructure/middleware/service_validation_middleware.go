@@ -160,6 +160,12 @@ func (m *ServiceValidationMiddleware) ExecuteOpenStream(ctx context.Context, ser
 	return m.next.ExecuteOpenStream(ctx, serviceName, currentCode)
 }
 
+// GetInstallationsByUserEmail obtiene instalaciones del usuario — no valida disponibilidad del servicio payment
+// ya que llama al infra manager, no al servicio de pagos
+func (m *ServiceValidationMiddleware) GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error) {
+	return m.next.GetInstallationsByUserEmail(ctx, email)
+}
+
 // GetBookingPayment obtiene el historial de reservas de pago
 func (m *ServiceValidationMiddleware) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
 	if err := m.validateServiceAvailability(ctx); err != nil {

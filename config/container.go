@@ -31,6 +31,7 @@ func NewContainer(config Config) (*Container, error) {
 	paymentClient, err := client.NewPaymentServiceGRPCClient(
 		config.GRPC.PaymentServiceAddress,
 		config.GRPC.BookingServiceAddress,
+		config.GRPC.InfraServiceAddress,
 		config.GRPC.PaymentServiceTimeout,
 		config.General.UseMock,
 	)
