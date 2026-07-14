@@ -3,6 +3,7 @@ version: v2
 deps:
   - buf.build/odihnx-prod/service-payment-manager
   - buf.build/odihnx-prod/service-booking-manager
+  - buf.build/odihnx-prod/service-infraestructure-manager
 
 lint:
   use:
