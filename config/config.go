@@ -24,6 +24,8 @@ type GRPCConfig struct {
 	PaymentServiceTimeout time.Duration
 	BookingServiceAddress string
 	BookingServiceTimeout time.Duration
+	InfraServiceAddress   string
+	InfraServiceTimeout   time.Duration
 }
 
 // ControlGatewayConfig contiene la configuración del APISIX Control Gateway
@@ -55,6 +57,8 @@ func DefaultConfig() Config {
 			PaymentServiceTimeout: 10 * time.Second,
 			BookingServiceAddress: "localhost:50052",
 			BookingServiceTimeout: 10 * time.Second,
+			InfraServiceAddress:   "localhost:50053",
+			InfraServiceTimeout:   10 * time.Second,
 		},
 		ControlGateway: ControlGatewayConfig{
 			BaseURL:       "http://localhost:9081",
