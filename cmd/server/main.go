@@ -249,8 +249,8 @@ func getConfig() config.Config {
 	}
 
 	// Infrastructure Manager gRPC configuration
-	hostInfra := os.Getenv("HOST_API_INFRA")
-	portInfra := os.Getenv("PORT_API_INFRA")
+	hostInfra := os.Getenv("HOST_API_INFRASTRUCTURE")
+	portInfra := os.Getenv("PORT_API_INFRASTRUCTURE")
 	if hostInfra != "" && portInfra != "" {
 		cfg.GRPC.InfraServiceAddress = hostInfra + ":" + portInfra
 	}
