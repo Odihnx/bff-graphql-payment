@@ -262,11 +262,11 @@ type PricingTemplate struct {
 }
 
 type PricingTemplateBookingGroup struct {
-	BookingTimeID   int                        `json:"bookingTimeId"`
-	BookingTimeName string                     `json:"bookingTimeName"`
-	UnitMeasurement string                     `json:"unitMeasurement"`
-	Amount          int                        `json:"amount"`
-	Products        []*PricingTemplateProduct  `json:"products"`
+	BookingTimeID   int                       `json:"bookingTimeId"`
+	BookingTimeName string                    `json:"bookingTimeName"`
+	UnitMeasurement string                    `json:"unitMeasurement"`
+	Amount          int                       `json:"amount"`
+	Products        []*PricingTemplateProduct `json:"products"`
 }
 
 type PricingTemplateProduct struct {
