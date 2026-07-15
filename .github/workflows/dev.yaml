@@ -13,6 +13,7 @@ env:
   REPO_OWNER: Odihnx
   PROTO_BUF_REGISTRY_PAYMENT_API: buf.build/odihnx-prod/service-payment-manager
   PROTO_BUF_REGISTRY_BOOKING_API: buf.build/odihnx-prod/service-booking-manager
+  PROTO_BUF_REGISTRY_INFRA_API: buf.build/odihnx-prod/service-infraestructure-manager
 
 jobs:
   build-and-deploy:
@@ -63,6 +64,7 @@ jobs:
           # Generate remote modules using separate templates
           buf generate ${{ env.PROTO_BUF_REGISTRY_PAYMENT_API }} --template buf.gen.payment.yaml
           buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }} --template buf.gen.booking.yaml
+          buf generate ${{ env.PROTO_BUF_REGISTRY_INFRA_API }} --template buf.gen.infra.yaml
           echo "📦 Generated proto files:"
           ls -R gen/
 
@@ -73,6 +75,7 @@ jobs:
         run: |
           test -d gen/go/proto/payment || (echo "missing gen/go/proto/payment" && exit 1)
           test -d gen/go/proto/booking || (echo "missing gen/go/proto/booking" && exit 1)
+          test -d gen/go/proto/infra || (echo "missing gen/go/proto/infra" && exit 1)
           echo "✅ gen/go/proto structure verified"
 
       # ------------------------
