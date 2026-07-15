@@ -21,7 +21,7 @@ type Query {
   checkBookingStatus(input: CheckBookingStatusInput!): CheckBookingStatusResponse!
 
   # Get Booking Payment History (service_name hardcoded as "payment-system")
-  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @hasRole(role: "SUPER_ADMIN")
+  getBookingPayment(input: GetBookingPaymentInput!): BookingPaymentResponse! @auth
 
   # Get all pricing templates (admin only)
   getPricingTemplates: GetPricingTemplatesResponse! @hasRole(role: "SUPER_ADMIN")
