@@ -447,6 +447,20 @@ func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReferen
 	return result, nil
 }
 
+// GetInstallationsByUserEmail obtiene los nombres de instalaciones asignadas al usuario (para filtro por rol ADMIN)
+func (s *PaymentInfraService) GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.GetInstallationsByUserEmail")
+	defer span.End()
+	tracing.AddAttributes(span, map[string]string{"input.email": email})
+
+	installations, err := s.repo.GetInstallationsByUserEmail(ctx, email)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	return installations, nil
+}
+
 // GetBookingPayment obtiene el historial de reservas asociadas al servicio de pago
 func (s *PaymentInfraService) GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentHistory, error) {
 	ctx, span := tracing.StartSpan(ctx, "application.GetBookingPayment")

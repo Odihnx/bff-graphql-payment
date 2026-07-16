@@ -248,6 +248,13 @@ func getConfig() config.Config {
 		cfg.GRPC.BookingServiceAddress = hostBooking + ":" + portBooking
 	}
 
+	// Infrastructure Manager gRPC configuration
+	hostInfra := os.Getenv("HOST_API_INFRASTRUCTURE")
+	portInfra := os.Getenv("PORT_API_INFRASTRUCTURE")
+	if hostInfra != "" && portInfra != "" {
+		cfg.GRPC.InfraServiceAddress = hostInfra + ":" + portInfra
+	}
+
 	// Control Gateway configuration (concatenate HOST:PORT like legacy)
 	hostGatewayControl := os.Getenv("HOST_GATEWAY_CONTROL")
 	portGatewayControl := os.Getenv("PORT_GATEWAY_CONTROL")

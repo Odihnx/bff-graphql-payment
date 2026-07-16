@@ -2,6 +2,7 @@ package client
 
 import (
 	bookingpb "bff-graphql-payment/gen/go/proto/booking/v1"
+	infrapb "bff-graphql-payment/gen/go/proto/infra/v1"
 	paymentpb "bff-graphql-payment/gen/go/proto/payment/v1"
 	"bff-graphql-payment/internal/application/ports"
 	"bff-graphql-payment/internal/domain/exception"
@@ -27,19 +28,23 @@ import (
 type PaymentServiceGRPCClient struct {
 	conn          *grpc.ClientConn
 	bookingConn   *grpc.ClientConn
+	infraConn     *grpc.ClientConn
 	grpcClient    paymentpb.PaymentServiceClient
 	bookingClient bookingpb.BookingServiceClient
+	infraClient   infrapb.InfraestructureServiceClient
 	mapper        *mapper.PaymentInfraGRPCMapper
 	timeout       time.Duration
 	useMock       bool // Flag para determinar si usar mocks o cliente real
 }
 
 // NewPaymentServiceGRPCClient crea un nuevo cliente gRPC para el servicio de pagos
-func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, timeout time.Duration, useMock bool) (*PaymentServiceGRPCClient, error) {
+func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, infraAddress string, timeout time.Duration, useMock bool) (*PaymentServiceGRPCClient, error) {
 	var conn *grpc.ClientConn
 	var bookingConn *grpc.ClientConn
+	var infraConn *grpc.ClientConn
 	var grpcClient paymentpb.PaymentServiceClient
 	var bookingClient bookingpb.BookingServiceClient
+	var infraClient infrapb.InfraestructureServiceClient
 	var err error
 
 	// Solo intentar conectar si NO estamos usando mocks
@@ -71,13 +76,31 @@ func NewPaymentServiceGRPCClient(paymentAddress string, bookingAddress string, t
 			return nil, fmt.Errorf("failed to connect to booking service: %w", err)
 		}
 		bookingClient = bookingpb.NewBookingServiceClient(bookingConn)
+
+		log.Printf("OUT-GRPC [init] conectando a infra-manager-service | addr=%s", infraAddress)
+		infraConn, err = grpc.Dial(
+			infraAddress,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(traceUnaryInterceptor),
+			grpc.WithStreamInterceptor(traceStreamInterceptor),
+			grpc.WithBlock(),
+			grpc.WithTimeout(timeout),
+		)
+		if err != nil {
+			conn.Close()
+			bookingConn.Close()
+			return nil, fmt.Errorf("failed to connect to infra manager service: %w", err)
+		}
+		infraClient = infrapb.NewInfraestructureServiceClient(infraConn)
 	}
 
 	return &PaymentServiceGRPCClient{
 		conn:          conn,
 		bookingConn:   bookingConn,
+		infraConn:     infraConn,
 		grpcClient:    grpcClient,
 		bookingClient: bookingClient,
+		infraClient:   infraClient,
 		mapper:        mapper.NewPaymentInfraGRPCMapper(),
 		timeout:       timeout,
 		useMock:       useMock,
@@ -829,7 +852,49 @@ func (c *PaymentServiceGRPCClient) Close() error {
 			err = closeErr
 		}
 	}
+	if c.infraConn != nil {
+		if closeErr := c.infraConn.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}
 	return err
+}
+
+// GetInstallationsByUserEmail implementa PaymentInfraRepository.GetInstallationsByUserEmail
+// Llama a InfraestructureService.GetInstallationsByUserEmail para obtener las instalaciones del admin
+func (c *PaymentServiceGRPCClient) GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error) {
+	ctx, span := tracing.StartSpan(ctx, "grpc.GetInstallationsByUserEmail")
+	defer span.End()
+
+	tracing.AddAttributes(span, map[string]string{
+		"rpc.system":  "grpc",
+		"rpc.service": "InfraestructureService",
+		"rpc.method":  "GetInstallationsByUserEmail",
+		"input.email": email,
+	})
+
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	if c.useMock {
+		return []string{}, nil
+	}
+
+	resp, err := c.infraClient.GetInstallationsByUserEmail(ctx, &infrapb.RequestGetInstallationsByUserEmail{
+		Email: email,
+	})
+	if err != nil {
+		log.Printf("OUT-GRPC [GetInstallationsByUserEmail] ERROR llamando infra-manager | causa=%v", err)
+		mappedErr := c.mapGRPCError(err)
+		tracing.RecordError(span, mappedErr)
+		return nil, mappedErr
+	}
+
+	names := make([]string, 0, len(resp.Installations))
+	for _, inst := range resp.Installations {
+		names = append(names, inst.Name)
+	}
+	return names, nil
 }
 
 // mapGRPCError mapea errores gRPC a errores de dominio
@@ -895,7 +960,8 @@ func (c *PaymentServiceGRPCClient) GetBookingPayment(ctx context.Context, input 
 	}
 
 	req := &bookingpb.GetBookingHistoryRequest{
-		ServiceName: "payment-system",
+		ServiceName:       "payment-system",
+		InstallationsName: input.InstallationsName,
 	}
 
 	if input.DeviceID != nil {

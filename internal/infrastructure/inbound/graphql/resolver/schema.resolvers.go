@@ -9,6 +9,7 @@ import (
 	"bff-graphql-payment/graph/generated"
 	"bff-graphql-payment/graph/model"
 	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
+	"bff-graphql-payment/internal/infrastructure/inbound/middleware"
 	"context"
 	"fmt"
 	"log"
@@ -294,6 +295,24 @@ func (r *queryResolver) GetBookingPayment(ctx context.Context, input model.GetBo
 	tracing.AddAttributes(span, attrs)
 
 	domainInput := r.mapper.ToGetBookingPaymentInput(input)
+
+	claims, ok := middleware.GetUserClaims(ctx)
+	if !ok {
+		return nil, gqlerrors.New(ctx, fmt.Errorf("unauthorized: no authentication claims found"))
+	}
+
+	tracing.AddAttributes(span, map[string]string{"auth.user_email": claims.Email})
+
+	if claims.HasRole("ADMIN") {
+		installations, instErr := r.paymentInfraService.GetInstallationsByUserEmail(ctx, claims.Email)
+		if instErr != nil {
+			tracing.RecordError(span, instErr)
+			return nil, gqlerrors.New(ctx, fmt.Errorf("failed to retrieve installations for user: %w", instErr))
+		}
+		domainInput.InstallationsName = installations
+	} else if !claims.HasRole("SUPER_ADMIN") {
+		return nil, gqlerrors.New(ctx, fmt.Errorf("forbidden: ADMIN or SUPER_ADMIN role required"))
+	}
 
 	history, err := r.paymentInfraService.GetBookingPayment(ctx, domainInput)
 	if err != nil {
