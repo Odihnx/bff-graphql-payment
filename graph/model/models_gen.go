@@ -174,15 +174,16 @@ type GetAvailableLockersByRackIDAndBookingTimeInput struct {
 }
 
 type GetBookingPaymentInput struct {
-	DeviceID       *string        `json:"deviceId,omitempty"`
-	EmailRecipient *string        `json:"emailRecipient,omitempty"`
-	ActiveOnly     *bool          `json:"activeOnly,omitempty"`
-	Page           *int           `json:"page,omitempty"`
-	PageSize       *int           `json:"pageSize,omitempty"`
-	DateFrom       *string        `json:"dateFrom,omitempty"`
-	DateUntil      *string        `json:"dateUntil,omitempty"`
-	SortBy         *string        `json:"sortBy,omitempty"`
-	Sort           *SortDirection `json:"sort,omitempty"`
+	DeviceID         *string        `json:"deviceId,omitempty"`
+	EmailRecipient   *string        `json:"emailRecipient,omitempty"`
+	ActiveOnly       *bool          `json:"activeOnly,omitempty"`
+	Page             *int           `json:"page,omitempty"`
+	PageSize         *int           `json:"pageSize,omitempty"`
+	DateFrom         *string        `json:"dateFrom,omitempty"`
+	DateUntil        *string        `json:"dateUntil,omitempty"`
+	SortBy           *string        `json:"sortBy,omitempty"`
+	Sort             *SortDirection `json:"sort,omitempty"`
+	InstallationName *string        `json:"installationName,omitempty"`
 }
 
 type GetBookingTimesResponse struct {
