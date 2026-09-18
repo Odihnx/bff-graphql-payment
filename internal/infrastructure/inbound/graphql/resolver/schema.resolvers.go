@@ -13,6 +13,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"time"
 
@@ -303,15 +304,31 @@ func (r *queryResolver) GetBookingPayment(ctx context.Context, input model.GetBo
 
 	tracing.AddAttributes(span, map[string]string{"auth.user_email": claims.Email})
 
-	if claims.HasRole("ADMIN") {
+	isAdmin := claims.HasRole("ADMIN")
+	var adminInstallations []string
+	if isAdmin {
 		installations, instErr := r.paymentInfraService.GetInstallationsByUserEmail(ctx, claims.Email)
 		if instErr != nil {
 			tracing.RecordError(span, instErr)
 			return nil, gqlerrors.New(ctx, fmt.Errorf("failed to retrieve installations for user: %w", instErr))
 		}
+		adminInstallations = installations
 		domainInput.InstallationsName = installations
 	} else if !claims.HasRole("SUPER_ADMIN") {
 		return nil, gqlerrors.New(ctx, fmt.Errorf("forbidden: ADMIN or SUPER_ADMIN role required"))
+	}
+
+	// Filtro por instalación desde la UI (selector). Debe respetar el alcance por rol: un
+	// ADMIN sólo puede filtrar dentro de las instalaciones que administra.
+	if input.InstallationName != nil && *input.InstallationName != "" {
+		if isAdmin && !slices.Contains(adminInstallations, *input.InstallationName) {
+			// El ADMIN pidió una instalación fuera de su alcance: lista vacía, no error.
+			return &model.BookingPaymentResponse{
+				Bookings:    []*model.BookingPaymentRecord{},
+				CurrentPage: 1,
+			}, nil
+		}
+		domainInput.InstallationsName = []string{*input.InstallationName}
 	}
 
 	history, err := r.paymentInfraService.GetBookingPayment(ctx, domainInput)

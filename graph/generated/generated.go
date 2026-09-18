@@ -1767,6 +1767,9 @@ input GetBookingPaymentInput {
   dateUntil: String
   sortBy: String
   sort: SortDirection
+  # Filtro por nombre exacto de instalación (viene de un selector en la UI). Un ADMIN sólo
+  # puede filtrar dentro de las instalaciones que administra.
+  installationName: String
 }
 
 # ========== RESPONSE TYPES ==========
@@ -10114,7 +10117,7 @@ func (ec *executionContext) unmarshalInputGetBookingPaymentInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"deviceId", "emailRecipient", "activeOnly", "page", "pageSize", "dateFrom", "dateUntil", "sortBy", "sort"}
+	fieldsInOrder := [...]string{"deviceId", "emailRecipient", "activeOnly", "page", "pageSize", "dateFrom", "dateUntil", "sortBy", "sort", "installationName"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10184,6 +10187,13 @@ func (ec *executionContext) unmarshalInputGetBookingPaymentInput(ctx context.Con
 				return it, err
 			}
 			it.Sort = data
+		case "installationName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("installationName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InstallationName = data
 		}
 	}
 	return it, nil
