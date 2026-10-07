@@ -211,7 +211,30 @@ type GetPurchaseOrderByPoInput struct {
 	TraceID       string `json:"traceId"`
 }
 
+type LockerConnectivity struct {
+	// El equipo informó salud (K4) en los últimos 12 min.
+	Online bool `json:"online"`
+	// null si el equipo nunca informó.
+	LastSeenAt *string `json:"lastSeenAt,omitempty"`
+	// Sin conexión + equipo listo (acceso-local ≥ 1.1 y flag de usuarios) + reserva elegible.
+	OfflineVoucherAvailable bool `json:"offlineVoucherAvailable"`
+}
+
 type Mutation struct {
+}
+
+// Identifica la reserva igual que ExecuteOpenInput.
+type OfflineAccessInput struct {
+	ServiceName string `json:"serviceName"`
+	CurrentCode string `json:"currentCode"`
+}
+
+type OfflineVoucher struct {
+	// http://10.42.0.1:8080/u#… · se abre como navegación, nunca con fetch.
+	URL string `json:"url"`
+	// SSID del Wi-Fi del rack. La contraseña está en el sticker.
+	WifiSsid   string `json:"wifiSsid"`
+	ValidUntil string `json:"validUntil"`
 }
 
 type PaymentBookingTime struct {

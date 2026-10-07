@@ -65,6 +65,7 @@ jobs:
           buf generate ${{ env.PROTO_BUF_REGISTRY_PAYMENT_API }} --template buf.gen.payment.yaml
           buf generate ${{ env.PROTO_BUF_REGISTRY_BOOKING_API }} --template buf.gen.booking.yaml
           buf generate ${{ env.PROTO_BUF_REGISTRY_INFRA_API }} --template buf.gen.infra.yaml
+          buf generate buf.build/odihnx-prod/service-local-access-manager --template buf.gen.localaccess.yaml
           echo "📦 Generated proto files:"
           ls -R gen/
 

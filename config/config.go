@@ -23,9 +23,11 @@ type GRPCConfig struct {
 	PaymentServiceAddress string
 	PaymentServiceTimeout time.Duration
 	BookingServiceAddress string
-	BookingServiceTimeout time.Duration
-	InfraServiceAddress   string
-	InfraServiceTimeout   time.Duration
+	// Emisor de accesos locales (apertura sin conexión, K3).
+	LocalAccessServiceAddress string
+	BookingServiceTimeout     time.Duration
+	InfraServiceAddress       string
+	InfraServiceTimeout       time.Duration
 }
 
 // ControlGatewayConfig contiene la configuración del APISIX Control Gateway
@@ -53,12 +55,13 @@ func DefaultConfig() Config {
 			IdleTimeout:  60 * time.Second,
 		},
 		GRPC: GRPCConfig{
-			PaymentServiceAddress: "localhost:50051",
-			PaymentServiceTimeout: 10 * time.Second,
-			BookingServiceAddress: "localhost:50052",
-			BookingServiceTimeout: 10 * time.Second,
-			InfraServiceAddress:   "localhost:50053",
-			InfraServiceTimeout:   10 * time.Second,
+			PaymentServiceAddress:     "localhost:50051",
+			PaymentServiceTimeout:     10 * time.Second,
+			BookingServiceAddress:     "localhost:50052",
+			LocalAccessServiceAddress: "localhost:50057",
+			BookingServiceTimeout:     10 * time.Second,
+			InfraServiceAddress:       "localhost:50053",
+			InfraServiceTimeout:       10 * time.Second,
 		},
 		ControlGateway: ControlGatewayConfig{
 			BaseURL:       "http://localhost:9081",

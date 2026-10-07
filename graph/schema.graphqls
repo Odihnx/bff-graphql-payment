@@ -423,3 +423,37 @@ type BookingPaymentResponse {
   lastPage: Int!
   nextPage: Int!
 }
+
+# ========== APERTURA SIN CONEXIÓN (contrato K3 v1, concepts-apertura-local) ==========
+# Copiado tal cual de docs/contratos/K3/payment.graphqls. Públicas, como executeOpen (D-acceso).
+
+"Identifica la reserva igual que ExecuteOpenInput."
+input OfflineAccessInput {
+  serviceName: String!
+  currentCode: String!
+}
+
+type LockerConnectivity {
+  "El equipo informó salud (K4) en los últimos 12 min."
+  online: Boolean!
+  "null si el equipo nunca informó."
+  lastSeenAt: String
+  "Sin conexión + equipo listo (acceso-local ≥ 1.1 y flag de usuarios) + reserva elegible."
+  offlineVoucherAvailable: Boolean!
+}
+
+type OfflineVoucher {
+  "http://10.42.0.1:8080/u#… · se abre como navegación, nunca con fetch."
+  url: String!
+  "SSID del Wi-Fi del rack. La contraseña está en el sticker."
+  wifiSsid: String!
+  validUntil: String!
+}
+
+extend type Query {
+  lockerConnectivity(input: OfflineAccessInput!): LockerConnectivity!
+}
+
+extend type Mutation {
+  requestOfflineVoucher(input: OfflineAccessInput!): OfflineVoucher!
+}
