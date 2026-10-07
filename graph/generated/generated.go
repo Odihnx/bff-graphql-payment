@@ -167,11 +167,24 @@ type ComplexityRoot struct {
 		TransactionID    func(childComplexity int) int
 	}
 
+	LockerConnectivity struct {
+		LastSeenAt              func(childComplexity int) int
+		OfflineVoucherAvailable func(childComplexity int) int
+		Online                  func(childComplexity int) int
+	}
+
 	Mutation struct {
 		CreateRackPayment     func(childComplexity int, input model.CreateRackPaymentInput) int
 		GenerateBooking       func(childComplexity int, input model.GenerateBookingInput) int
 		GenerateCoupon        func(childComplexity int, input model.GenerateCouponInput) int
 		GeneratePurchaseOrder func(childComplexity int, input model.GeneratePurchaseOrderInput) int
+		RequestOfflineVoucher func(childComplexity int, input model.OfflineAccessInput) int
+	}
+
+	OfflineVoucher struct {
+		URL        func(childComplexity int) int
+		ValidUntil func(childComplexity int) int
+		WifiSsid   func(childComplexity int) int
 	}
 
 	PaymentBookingTime struct {
@@ -290,6 +303,7 @@ type ComplexityRoot struct {
 		GetPaymentInfraByQRValue                  func(childComplexity int, input model.GetPaymentInfraByQRValueInput) int
 		GetPricingTemplates                       func(childComplexity int) int
 		GetPurchaseOrderByPo                      func(childComplexity int, input model.GetPurchaseOrderByPoInput) int
+		LockerConnectivity                        func(childComplexity int, input model.OfflineAccessInput) int
 		ValidateDiscountCoupon                    func(childComplexity int, input model.ValidateDiscountCouponInput) int
 	}
 
@@ -314,6 +328,7 @@ type MutationResolver interface {
 	GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error)
 	GenerateCoupon(ctx context.Context, input model.GenerateCouponInput) (*model.GenerateCouponResponse, error)
 	CreateRackPayment(ctx context.Context, input model.CreateRackPaymentInput) (*model.CreateRackPaymentResponse, error)
+	RequestOfflineVoucher(ctx context.Context, input model.OfflineAccessInput) (*model.OfflineVoucher, error)
 }
 type QueryResolver interface {
 	GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error)
@@ -324,6 +339,7 @@ type QueryResolver interface {
 	GetBookingPayment(ctx context.Context, input model.GetBookingPaymentInput) (*model.BookingPaymentResponse, error)
 	GetPricingTemplates(ctx context.Context) (*model.GetPricingTemplatesResponse, error)
 	GetBookingTimes(ctx context.Context) (*model.GetBookingTimesResponse, error)
+	LockerConnectivity(ctx context.Context, input model.OfflineAccessInput) (*model.LockerConnectivity, error)
 }
 type SubscriptionResolver interface {
 	ExecuteOpen(ctx context.Context, input model.ExecuteOpenInput) (<-chan *model.ExecuteOpenResponse, error)
@@ -879,6 +895,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.GetPricingTemplatesResponse.TransactionID(childComplexity), true
 
+	case "LockerConnectivity.lastSeenAt":
+		if e.ComplexityRoot.LockerConnectivity.LastSeenAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LockerConnectivity.LastSeenAt(childComplexity), true
+	case "LockerConnectivity.offlineVoucherAvailable":
+		if e.ComplexityRoot.LockerConnectivity.OfflineVoucherAvailable == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LockerConnectivity.OfflineVoucherAvailable(childComplexity), true
+	case "LockerConnectivity.online":
+		if e.ComplexityRoot.LockerConnectivity.Online == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LockerConnectivity.Online(childComplexity), true
+
 	case "Mutation.createRackPayment":
 		if e.ComplexityRoot.Mutation.CreateRackPayment == nil {
 			break
@@ -923,6 +958,36 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.GeneratePurchaseOrder(childComplexity, args["input"].(model.GeneratePurchaseOrderInput)), true
+	case "Mutation.requestOfflineVoucher":
+		if e.ComplexityRoot.Mutation.RequestOfflineVoucher == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestOfflineVoucher_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RequestOfflineVoucher(childComplexity, args["input"].(model.OfflineAccessInput)), true
+
+	case "OfflineVoucher.url":
+		if e.ComplexityRoot.OfflineVoucher.URL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfflineVoucher.URL(childComplexity), true
+	case "OfflineVoucher.validUntil":
+		if e.ComplexityRoot.OfflineVoucher.ValidUntil == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfflineVoucher.ValidUntil(childComplexity), true
+	case "OfflineVoucher.wifiSsid":
+		if e.ComplexityRoot.OfflineVoucher.WifiSsid == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfflineVoucher.WifiSsid(childComplexity), true
 
 	case "PaymentBookingTime.amount":
 		if e.ComplexityRoot.PaymentBookingTime.Amount == nil {
@@ -1453,6 +1518,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Query.GetPurchaseOrderByPo(childComplexity, args["input"].(model.GetPurchaseOrderByPoInput)), true
 
+	case "Query.lockerConnectivity":
+		if e.ComplexityRoot.Query.LockerConnectivity == nil {
+			break
+		}
+
+		args, err := ec.field_Query_lockerConnectivity_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.LockerConnectivity(childComplexity, args["input"].(model.OfflineAccessInput)), true
 	case "Query.validateDiscountCoupon":
 		if e.ComplexityRoot.Query.ValidateDiscountCoupon == nil {
 			break
@@ -1544,6 +1620,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGetBookingPaymentInput,
 		ec.unmarshalInputGetPaymentInfraByQrValueInput,
 		ec.unmarshalInputGetPurchaseOrderByPoInput,
+		ec.unmarshalInputOfflineAccessInput,
 		ec.unmarshalInputValidateDiscountCouponInput,
 	)
 	first := true
@@ -2062,6 +2139,40 @@ type BookingPaymentResponse {
   lastPage: Int!
   nextPage: Int!
 }
+
+# ========== APERTURA SIN CONEXIÓN (contrato K3 v1, concepts-apertura-local) ==========
+# Copiado tal cual de docs/contratos/K3/payment.graphqls. Públicas, como executeOpen (D-acceso).
+
+"Identifica la reserva igual que ExecuteOpenInput."
+input OfflineAccessInput {
+  serviceName: String!
+  currentCode: String!
+}
+
+type LockerConnectivity {
+  "El equipo informó salud (K4) en los últimos 12 min."
+  online: Boolean!
+  "null si el equipo nunca informó."
+  lastSeenAt: String
+  "Sin conexión + equipo listo (acceso-local ≥ 1.1 y flag de usuarios) + reserva elegible."
+  offlineVoucherAvailable: Boolean!
+}
+
+type OfflineVoucher {
+  "http://10.42.0.1:8080/u#… · se abre como navegación, nunca con fetch."
+  url: String!
+  "SSID del Wi-Fi del rack. La contraseña está en el sticker."
+  wifiSsid: String!
+  validUntil: String!
+}
+
+extend type Query {
+  lockerConnectivity(input: OfflineAccessInput!): LockerConnectivity!
+}
+
+extend type Mutation {
+  requestOfflineVoucher(input: OfflineAccessInput!): OfflineVoucher!
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -2118,6 +2229,17 @@ func (ec *executionContext) field_Mutation_generatePurchaseOrder_args(ctx contex
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGeneratePurchaseOrderInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGeneratePurchaseOrderInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_requestOfflineVoucher_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNOfflineAccessInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineAccessInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2184,6 +2306,17 @@ func (ec *executionContext) field_Query_getPurchaseOrderByPo_args(ctx context.Co
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGetPurchaseOrderByPoInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGetPurchaseOrderByPoInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_lockerConnectivity_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNOfflineAccessInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineAccessInput)
 	if err != nil {
 		return nil, err
 	}
@@ -4918,6 +5051,93 @@ func (ec *executionContext) fieldContext_GetPricingTemplatesResponse_pricingTemp
 	return fc, nil
 }
 
+func (ec *executionContext) _LockerConnectivity_online(ctx context.Context, field graphql.CollectedField, obj *model.LockerConnectivity) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_LockerConnectivity_online,
+		func(ctx context.Context) (any, error) {
+			return obj.Online, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_LockerConnectivity_online(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LockerConnectivity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LockerConnectivity_lastSeenAt(ctx context.Context, field graphql.CollectedField, obj *model.LockerConnectivity) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_LockerConnectivity_lastSeenAt,
+		func(ctx context.Context) (any, error) {
+			return obj.LastSeenAt, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_LockerConnectivity_lastSeenAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LockerConnectivity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LockerConnectivity_offlineVoucherAvailable(ctx context.Context, field graphql.CollectedField, obj *model.LockerConnectivity) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_LockerConnectivity_offlineVoucherAvailable,
+		func(ctx context.Context) (any, error) {
+			return obj.OfflineVoucherAvailable, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_LockerConnectivity_offlineVoucherAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LockerConnectivity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_generatePurchaseOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -5162,6 +5382,142 @@ func (ec *executionContext) fieldContext_Mutation_createRackPayment(ctx context.
 	if fc.Args, err = ec.field_Mutation_createRackPayment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_requestOfflineVoucher(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_requestOfflineVoucher,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RequestOfflineVoucher(ctx, fc.Args["input"].(model.OfflineAccessInput))
+		},
+		nil,
+		ec.marshalNOfflineVoucher2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineVoucher,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_requestOfflineVoucher(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_OfflineVoucher_url(ctx, field)
+			case "wifiSsid":
+				return ec.fieldContext_OfflineVoucher_wifiSsid(ctx, field)
+			case "validUntil":
+				return ec.fieldContext_OfflineVoucher_validUntil(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OfflineVoucher", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_requestOfflineVoucher_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfflineVoucher_url(ctx context.Context, field graphql.CollectedField, obj *model.OfflineVoucher) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfflineVoucher_url,
+		func(ctx context.Context) (any, error) {
+			return obj.URL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfflineVoucher_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfflineVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfflineVoucher_wifiSsid(ctx context.Context, field graphql.CollectedField, obj *model.OfflineVoucher) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfflineVoucher_wifiSsid,
+		func(ctx context.Context) (any, error) {
+			return obj.WifiSsid, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfflineVoucher_wifiSsid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfflineVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfflineVoucher_validUntil(ctx context.Context, field graphql.CollectedField, obj *model.OfflineVoucher) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfflineVoucher_validUntil,
+		func(ctx context.Context) (any, error) {
+			return obj.ValidUntil, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfflineVoucher_validUntil(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfflineVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -7898,6 +8254,55 @@ func (ec *executionContext) fieldContext_Query_getBookingTimes(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_lockerConnectivity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_lockerConnectivity,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().LockerConnectivity(ctx, fc.Args["input"].(model.OfflineAccessInput))
+		},
+		nil,
+		ec.marshalNLockerConnectivity2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerConnectivity,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_lockerConnectivity(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "online":
+				return ec.fieldContext_LockerConnectivity_online(ctx, field)
+			case "lastSeenAt":
+				return ec.fieldContext_LockerConnectivity_lastSeenAt(ctx, field)
+			case "offlineVoucherAvailable":
+				return ec.fieldContext_LockerConnectivity_offlineVoucherAvailable(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LockerConnectivity", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_lockerConnectivity_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10266,6 +10671,43 @@ func (ec *executionContext) unmarshalInputGetPurchaseOrderByPoInput(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOfflineAccessInput(ctx context.Context, obj any) (model.OfflineAccessInput, error) {
+	var it model.OfflineAccessInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"serviceName", "currentCode"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "serviceName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceName"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceName = data
+		case "currentCode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentCode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CurrentCode = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputValidateDiscountCouponInput(ctx context.Context, obj any) (model.ValidateDiscountCouponInput, error) {
 	var it model.ValidateDiscountCouponInput
 	if obj == nil {
@@ -11230,6 +11672,52 @@ func (ec *executionContext) _GetPricingTemplatesResponse(ctx context.Context, se
 	return out
 }
 
+var lockerConnectivityImplementors = []string{"LockerConnectivity"}
+
+func (ec *executionContext) _LockerConnectivity(ctx context.Context, sel ast.SelectionSet, obj *model.LockerConnectivity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, lockerConnectivityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LockerConnectivity")
+		case "online":
+			out.Values[i] = ec._LockerConnectivity_online(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastSeenAt":
+			out.Values[i] = ec._LockerConnectivity_lastSeenAt(ctx, field, obj)
+		case "offlineVoucherAvailable":
+			out.Values[i] = ec._LockerConnectivity_offlineVoucherAvailable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -11274,6 +11762,62 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createRackPayment(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requestOfflineVoucher":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestOfflineVoucher(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var offlineVoucherImplementors = []string{"OfflineVoucher"}
+
+func (ec *executionContext) _OfflineVoucher(ctx context.Context, sel ast.SelectionSet, obj *model.OfflineVoucher) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, offlineVoucherImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OfflineVoucher")
+		case "url":
+			out.Values[i] = ec._OfflineVoucher_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "wifiSsid":
+			out.Values[i] = ec._OfflineVoucher_wifiSsid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "validUntil":
+			out.Values[i] = ec._OfflineVoucher_validUntil(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12232,6 +12776,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "lockerConnectivity":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_lockerConnectivity(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -13036,6 +13602,39 @@ func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNLockerConnectivity2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerConnectivity(ctx context.Context, sel ast.SelectionSet, v model.LockerConnectivity) graphql.Marshaler {
+	return ec._LockerConnectivity(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLockerConnectivity2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerConnectivity(ctx context.Context, sel ast.SelectionSet, v *model.LockerConnectivity) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LockerConnectivity(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOfflineAccessInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineAccessInput(ctx context.Context, v any) (model.OfflineAccessInput, error) {
+	res, err := ec.unmarshalInputOfflineAccessInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOfflineVoucher2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineVoucher(ctx context.Context, sel ast.SelectionSet, v model.OfflineVoucher) graphql.Marshaler {
+	return ec._OfflineVoucher(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOfflineVoucher2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineVoucher(ctx context.Context, sel ast.SelectionSet, v *model.OfflineVoucher) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OfflineVoucher(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNOpenStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOpenStatus(ctx context.Context, v any) (model.OpenStatus, error) {
