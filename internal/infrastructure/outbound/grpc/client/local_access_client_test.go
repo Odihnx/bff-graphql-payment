@@ -30,6 +30,7 @@ type emisorFake struct {
 	conexion *lapb.GetLockerConnectivityRequest
 	voucher  *lapb.IssueOfflineVoucherRequest
 	sinVisto bool
+	clave    string
 }
 
 func (f *emisorFake) GetLockerConnectivity(_ context.Context, r *lapb.GetLockerConnectivityRequest) (*lapb.GetLockerConnectivityResponse, error) {
@@ -50,7 +51,7 @@ func (f *emisorFake) IssueOfflineVoucher(_ context.Context, r *lapb.IssueOffline
 		return nil, f.err
 	}
 	return &lapb.IssueOfflineVoucherResponse{Url: "http://10.42.0.1:8080/u#X", WifiSsid: "Odihnx-E39CBB",
-		ValidUntil: timestamppb.New(t0.Add(15 * time.Minute)), Nonce: "0909090909090909"}, nil
+		ValidUntil: timestamppb.New(t0.Add(15 * time.Minute)), Nonce: "0909090909090909", WifiPassword: f.clave}, nil
 }
 
 func conReason(c codes.Code, reason string) error {
@@ -100,6 +101,36 @@ func TestVoucherTraduce(t *testing.T) {
 	}
 	if v.URL != "http://10.42.0.1:8080/u#X" || v.WifiSSID != "Odihnx-E39CBB" || !v.ValidUntil.Equal(t0.Add(15*time.Minute)) ||
 		f.voucher.ServiceName != "payment-system" || f.voucher.CurrentCode != "COD-1" {
+		t.Fatalf("%+v", v)
+	}
+	// Sin clave del emisor (string vacío) → nil: GraphQL la expone como null (K3 v1.2).
+	if v.WifiPassword != nil {
+		t.Fatalf("clave vacía debería quedar nil: %q", *v.WifiPassword)
+	}
+}
+
+func TestVoucherConClave(t *testing.T) {
+	v, err := levantarEmisor(t, &emisorFake{clave: "0123456789abcdef"}).IssueOfflineVoucher(context.Background(), "payment-system", "COD-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.WifiPassword == nil || *v.WifiPassword != "0123456789abcdef" {
+		t.Fatalf("%+v", v)
+	}
+}
+
+// El mock responde el ejemplo de K3 v1.2 (docs/contratos/K3/ejemplos/RequestOfflineVoucher.json).
+func TestVoucherMockEsElEjemploDeK3(t *testing.T) {
+	c, err := NewLocalAccessGRPCClient("", time.Second, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v, err := c.IssueOfflineVoucher(context.Background(), "payment-system", "COD-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.URL != "http://10.42.0.1:8080/u#VOUCHER_V2_PENDIENTE_DE_K1" || v.WifiSSID != "Odihnx-E39CBB" ||
+		v.WifiPassword == nil || *v.WifiPassword != "0123456789abcdef" || !v.ValidUntil.Equal(t0) {
 		t.Fatalf("%+v", v)
 	}
 }

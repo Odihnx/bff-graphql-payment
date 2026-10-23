@@ -64,8 +64,9 @@ func (c *LocalAccessGRPCClient) GetLockerConnectivity(ctx context.Context, servi
 
 func (c *LocalAccessGRPCClient) IssueOfflineVoucher(ctx context.Context, serviceName, currentCode string) (*model.OfflineVoucher, error) {
 	if c.useMock {
+		clave := "0123456789abcdef"
 		return &model.OfflineVoucher{URL: "http://10.42.0.1:8080/u#VOUCHER_V2_PENDIENTE_DE_K1", WifiSSID: "Odihnx-E39CBB",
-			ValidUntil: time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC)}, nil
+			WifiPassword: &clave, ValidUntil: time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC)}, nil
 	}
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
@@ -73,7 +74,12 @@ func (c *LocalAccessGRPCClient) IssueOfflineVoucher(ctx context.Context, service
 	if err != nil {
 		return nil, localAccessError("IssueOfflineVoucher", err)
 	}
-	return &model.OfflineVoucher{URL: r.GetUrl(), WifiSSID: r.GetWifiSsid(), ValidUntil: r.GetValidUntil().AsTime()}, nil
+	out := &model.OfflineVoucher{URL: r.GetUrl(), WifiSSID: r.GetWifiSsid(), ValidUntil: r.GetValidUntil().AsTime()}
+	// wifi_password vacío = clave no verificada → null en GraphQL (K3 v1.2).
+	if p := r.GetWifiPassword(); p != "" {
+		out.WifiPassword = &p
+	}
+	return out, nil
 }
 
 // localAccessError: reason de K3 → catálogo; Unimplemented → "todavía no disponible" (sin codec v2
