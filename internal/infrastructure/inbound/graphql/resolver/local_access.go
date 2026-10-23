@@ -40,8 +40,9 @@ func (r *Resolver) requestOfflineVoucher(ctx context.Context, in model.OfflineAc
 	if err != nil {
 		return nil, localAccessGQLError("requestOfflineVoucher", err)
 	}
-	// La URL nunca va a los logs.
-	return &model.OfflineVoucher{URL: v.URL, WifiSsid: v.WifiSSID, ValidUntil: v.ValidUntil.UTC().Format(time.RFC3339)}, nil
+	// La URL y la clave nunca van a los logs.
+	return &model.OfflineVoucher{URL: v.URL, WifiSsid: v.WifiSSID, WifiPassword: v.WifiPassword,
+		ValidUntil: v.ValidUntil.UTC().Format(time.RFC3339)}, nil
 }
 
 // localAccessGQLError: catálogo de K3 con extensions {code, status} (convención de este BFF:

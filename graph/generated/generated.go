@@ -182,9 +182,10 @@ type ComplexityRoot struct {
 	}
 
 	OfflineVoucher struct {
-		URL        func(childComplexity int) int
-		ValidUntil func(childComplexity int) int
-		WifiSsid   func(childComplexity int) int
+		URL          func(childComplexity int) int
+		ValidUntil   func(childComplexity int) int
+		WifiPassword func(childComplexity int) int
+		WifiSsid     func(childComplexity int) int
 	}
 
 	PaymentBookingTime struct {
@@ -982,6 +983,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.OfflineVoucher.ValidUntil(childComplexity), true
+	case "OfflineVoucher.wifiPassword":
+		if e.ComplexityRoot.OfflineVoucher.WifiPassword == nil {
+			break
+		}
+
+		return e.ComplexityRoot.OfflineVoucher.WifiPassword(childComplexity), true
 	case "OfflineVoucher.wifiSsid":
 		if e.ComplexityRoot.OfflineVoucher.WifiSsid == nil {
 			break
@@ -2161,8 +2168,10 @@ type LockerConnectivity {
 type OfflineVoucher {
   "http://10.42.0.1:8080/u#… · se abre como navegación, nunca con fetch."
   url: String!
-  "SSID del Wi-Fi del rack. La contraseña está en el sticker."
+  "SSID del Wi-Fi del rack."
   wifiSsid: String!
+  "Clave del Wi-Fi del rack (v1.2). null si no está verificada: entonces el usuario usa el sticker."
+  wifiPassword: String
   validUntil: String!
 }
 
@@ -5415,6 +5424,8 @@ func (ec *executionContext) fieldContext_Mutation_requestOfflineVoucher(ctx cont
 				return ec.fieldContext_OfflineVoucher_url(ctx, field)
 			case "wifiSsid":
 				return ec.fieldContext_OfflineVoucher_wifiSsid(ctx, field)
+			case "wifiPassword":
+				return ec.fieldContext_OfflineVoucher_wifiPassword(ctx, field)
 			case "validUntil":
 				return ec.fieldContext_OfflineVoucher_validUntil(ctx, field)
 			}
@@ -5481,6 +5492,35 @@ func (ec *executionContext) _OfflineVoucher_wifiSsid(ctx context.Context, field 
 }
 
 func (ec *executionContext) fieldContext_OfflineVoucher_wifiSsid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OfflineVoucher",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OfflineVoucher_wifiPassword(ctx context.Context, field graphql.CollectedField, obj *model.OfflineVoucher) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_OfflineVoucher_wifiPassword,
+		func(ctx context.Context) (any, error) {
+			return obj.WifiPassword, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_OfflineVoucher_wifiPassword(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "OfflineVoucher",
 		Field:      field,
@@ -11816,6 +11856,8 @@ func (ec *executionContext) _OfflineVoucher(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "wifiPassword":
+			out.Values[i] = ec._OfflineVoucher_wifiPassword(ctx, field, obj)
 		case "validUntil":
 			out.Values[i] = ec._OfflineVoucher_validUntil(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

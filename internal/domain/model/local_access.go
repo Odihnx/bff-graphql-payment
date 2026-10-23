@@ -13,7 +13,10 @@ type LockerConnectivity struct {
 
 // OfflineVoucher: la URL se abre como navegación (nunca con fetch) estando en el Wi-Fi del rack.
 type OfflineVoucher struct {
-	URL        string
-	WifiSSID   string
-	ValidUntil time.Time
+	URL      string
+	WifiSSID string
+	// WifiPassword: clave del Wi-Fi del rack (K3 v1.2); nil si el emisor no la tiene verificada
+	// (el usuario usa el sticker). Nunca va a los logs.
+	WifiPassword *string
+	ValidUntil   time.Time
 }

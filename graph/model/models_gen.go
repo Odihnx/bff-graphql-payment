@@ -232,9 +232,11 @@ type OfflineAccessInput struct {
 type OfflineVoucher struct {
 	// http://10.42.0.1:8080/u#… · se abre como navegación, nunca con fetch.
 	URL string `json:"url"`
-	// SSID del Wi-Fi del rack. La contraseña está en el sticker.
-	WifiSsid   string `json:"wifiSsid"`
-	ValidUntil string `json:"validUntil"`
+	// SSID del Wi-Fi del rack.
+	WifiSsid string `json:"wifiSsid"`
+	// Clave del Wi-Fi del rack (v1.2). null si no está verificada: entonces el usuario usa el sticker.
+	WifiPassword *string `json:"wifiPassword,omitempty"`
+	ValidUntil   string  `json:"validUntil"`
 }
 
 type PaymentBookingTime struct {
