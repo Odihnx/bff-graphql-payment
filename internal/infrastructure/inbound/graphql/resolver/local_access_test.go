@@ -23,7 +23,7 @@ const (
   lockerConnectivity(input: $input) { online lastSeenAt offlineVoucherAvailable }
 }`
 	opVoucher = `mutation RequestOfflineVoucher($input: OfflineAccessInput!) {
-  requestOfflineVoucher(input: $input) { url wifiSsid validUntil }
+  requestOfflineVoucher(input: $input) { url wifiSsid wifiPassword validUntil }
 }`
 )
 
@@ -33,6 +33,7 @@ type localFake struct {
 	err             error
 	service, codigo string
 	sinVisto        bool
+	clave           *string
 }
 
 func (f *localFake) GetLockerConnectivity(_ context.Context, s, c string) (*model.LockerConnectivity, error) {
@@ -53,7 +54,8 @@ func (f *localFake) IssueOfflineVoucher(_ context.Context, s, c string) (*model.
 	if f.err != nil {
 		return nil, f.err
 	}
-	return &model.OfflineVoucher{URL: "http://10.42.0.1:8080/u#X", WifiSSID: "Odihnx-E39CBB", ValidUntil: t0.Add(15 * time.Minute)}, nil
+	return &model.OfflineVoucher{URL: "http://10.42.0.1:8080/u#X", WifiSSID: "Odihnx-E39CBB", WifiPassword: f.clave,
+		ValidUntil: t0.Add(15 * time.Minute)}, nil
 }
 
 // Esquema ejecutable real con sus directivas, sin claims: las operaciones son públicas (como executeOpen).
@@ -112,6 +114,21 @@ func TestRequestOfflineVoucher(t *testing.T) {
 	v := data["requestOfflineVoucher"].(map[string]any)
 	if v["url"] != "http://10.42.0.1:8080/u#X" || v["wifiSsid"] != "Odihnx-E39CBB" || v["validUntil"] != "2026-10-08T14:15:00Z" {
 		t.Fatalf("%v", v)
+	}
+	// Sin clave verificada → null (el usuario usa el sticker), K3 v1.2.
+	if p, ok := v["wifiPassword"]; !ok || p != nil {
+		t.Fatalf("wifiPassword debería ser null: %v", v)
+	}
+}
+
+func TestRequestOfflineVoucherConClave(t *testing.T) {
+	clave := "0123456789abcdef"
+	data, errs := ejecutar(t, cliente(&localFake{clave: &clave}), opVoucher)
+	if errs != nil {
+		t.Fatal(errs)
+	}
+	if p := data["requestOfflineVoucher"].(map[string]any)["wifiPassword"]; p != clave {
+		t.Fatalf("wifiPassword = %v", p)
 	}
 }
 
