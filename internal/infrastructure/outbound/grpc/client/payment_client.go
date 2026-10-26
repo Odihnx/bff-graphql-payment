@@ -642,64 +642,79 @@ func (c *PaymentServiceGRPCClient) ExecuteOpenStream(ctx context.Context, servic
 	// Goroutine para recibir todos los mensajes del stream y emitirlos al canal
 	go func() {
 		defer close(resultChan)
-
-		messageCount := 0
-		for {
-			resp, err := stream.Recv()
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				log.Printf("OUT-GRPC [ExecuteOpenStream] ERROR recibiendo del stream | causa=%v", err)
-
-				// Emitir error al canal
-				resultChan <- &model.ExecuteOpenResult{
-					TransactionID:  "",
-					Message:        fmt.Sprintf("Error de conexión: %v", err),
-					OpenStatus:     model.OpenStatusError,
-					PhysicalStatus: model.PhysicalStatusUnspecified,
-				}
-				break
-			}
-
-			messageCount++
-
-			// Convertir respuesta gRPC a DTO
-			genericResp := &dto.PaymentManagerGenericResponse{}
-			if resp != nil {
-				// Nuevo proto: los metadatos vienen en campos de primer nivel
-				genericResp.TransactionId = resp.TransactionId
-				genericResp.Message = resp.Message
-				// Inferir un PaymentManagerResponseStatus a partir del OpenStatus
-				switch resp.Status {
-				case bookingpb.OpenStatus_OPEN_STATUS_SUCCESS:
-					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK
-				case bookingpb.OpenStatus_OPEN_STATUS_ERROR:
-					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR
-				default:
-					genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_UNSPECIFIED
-				}
-			}
-
-			dtoResponse := &dto.ExecuteOpenResponse{
-				Status:         dto.OpenStatus(resp.Status),
-				Response:       genericResp,
-				PhysicalStatus: dto.PhysicalStatus(resp.PhysicalStatus),
-			}
-
-			// Convertir a modelo de dominio
-			domainResult := c.mapper.ToExecuteOpenDomain(dtoResponse)
-
-			// Emitir al canal
-			select {
-			case resultChan <- domainResult:
-			case <-ctx.Done():
-				return
-			}
-		}
+		c.reenviarApertura(ctx, stream, resultChan)
 	}()
 
 	return resultChan, nil
+}
+
+// reenviarApertura pasa al canal los frames de ExecuteOpen hasta EOF o error. Después de un frame terminal
+// (SUCCESS o ERROR) un cierre con error no se emite: el cliente ya tiene su resultado (AL-BUG-29).
+func (c *PaymentServiceGRPCClient) reenviarApertura(ctx context.Context, stream interface {
+	Recv() (*bookingpb.ExecuteOpenResponse, error)
+}, resultChan chan<- *model.ExecuteOpenResult) {
+	terminal := false
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			if terminal {
+				// AL-BUG-29: booking-manager ya mandó el frame terminal (OPEN_STATUS_ERROR) y además cierra
+				// el stream con status de error. Ese cierre no es un error nuevo: no se emite otro frame.
+				log.Printf("OUT-GRPC [ExecuteOpenStream] stream cerrado tras el frame terminal | causa=%v", err)
+				break
+			}
+			log.Printf("OUT-GRPC [ExecuteOpenStream] ERROR recibiendo del stream | causa=%v", err)
+
+			// Emitir error al canal
+			resultChan <- &model.ExecuteOpenResult{
+				TransactionID:  "",
+				Message:        fmt.Sprintf("Error de conexión: %v", err),
+				OpenStatus:     model.OpenStatusError,
+				PhysicalStatus: model.PhysicalStatusUnspecified,
+			}
+			break
+		}
+
+		if resp.Status == bookingpb.OpenStatus_OPEN_STATUS_SUCCESS || resp.Status == bookingpb.OpenStatus_OPEN_STATUS_ERROR {
+			terminal = true
+		}
+
+		// Convertir respuesta gRPC a DTO
+		genericResp := &dto.PaymentManagerGenericResponse{}
+		if resp != nil {
+			// Nuevo proto: los metadatos vienen en campos de primer nivel
+			genericResp.TransactionId = resp.TransactionId
+			genericResp.Message = resp.Message
+			// Inferir un PaymentManagerResponseStatus a partir del OpenStatus
+			switch resp.Status {
+			case bookingpb.OpenStatus_OPEN_STATUS_SUCCESS:
+				genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK
+			case bookingpb.OpenStatus_OPEN_STATUS_ERROR:
+				genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_ERROR
+			default:
+				genericResp.Status = dto.PaymentManagerResponseStatus_RESPONSE_STATUS_UNSPECIFIED
+			}
+		}
+
+		dtoResponse := &dto.ExecuteOpenResponse{
+			Status:         dto.OpenStatus(resp.Status),
+			Response:       genericResp,
+			PhysicalStatus: dto.PhysicalStatus(resp.PhysicalStatus),
+		}
+
+		// Convertir a modelo de dominio
+		domainResult := c.mapper.ToExecuteOpenDomain(dtoResponse)
+
+		// Emitir al canal
+		select {
+		case resultChan <- domainResult:
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 // GetPricingTemplates implementa PaymentInfraRepository.GetPricingTemplates
