@@ -434,7 +434,7 @@ input OfflineAccessInput {
 }
 
 type LockerConnectivity {
-  "El equipo informó salud (K4) en los últimos 12 min."
+  "El equipo informó salud (K4) dentro del umbral del emisor (5 min con salud cada 2 min, K3 v1.3)."
   online: Boolean!
   "null si el equipo nunca informó."
   lastSeenAt: String
