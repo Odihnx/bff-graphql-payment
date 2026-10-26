@@ -36,7 +36,7 @@ go run github.com/99designs/gqlgen generate
 ```bash
 buf generate buf.build/odihnx-prod/service-payment-manager --template buf.gen.payment.yaml
 buf generate buf.build/odihnx-prod/service-booking-manager --template buf.gen.booking.yaml
-buf generate buf.build/odihnx-prod/service-local-access-manager --template buf.gen.localaccess.yaml
+buf generate buf.build/odihnx-prod/service-local-access-manager:fea1b9e4546246aa82403754054bc41c --template buf.gen.localaccess.yaml # K3 v1.2 fijado (AL-BUG-37)
 # or use the script (Windows):
 scripts/gen_protos.bat
 ```
