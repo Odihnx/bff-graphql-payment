@@ -286,11 +286,13 @@ type PaymentRack struct {
 }
 
 type PricingTemplate struct {
-	ID            int                            `json:"id"`
-	Name          string                         `json:"name"`
-	Description   string                         `json:"description"`
-	CreatedAt     string                         `json:"createdAt"`
-	BookingGroups []*PricingTemplateBookingGroup `json:"bookingGroups"`
+	ID                    int                            `json:"id"`
+	Name                  string                         `json:"name"`
+	Description           string                         `json:"description"`
+	CreatedAt             string                         `json:"createdAt"`
+	BookingGroups         []*PricingTemplateBookingGroup `json:"bookingGroups"`
+	ConfiguredLockerCount int                            `json:"configuredLockerCount"`
+	ActiveRackCount       int                            `json:"activeRackCount"`
 }
 
 type PricingTemplateBookingGroup struct {

@@ -229,11 +229,13 @@ type ComplexityRoot struct {
 	}
 
 	PricingTemplate struct {
-		BookingGroups func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		Description   func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Name          func(childComplexity int) int
+		ActiveRackCount       func(childComplexity int) int
+		BookingGroups         func(childComplexity int) int
+		ConfiguredLockerCount func(childComplexity int) int
+		CreatedAt             func(childComplexity int) int
+		Description           func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		Name                  func(childComplexity int) int
 	}
 
 	PricingTemplateBookingGroup struct {
@@ -1151,12 +1153,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PaymentRack.ID(childComplexity), true
 
+	case "PricingTemplate.activeRackCount":
+		if e.ComplexityRoot.PricingTemplate.ActiveRackCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplate.ActiveRackCount(childComplexity), true
 	case "PricingTemplate.bookingGroups":
 		if e.ComplexityRoot.PricingTemplate.BookingGroups == nil {
 			break
 		}
 
 		return e.ComplexityRoot.PricingTemplate.BookingGroups(childComplexity), true
+	case "PricingTemplate.configuredLockerCount":
+		if e.ComplexityRoot.PricingTemplate.ConfiguredLockerCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PricingTemplate.ConfiguredLockerCount(childComplexity), true
 	case "PricingTemplate.createdAt":
 		if e.ComplexityRoot.PricingTemplate.CreatedAt == nil {
 			break
@@ -2076,6 +2090,8 @@ type PricingTemplate {
   description: String!
   createdAt: String!
   bookingGroups: [PricingTemplateBookingGroup!]!
+  configuredLockerCount: Int!
+  activeRackCount: Int!
 }
 
 type PricingTemplateBookingGroup {
@@ -5070,6 +5086,10 @@ func (ec *executionContext) fieldContext_GetPricingTemplatesResponse_pricingTemp
 				return ec.fieldContext_PricingTemplate_createdAt(ctx, field)
 			case "bookingGroups":
 				return ec.fieldContext_PricingTemplate_bookingGroups(ctx, field)
+			case "configuredLockerCount":
+				return ec.fieldContext_PricingTemplate_configuredLockerCount(ctx, field)
+			case "activeRackCount":
+				return ec.fieldContext_PricingTemplate_activeRackCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PricingTemplate", field.Name)
 		},
@@ -6498,6 +6518,64 @@ func (ec *executionContext) fieldContext_PricingTemplate_bookingGroups(_ context
 				return ec.fieldContext_PricingTemplateBookingGroup_products(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PricingTemplateBookingGroup", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplate_configuredLockerCount(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplate_configuredLockerCount,
+		func(ctx context.Context) (any, error) {
+			return obj.ConfiguredLockerCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplate_configuredLockerCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PricingTemplate_activeRackCount(ctx context.Context, field graphql.CollectedField, obj *model.PricingTemplate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PricingTemplate_activeRackCount,
+		func(ctx context.Context) (any, error) {
+			return obj.ActiveRackCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PricingTemplate_activeRackCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PricingTemplate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12266,6 +12344,16 @@ func (ec *executionContext) _PricingTemplate(ctx context.Context, sel ast.Select
 			}
 		case "bookingGroups":
 			out.Values[i] = ec._PricingTemplate_bookingGroups(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "configuredLockerCount":
+			out.Values[i] = ec._PricingTemplate_configuredLockerCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "activeRackCount":
+			out.Values[i] = ec._PricingTemplate_activeRackCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
