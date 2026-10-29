@@ -371,11 +371,13 @@ func (m *PaymentInfraGraphQLMapper) ToPricingTemplatesResponse(list *domainModel
 			})
 		}
 		templates = append(templates, &model.PricingTemplate{
-			ID:            pt.ID,
-			Name:          pt.Name,
-			Description:   pt.Description,
-			CreatedAt:     pt.CreatedAt,
-			BookingGroups: bookingGroups,
+			ID:                    pt.ID,
+			Name:                  pt.Name,
+			Description:           pt.Description,
+			CreatedAt:             pt.CreatedAt,
+			BookingGroups:         bookingGroups,
+			ConfiguredLockerCount: pt.ConfiguredLockerCount,
+			ActiveRackCount:       pt.ActiveRackCount,
 		})
 	}
 

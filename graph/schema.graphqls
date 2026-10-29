@@ -352,6 +352,8 @@ type PricingTemplate {
   description: String!
   createdAt: String!
   bookingGroups: [PricingTemplateBookingGroup!]!
+  configuredLockerCount: Int!
+  activeRackCount: Int!
 }
 
 type PricingTemplateBookingGroup {

@@ -685,11 +685,13 @@ func (m *PaymentInfraGRPCMapper) ToPricingTemplatesDomain(response *dto.GetPrici
 			})
 		}
 		result.PricingTemplates = append(result.PricingTemplates, model.PricingTemplate{
-			ID:            int(pt.Id),
-			Name:          pt.Name,
-			Description:   pt.Description,
-			CreatedAt:     pt.CreatedAt,
-			BookingGroups: bookingGroups,
+			ID:                    int(pt.Id),
+			Name:                  pt.Name,
+			Description:           pt.Description,
+			CreatedAt:             pt.CreatedAt,
+			BookingGroups:         bookingGroups,
+			ConfiguredLockerCount: int(pt.ConfiguredLockerCount),
+			ActiveRackCount:       int(pt.ActiveRackCount),
 		})
 	}
 
@@ -804,11 +806,13 @@ func (m *PaymentInfraGRPCMapper) FromGRPCGetPricingTemplatesResponse(proto *paym
 			})
 		}
 		result.PricingTemplates = append(result.PricingTemplates, &dto.PricingTemplateRecord{
-			Id:            pt.Id,
-			Name:          pt.Name,
-			Description:   pt.Description,
-			CreatedAt:     pt.CreatedAt,
-			BookingGroups: bookingGroups,
+			Id:                    pt.Id,
+			Name:                  pt.Name,
+			Description:           pt.Description,
+			CreatedAt:             pt.CreatedAt,
+			BookingGroups:         bookingGroups,
+			ConfiguredLockerCount: pt.ConfiguredLockerCount,
+			ActiveRackCount:       pt.ActiveRackCount,
 		})
 	}
 	return result
