@@ -291,11 +291,13 @@ type PricingTemplateBookingGroup struct {
 
 // PricingTemplate representa una plantilla de precios
 type PricingTemplate struct {
-	ID            int
-	Name          string
-	Description   string
-	CreatedAt     string
-	BookingGroups []PricingTemplateBookingGroup
+	ID                    int
+	Name                  string
+	Description           string
+	CreatedAt             string
+	BookingGroups         []PricingTemplateBookingGroup
+	ConfiguredLockerCount int
+	ActiveRackCount       int
 }
 
 // PricingTemplateList representa la respuesta de listado de plantillas de precios
