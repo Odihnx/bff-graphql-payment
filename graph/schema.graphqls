@@ -116,6 +116,22 @@ input CreateRackPaymentInput {
   pricingTemplateId: Int!
   notes: String!
   bookingTimeIds: [Int!]!
+  # Opcional. Si viene con al menos un elemento, payment-manager consulta a infra-manager las
+  # posiciones+tamaño reales del rack y genera en payment_manager.product las filas que falten
+  # (locker_position_reference -> group_product_id) segun este mapeo. Vacio/omitido = comportamiento
+  # anterior, no se toca `product`.
+  groupProductBySize: [GroupProductBySizeInput!]
+}
+
+input GroupProductBySizeInput {
+  size: LockerSize!
+  groupProductId: Int!
+}
+
+enum LockerSize {
+  S
+  M
+  L
 }
 
 input GetBookingPaymentInput {

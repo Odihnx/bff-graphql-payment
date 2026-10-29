@@ -285,7 +285,7 @@ type PricingTemplateRecord struct {
 // GetPricingTemplatesResponse represents the response for listing pricing templates
 type GetPricingTemplatesResponse struct {
 	Response         *PaymentManagerGenericResponse `json:"response"`
-	PricingTemplates []*PricingTemplateRecord        `json:"pricing_templates"`
+	PricingTemplates []*PricingTemplateRecord       `json:"pricing_templates"`
 }
 
 // GetBookingTimesRequest represents the request for listing booking times
@@ -304,15 +304,23 @@ type BookingTimeFullRecord struct {
 // GetBookingTimesResponse represents the response for listing booking times
 type GetBookingTimesResponse struct {
 	Response     *PaymentManagerGenericResponse `json:"response"`
-	BookingTimes []*BookingTimeFullRecord        `json:"booking_times"`
+	BookingTimes []*BookingTimeFullRecord       `json:"booking_times"`
 }
 
 // CreateRackPaymentRequest represents the request for creating a rack payment
 type CreateRackPaymentRequest struct {
-	RackReference     int32   `json:"rack_reference"`
-	PricingTemplateId int32   `json:"pricing_template_id"`
-	Notes             string  `json:"notes"`
-	BookingTimeIds    []int32 `json:"booking_time_ids"`
+	RackReference      int32                `json:"rack_reference"`
+	PricingTemplateId  int32                `json:"pricing_template_id"`
+	Notes              string               `json:"notes"`
+	BookingTimeIds     []int32              `json:"booking_time_ids"`
+	GroupProductBySize []GroupProductBySize `json:"group_product_by_size,omitempty"`
+}
+
+// GroupProductBySize: un elemento por group_product a dejar configurado en payment_manager.product
+// (un mismo tamaño puede repetirse si el template tiene mas de un booking_time).
+type GroupProductBySize struct {
+	Size           string `json:"size"` // "s" / "m" / "l"
+	GroupProductId int32  `json:"group_product_id"`
 }
 
 // CreateRackPaymentResponse represents the response for creating a rack payment

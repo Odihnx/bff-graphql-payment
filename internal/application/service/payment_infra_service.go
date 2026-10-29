@@ -416,7 +416,7 @@ func (s *PaymentInfraService) GetBookingTimes(ctx context.Context) (*model.Booki
 }
 
 // CreateRackPayment crea un payment_rack y lo asocia a un booking_time
-func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
+func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error) {
 	ctx, span := tracing.StartSpan(ctx, "application.CreateRackPayment")
 	defer span.End()
 
@@ -438,7 +438,7 @@ func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReferen
 		return nil, err
 	}
 
-	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs)
+	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs, groupProductBySize)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, err

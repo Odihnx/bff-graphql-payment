@@ -8,6 +8,7 @@ package resolver
 import (
 	"bff-graphql-payment/graph/generated"
 	"bff-graphql-payment/graph/model"
+	domainmodel "bff-graphql-payment/internal/domain/model"
 	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
 	"bff-graphql-payment/internal/infrastructure/inbound/middleware"
 	"context"
@@ -15,6 +16,7 @@ import (
 	"log"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Odihnx/platform-core/tracing"
@@ -134,7 +136,18 @@ func (r *mutationResolver) CreateRackPayment(ctx context.Context, input model.Cr
 		"input.booking_time_ids":    fmt.Sprintf("%v", input.BookingTimeIds),
 	})
 
-	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, input.PricingTemplateID, input.Notes, input.BookingTimeIds)
+	groupProductBySize := make([]domainmodel.GroupProductBySize, 0, len(input.GroupProductBySize))
+	for _, g := range input.GroupProductBySize {
+		if g == nil {
+			continue
+		}
+		groupProductBySize = append(groupProductBySize, domainmodel.GroupProductBySize{
+			Size:           strings.ToLower(string(g.Size)),
+			GroupProductID: g.GroupProductID,
+		})
+	}
+
+	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, input.PricingTemplateID, input.Notes, input.BookingTimeIds, groupProductBySize)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)

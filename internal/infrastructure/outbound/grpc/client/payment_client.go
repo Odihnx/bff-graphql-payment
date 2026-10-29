@@ -802,7 +802,7 @@ func (c *PaymentServiceGRPCClient) GetBookingTimes(ctx context.Context) (*model.
 }
 
 // CreateRackPayment implementa PaymentInfraRepository.CreateRackPayment
-func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
+func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error) {
 	ctx, span := tracing.StartSpan(ctx, "grpc.CreateRackPayment")
 	defer span.End()
 
@@ -818,18 +818,27 @@ func (c *PaymentServiceGRPCClient) CreateRackPayment(ctx context.Context, rackRe
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request := c.mapper.ToCreateRackPaymentRequest(rackReference, pricingTemplateID, notes, bookingTimeIDs)
+	request := c.mapper.ToCreateRackPaymentRequest(rackReference, pricingTemplateID, notes, bookingTimeIDs, groupProductBySize)
 
 	var response *dto.CreateRackPaymentResponse
 
 	if c.useMock {
 		response = c.mockCreateRackPayment(request)
 	} else {
+		pbGroupProductBySize := make([]*paymentpb.GroupProductBySize, 0, len(request.GroupProductBySize))
+		for _, g := range request.GroupProductBySize {
+			pbGroupProductBySize = append(pbGroupProductBySize, &paymentpb.GroupProductBySize{
+				Size:           g.Size,
+				GroupProductId: g.GroupProductId,
+			})
+		}
+
 		grpcResponse, err := c.grpcClient.CreateRackPayment(ctx, &paymentpb.CreateRackPaymentRequest{
-			RackReference:     request.RackReference,
-			PricingTemplateId: request.PricingTemplateId,
-			Notes:             request.Notes,
-			BookingTimeIds:    request.BookingTimeIds,
+			RackReference:      request.RackReference,
+			PricingTemplateId:  request.PricingTemplateId,
+			Notes:              request.Notes,
+			BookingTimeIds:     request.BookingTimeIds,
+			GroupProductBySize: pbGroupProductBySize,
 		})
 		if err != nil {
 			log.Printf("❌ CreateRackPayment error: %v", err)
