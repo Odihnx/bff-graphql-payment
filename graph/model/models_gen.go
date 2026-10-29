@@ -89,10 +89,11 @@ type CheckBookingStatusResponse struct {
 }
 
 type CreateRackPaymentInput struct {
-	RackReference     int    `json:"rackReference"`
-	PricingTemplateID int    `json:"pricingTemplateId"`
-	Notes             string `json:"notes"`
-	BookingTimeIds    []int  `json:"bookingTimeIds"`
+	RackReference      int                        `json:"rackReference"`
+	PricingTemplateID  int                        `json:"pricingTemplateId"`
+	Notes              string                     `json:"notes"`
+	BookingTimeIds     []int                      `json:"bookingTimeIds"`
+	GroupProductBySize []*GroupProductBySizeInput `json:"groupProductBySize,omitempty"`
 }
 
 type CreateRackPaymentResponse struct {
@@ -211,8 +212,13 @@ type GetPurchaseOrderByPoInput struct {
 	TraceID       string `json:"traceId"`
 }
 
+type GroupProductBySizeInput struct {
+	Size           LockerSize `json:"size"`
+	GroupProductID int        `json:"groupProductId"`
+}
+
 type LockerConnectivity struct {
-	// El equipo informó salud (K4) en los últimos 12 min.
+	// El equipo informó salud (K4) dentro del umbral del emisor (5 min con salud cada 2 min, K3 v1.3).
 	Online bool `json:"online"`
 	// null si el equipo nunca informó.
 	LastSeenAt *string `json:"lastSeenAt,omitempty"`
@@ -369,6 +375,63 @@ type ValidateDiscountCouponResponse struct {
 	DiscountType       string         `json:"discountType"`
 	DiscountAmount     int            `json:"discountAmount"`
 	Applies            bool           `json:"applies"`
+}
+
+type LockerSize string
+
+const (
+	LockerSizeS LockerSize = "S"
+	LockerSizeM LockerSize = "M"
+	LockerSizeL LockerSize = "L"
+)
+
+var AllLockerSize = []LockerSize{
+	LockerSizeS,
+	LockerSizeM,
+	LockerSizeL,
+}
+
+func (e LockerSize) IsValid() bool {
+	switch e {
+	case LockerSizeS, LockerSizeM, LockerSizeL:
+		return true
+	}
+	return false
+}
+
+func (e LockerSize) String() string {
+	return string(e)
+}
+
+func (e *LockerSize) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LockerSize(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LockerSize", str)
+	}
+	return nil
+}
+
+func (e LockerSize) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *LockerSize) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e LockerSize) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type OpenStatus string

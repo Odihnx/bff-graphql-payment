@@ -1627,6 +1627,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGetBookingPaymentInput,
 		ec.unmarshalInputGetPaymentInfraByQrValueInput,
 		ec.unmarshalInputGetPurchaseOrderByPoInput,
+		ec.unmarshalInputGroupProductBySizeInput,
 		ec.unmarshalInputOfflineAccessInput,
 		ec.unmarshalInputValidateDiscountCouponInput,
 	)
@@ -1839,6 +1840,22 @@ input CreateRackPaymentInput {
   pricingTemplateId: Int!
   notes: String!
   bookingTimeIds: [Int!]!
+  # Opcional. Si viene con al menos un elemento, payment-manager consulta a infra-manager las
+  # posiciones+tamaño reales del rack y genera en payment_manager.product las filas que falten
+  # (locker_position_reference -> group_product_id) segun este mapeo. Vacio/omitido = comportamiento
+  # anterior, no se toca ` + "`" + `product` + "`" + `.
+  groupProductBySize: [GroupProductBySizeInput!]
+}
+
+input GroupProductBySizeInput {
+  size: LockerSize!
+  groupProductId: Int!
+}
+
+enum LockerSize {
+  S
+  M
+  L
 }
 
 input GetBookingPaymentInput {
@@ -2157,7 +2174,7 @@ input OfflineAccessInput {
 }
 
 type LockerConnectivity {
-  "El equipo informó salud (K4) en los últimos 12 min."
+  "El equipo informó salud (K4) dentro del umbral del emisor (5 min con salud cada 2 min, K3 v1.3)."
   online: Boolean!
   "null si el equipo nunca informó."
   lastSeenAt: String
@@ -10228,7 +10245,7 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeIds"}
+	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeIds", "groupProductBySize"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10263,6 +10280,13 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 				return it, err
 			}
 			it.BookingTimeIds = data
+		case "groupProductBySize":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupProductBySize"))
+			data, err := ec.unmarshalOGroupProductBySizeInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGroupProductBySizeInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GroupProductBySize = data
 		}
 	}
 	return it, nil
@@ -10706,6 +10730,43 @@ func (ec *executionContext) unmarshalInputGetPurchaseOrderByPoInput(ctx context.
 				return it, err
 			}
 			it.TraceID = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGroupProductBySizeInput(ctx context.Context, obj any) (model.GroupProductBySizeInput, error) {
+	var it model.GroupProductBySizeInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"size", "groupProductId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "size":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+			data, err := ec.unmarshalNLockerSize2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerSize(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Size = data
+		case "groupProductId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupProductId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GroupProductID = data
 		}
 	}
 	return it, nil
@@ -13600,6 +13661,11 @@ func (ec *executionContext) unmarshalNGetPurchaseOrderByPoInput2bffᚑgraphqlᚑ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNGroupProductBySizeInput2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGroupProductBySizeInput(ctx context.Context, v any) (*model.GroupProductBySizeInput, error) {
+	res, err := ec.unmarshalInputGroupProductBySizeInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -13658,6 +13724,16 @@ func (ec *executionContext) marshalNLockerConnectivity2ᚖbffᚑgraphqlᚑpaymen
 		return graphql.Null
 	}
 	return ec._LockerConnectivity(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLockerSize2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerSize(ctx context.Context, v any) (model.LockerSize, error) {
+	var res model.LockerSize
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLockerSize2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerSize(ctx context.Context, sel ast.SelectionSet, v model.LockerSize) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNOfflineAccessInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineAccessInput(ctx context.Context, v any) (model.OfflineAccessInput, error) {
@@ -14086,6 +14162,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOGroupProductBySizeInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGroupProductBySizeInputᚄ(ctx context.Context, v any) ([]*model.GroupProductBySizeInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.GroupProductBySizeInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNGroupProductBySizeInput2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐGroupProductBySizeInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v any) (*int, error) {
