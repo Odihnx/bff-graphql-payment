@@ -20,5 +20,8 @@ type PaymentInfraRepository interface {
 	GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error)
 	GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error)
 	GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error)
-	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error)
+	// groupProductBySize: un elemento por group_product a dejar configurado en `product` (un mismo
+	// tamaño puede repetirse si el template tiene mas de un booking_time). Opcional (nil/vacio = no
+	// se toca payment_manager.product, mismo comportamiento que antes de esta extension).
+	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error)
 }
