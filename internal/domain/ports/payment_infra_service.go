@@ -20,5 +20,5 @@ type PaymentInfraService interface {
 	GetInstallationsByUserEmail(ctx context.Context, email string) ([]string, error)
 	GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error)
 	GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error)
-	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error)
+	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error)
 }

@@ -334,3 +334,11 @@ type RackPayment struct {
 	TraceID       string
 	PaymentRackID int
 }
+
+// GroupProductBySize: un elemento por group_product a dejar configurado en
+// payment_manager.product al crear el rack (un mismo tamaño puede repetirse si el template tiene
+// mas de un booking_time, cada uno con su propio group_product).
+type GroupProductBySize struct {
+	Size           string // "s" / "m" / "l"
+	GroupProductID int
+}
