@@ -275,11 +275,13 @@ type PricingTemplateBookingGroupRecord struct {
 
 // PricingTemplateRecord represents a pricing template
 type PricingTemplateRecord struct {
-	Id            int32                                `json:"id"`
-	Name          string                               `json:"name"`
-	Description   string                               `json:"description"`
-	CreatedAt     string                               `json:"created_at"`
-	BookingGroups []*PricingTemplateBookingGroupRecord `json:"booking_groups"`
+	Id                    int32                                `json:"id"`
+	Name                  string                               `json:"name"`
+	Description           string                               `json:"description"`
+	CreatedAt             string                               `json:"created_at"`
+	BookingGroups         []*PricingTemplateBookingGroupRecord `json:"booking_groups"`
+	ConfiguredLockerCount int32                                `json:"configured_locker_count"`
+	ActiveRackCount       int32                                `json:"active_rack_count"`
 }
 
 // GetPricingTemplatesResponse represents the response for listing pricing templates
