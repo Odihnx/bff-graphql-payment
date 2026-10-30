@@ -41,6 +41,13 @@ type Mutation {
   generateCoupon(input: GenerateCouponInput!): GenerateCouponResponse! @hasRole(role: "SUPER_ADMIN")
   # Create a rack payment and associate it to a booking time (admin only)
   createRackPayment(input: CreateRackPaymentInput!): CreateRackPaymentResponse! @hasRole(role: "SUPER_ADMIN")
+
+  # Create a pricing template by hand from the "Plantillas de Pago" tab (admin only)
+  createPricingTemplate(input: CreatePricingTemplateInput!): CreatePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
+  # Rename a pricing template and/or replace its cells (rejected if it has active racks) (admin only)
+  updatePricingTemplate(input: UpdatePricingTemplateInput!): UpdatePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
+  # Delete a pricing template (rejected if it has active racks) (admin only)
+  deletePricingTemplate(input: DeletePricingTemplateInput!): DeletePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Subscription {
@@ -113,19 +120,53 @@ input ExecuteOpenInput {
 
 input CreateRackPaymentInput {
   rackReference: Int!
-  pricingTemplateId: Int!
+  # Opcional: uso legacy / compatibilidad. El wizard ya no lo manda — en su lugar manda
+  # pricingCells y el backend resuelve (o crea) el pricing_template a usar.
+  pricingTemplateId: Int
   notes: String!
   bookingTimeIds: [Int!]!
   # Opcional. Si viene con al menos un elemento, payment-manager consulta a infra-manager las
   # posiciones+tamaño reales del rack y genera en payment_manager.product las filas que falten
   # (locker_position_reference -> group_product_id) segun este mapeo. Vacio/omitido = comportamiento
-  # anterior, no se toca `product`.
+  # anterior, no se toca `product`. Ignorado si viene pricingCells (el backend resuelve su propio
+  # groupProductBySize a partir del template encontrado/creado).
   groupProductBySize: [GroupProductBySizeInput!]
+  # Reemplaza a pricingTemplateId: tamaños x tiempos de reserva x precio que el admin eligio en el
+  # wizard. El backend busca un pricing_template existente que calce EXACTO, o crea uno nuevo
+  # (invisible al admin) usando installationName/rackDescription para nombrarlo.
+  pricingCells: [PricingCellInput!]
+  installationName: String
+  rackDescription: String
 }
 
 input GroupProductBySizeInput {
   size: LockerSize!
   groupProductId: Int!
+}
+
+input PricingCellInput {
+  bookingTimeId: Int!
+  size: LockerSize!
+  price: Float!
+}
+
+input CreatePricingTemplateInput {
+  name: String!
+  description: String!
+  cells: [PricingCellInput!]!
+}
+
+input UpdatePricingTemplateInput {
+  pricingTemplateId: Int!
+  name: String!
+  description: String!
+  # Vacio/omitido = no tocar las celdas (solo renombra). Si viene, reemplaza el set completo —
+  # rechazado si el template tiene racks activos.
+  cells: [PricingCellInput!]
+}
+
+input DeletePricingTemplateInput {
+  pricingTemplateId: Int!
 }
 
 enum LockerSize {
@@ -395,6 +436,28 @@ type CreateRackPaymentResponse {
   status: ResponseStatus!
   traceId: String!
   paymentRackId: Int!
+}
+
+type CreatePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  pricingTemplateId: Int!
+}
+
+type UpdatePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+}
+
+type DeletePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
 }
 
 type BookingPaymentRecord {
