@@ -112,9 +112,24 @@ type ComplexityRoot struct {
 		TransactionID func(childComplexity int) int
 	}
 
+	CreatePricingTemplateResponse struct {
+		Message           func(childComplexity int) int
+		PricingTemplateID func(childComplexity int) int
+		Status            func(childComplexity int) int
+		TraceID           func(childComplexity int) int
+		TransactionID     func(childComplexity int) int
+	}
+
 	CreateRackPaymentResponse struct {
 		Message       func(childComplexity int) int
 		PaymentRackID func(childComplexity int) int
+		Status        func(childComplexity int) int
+		TraceID       func(childComplexity int) int
+		TransactionID func(childComplexity int) int
+	}
+
+	DeletePricingTemplateResponse struct {
+		Message       func(childComplexity int) int
 		Status        func(childComplexity int) int
 		TraceID       func(childComplexity int) int
 		TransactionID func(childComplexity int) int
@@ -174,11 +189,14 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreatePricingTemplate func(childComplexity int, input model.CreatePricingTemplateInput) int
 		CreateRackPayment     func(childComplexity int, input model.CreateRackPaymentInput) int
+		DeletePricingTemplate func(childComplexity int, input model.DeletePricingTemplateInput) int
 		GenerateBooking       func(childComplexity int, input model.GenerateBookingInput) int
 		GenerateCoupon        func(childComplexity int, input model.GenerateCouponInput) int
 		GeneratePurchaseOrder func(childComplexity int, input model.GeneratePurchaseOrderInput) int
 		RequestOfflineVoucher func(childComplexity int, input model.OfflineAccessInput) int
+		UpdatePricingTemplate func(childComplexity int, input model.UpdatePricingTemplateInput) int
 	}
 
 	OfflineVoucher struct {
@@ -314,6 +332,13 @@ type ComplexityRoot struct {
 		ExecuteOpen func(childComplexity int, input model.ExecuteOpenInput) int
 	}
 
+	UpdatePricingTemplateResponse struct {
+		Message       func(childComplexity int) int
+		Status        func(childComplexity int) int
+		TraceID       func(childComplexity int) int
+		TransactionID func(childComplexity int) int
+	}
+
 	ValidateDiscountCouponResponse struct {
 		Applies            func(childComplexity int) int
 		DiscountAmount     func(childComplexity int) int
@@ -331,6 +356,9 @@ type MutationResolver interface {
 	GenerateBooking(ctx context.Context, input model.GenerateBookingInput) (*model.GenerateBookingResponse, error)
 	GenerateCoupon(ctx context.Context, input model.GenerateCouponInput) (*model.GenerateCouponResponse, error)
 	CreateRackPayment(ctx context.Context, input model.CreateRackPaymentInput) (*model.CreateRackPaymentResponse, error)
+	CreatePricingTemplate(ctx context.Context, input model.CreatePricingTemplateInput) (*model.CreatePricingTemplateResponse, error)
+	UpdatePricingTemplate(ctx context.Context, input model.UpdatePricingTemplateInput) (*model.UpdatePricingTemplateResponse, error)
+	DeletePricingTemplate(ctx context.Context, input model.DeletePricingTemplateInput) (*model.DeletePricingTemplateResponse, error)
 	RequestOfflineVoucher(ctx context.Context, input model.OfflineAccessInput) (*model.OfflineVoucher, error)
 }
 type QueryResolver interface {
@@ -687,6 +715,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CheckBookingStatusResponse.TransactionID(childComplexity), true
 
+	case "CreatePricingTemplateResponse.message":
+		if e.ComplexityRoot.CreatePricingTemplateResponse.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreatePricingTemplateResponse.Message(childComplexity), true
+	case "CreatePricingTemplateResponse.pricingTemplateId":
+		if e.ComplexityRoot.CreatePricingTemplateResponse.PricingTemplateID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreatePricingTemplateResponse.PricingTemplateID(childComplexity), true
+	case "CreatePricingTemplateResponse.status":
+		if e.ComplexityRoot.CreatePricingTemplateResponse.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreatePricingTemplateResponse.Status(childComplexity), true
+	case "CreatePricingTemplateResponse.traceId":
+		if e.ComplexityRoot.CreatePricingTemplateResponse.TraceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreatePricingTemplateResponse.TraceID(childComplexity), true
+	case "CreatePricingTemplateResponse.transactionId":
+		if e.ComplexityRoot.CreatePricingTemplateResponse.TransactionID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreatePricingTemplateResponse.TransactionID(childComplexity), true
+
 	case "CreateRackPaymentResponse.message":
 		if e.ComplexityRoot.CreateRackPaymentResponse.Message == nil {
 			break
@@ -717,6 +776,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CreateRackPaymentResponse.TransactionID(childComplexity), true
+
+	case "DeletePricingTemplateResponse.message":
+		if e.ComplexityRoot.DeletePricingTemplateResponse.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeletePricingTemplateResponse.Message(childComplexity), true
+	case "DeletePricingTemplateResponse.status":
+		if e.ComplexityRoot.DeletePricingTemplateResponse.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeletePricingTemplateResponse.Status(childComplexity), true
+	case "DeletePricingTemplateResponse.traceId":
+		if e.ComplexityRoot.DeletePricingTemplateResponse.TraceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeletePricingTemplateResponse.TraceID(childComplexity), true
+	case "DeletePricingTemplateResponse.transactionId":
+		if e.ComplexityRoot.DeletePricingTemplateResponse.TransactionID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeletePricingTemplateResponse.TransactionID(childComplexity), true
 
 	case "ExecuteOpenResponse.message":
 		if e.ComplexityRoot.ExecuteOpenResponse.Message == nil {
@@ -917,6 +1001,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.LockerConnectivity.Online(childComplexity), true
 
+	case "Mutation.createPricingTemplate":
+		if e.ComplexityRoot.Mutation.CreatePricingTemplate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPricingTemplate_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreatePricingTemplate(childComplexity, args["input"].(model.CreatePricingTemplateInput)), true
 	case "Mutation.createRackPayment":
 		if e.ComplexityRoot.Mutation.CreateRackPayment == nil {
 			break
@@ -928,6 +1023,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateRackPayment(childComplexity, args["input"].(model.CreateRackPaymentInput)), true
+	case "Mutation.deletePricingTemplate":
+		if e.ComplexityRoot.Mutation.DeletePricingTemplate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePricingTemplate_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeletePricingTemplate(childComplexity, args["input"].(model.DeletePricingTemplateInput)), true
 	case "Mutation.generateBooking":
 		if e.ComplexityRoot.Mutation.GenerateBooking == nil {
 			break
@@ -972,6 +1078,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RequestOfflineVoucher(childComplexity, args["input"].(model.OfflineAccessInput)), true
+	case "Mutation.updatePricingTemplate":
+		if e.ComplexityRoot.Mutation.UpdatePricingTemplate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePricingTemplate_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdatePricingTemplate(childComplexity, args["input"].(model.UpdatePricingTemplateInput)), true
 
 	case "OfflineVoucher.url":
 		if e.ComplexityRoot.OfflineVoucher.URL == nil {
@@ -1574,6 +1691,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Subscription.ExecuteOpen(childComplexity, args["input"].(model.ExecuteOpenInput)), true
 
+	case "UpdatePricingTemplateResponse.message":
+		if e.ComplexityRoot.UpdatePricingTemplateResponse.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdatePricingTemplateResponse.Message(childComplexity), true
+	case "UpdatePricingTemplateResponse.status":
+		if e.ComplexityRoot.UpdatePricingTemplateResponse.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdatePricingTemplateResponse.Status(childComplexity), true
+	case "UpdatePricingTemplateResponse.traceId":
+		if e.ComplexityRoot.UpdatePricingTemplateResponse.TraceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdatePricingTemplateResponse.TraceID(childComplexity), true
+	case "UpdatePricingTemplateResponse.transactionId":
+		if e.ComplexityRoot.UpdatePricingTemplateResponse.TransactionID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdatePricingTemplateResponse.TransactionID(childComplexity), true
+
 	case "ValidateDiscountCouponResponse.applies":
 		if e.ComplexityRoot.ValidateDiscountCouponResponse.Applies == nil {
 			break
@@ -1632,7 +1774,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCheckBookingStatusInput,
+		ec.unmarshalInputCreatePricingTemplateInput,
 		ec.unmarshalInputCreateRackPaymentInput,
+		ec.unmarshalInputDeletePricingTemplateInput,
 		ec.unmarshalInputExecuteOpenInput,
 		ec.unmarshalInputGenerateBookingInput,
 		ec.unmarshalInputGenerateCouponInput,
@@ -1643,6 +1787,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGetPurchaseOrderByPoInput,
 		ec.unmarshalInputGroupProductBySizeInput,
 		ec.unmarshalInputOfflineAccessInput,
+		ec.unmarshalInputPricingCellInput,
+		ec.unmarshalInputUpdatePricingTemplateInput,
 		ec.unmarshalInputValidateDiscountCouponInput,
 	)
 	first := true
@@ -1779,6 +1925,13 @@ type Mutation {
   generateCoupon(input: GenerateCouponInput!): GenerateCouponResponse! @hasRole(role: "SUPER_ADMIN")
   # Create a rack payment and associate it to a booking time (admin only)
   createRackPayment(input: CreateRackPaymentInput!): CreateRackPaymentResponse! @hasRole(role: "SUPER_ADMIN")
+
+  # Create a pricing template by hand from the "Plantillas de Pago" tab (admin only)
+  createPricingTemplate(input: CreatePricingTemplateInput!): CreatePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
+  # Rename a pricing template and/or replace its cells (rejected if it has active racks) (admin only)
+  updatePricingTemplate(input: UpdatePricingTemplateInput!): UpdatePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
+  # Delete a pricing template (rejected if it has active racks) (admin only)
+  deletePricingTemplate(input: DeletePricingTemplateInput!): DeletePricingTemplateResponse! @hasRole(role: "SUPER_ADMIN")
 }
 
 type Subscription {
@@ -1851,19 +2004,53 @@ input ExecuteOpenInput {
 
 input CreateRackPaymentInput {
   rackReference: Int!
-  pricingTemplateId: Int!
+  # Opcional: uso legacy / compatibilidad. El wizard ya no lo manda — en su lugar manda
+  # pricingCells y el backend resuelve (o crea) el pricing_template a usar.
+  pricingTemplateId: Int
   notes: String!
   bookingTimeIds: [Int!]!
   # Opcional. Si viene con al menos un elemento, payment-manager consulta a infra-manager las
   # posiciones+tamaño reales del rack y genera en payment_manager.product las filas que falten
   # (locker_position_reference -> group_product_id) segun este mapeo. Vacio/omitido = comportamiento
-  # anterior, no se toca ` + "`" + `product` + "`" + `.
+  # anterior, no se toca ` + "`" + `product` + "`" + `. Ignorado si viene pricingCells (el backend resuelve su propio
+  # groupProductBySize a partir del template encontrado/creado).
   groupProductBySize: [GroupProductBySizeInput!]
+  # Reemplaza a pricingTemplateId: tamaños x tiempos de reserva x precio que el admin eligio en el
+  # wizard. El backend busca un pricing_template existente que calce EXACTO, o crea uno nuevo
+  # (invisible al admin) usando installationName/rackDescription para nombrarlo.
+  pricingCells: [PricingCellInput!]
+  installationName: String
+  rackDescription: String
 }
 
 input GroupProductBySizeInput {
   size: LockerSize!
   groupProductId: Int!
+}
+
+input PricingCellInput {
+  bookingTimeId: Int!
+  size: LockerSize!
+  price: Float!
+}
+
+input CreatePricingTemplateInput {
+  name: String!
+  description: String!
+  cells: [PricingCellInput!]!
+}
+
+input UpdatePricingTemplateInput {
+  pricingTemplateId: Int!
+  name: String!
+  description: String!
+  # Vacio/omitido = no tocar las celdas (solo renombra). Si viene, reemplaza el set completo —
+  # rechazado si el template tiene racks activos.
+  cells: [PricingCellInput!]
+}
+
+input DeletePricingTemplateInput {
+  pricingTemplateId: Int!
 }
 
 enum LockerSize {
@@ -2135,6 +2322,28 @@ type CreateRackPaymentResponse {
   paymentRackId: Int!
 }
 
+type CreatePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+  pricingTemplateId: Int!
+}
+
+type UpdatePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+}
+
+type DeletePricingTemplateResponse {
+  transactionId: String!
+  message: String!
+  status: ResponseStatus!
+  traceId: String!
+}
+
 type BookingPaymentRecord {
   id: Int!
   configurationBookingId: Int!
@@ -2234,10 +2443,32 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createPricingTemplate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreatePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreatePricingTemplateInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createRackPayment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateRackPaymentInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreateRackPaymentInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePricingTemplate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNDeletePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐDeletePricingTemplateInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2282,6 +2513,17 @@ func (ec *executionContext) field_Mutation_requestOfflineVoucher_args(ctx contex
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNOfflineAccessInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐOfflineAccessInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePricingTemplate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdatePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐUpdatePricingTemplateInput)
 	if err != nil {
 		return nil, err
 	}
@@ -4081,6 +4323,151 @@ func (ec *executionContext) fieldContext_CheckBookingStatusResponse_booking(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _CreatePricingTemplateResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.CreatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CreatePricingTemplateResponse_transactionId,
+		func(ctx context.Context) (any, error) {
+			return obj.TransactionID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CreatePricingTemplateResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatePricingTemplateResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.CreatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CreatePricingTemplateResponse_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CreatePricingTemplateResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatePricingTemplateResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.CreatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CreatePricingTemplateResponse_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CreatePricingTemplateResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ResponseStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatePricingTemplateResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.CreatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CreatePricingTemplateResponse_traceId,
+		func(ctx context.Context) (any, error) {
+			return obj.TraceID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CreatePricingTemplateResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatePricingTemplateResponse_pricingTemplateId(ctx context.Context, field graphql.CollectedField, obj *model.CreatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CreatePricingTemplateResponse_pricingTemplateId,
+		func(ctx context.Context) (any, error) {
+			return obj.PricingTemplateID, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CreatePricingTemplateResponse_pricingTemplateId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CreateRackPaymentResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.CreateRackPaymentResponse) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4221,6 +4608,122 @@ func (ec *executionContext) fieldContext_CreateRackPaymentResponse_paymentRackId
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeletePricingTemplateResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.DeletePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeletePricingTemplateResponse_transactionId,
+		func(ctx context.Context) (any, error) {
+			return obj.TransactionID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeletePricingTemplateResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeletePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeletePricingTemplateResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.DeletePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeletePricingTemplateResponse_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeletePricingTemplateResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeletePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeletePricingTemplateResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.DeletePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeletePricingTemplateResponse_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeletePricingTemplateResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeletePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ResponseStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeletePricingTemplateResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.DeletePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeletePricingTemplateResponse_traceId,
+		func(ctx context.Context) (any, error) {
+			return obj.TraceID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeletePricingTemplateResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeletePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5426,6 +5929,215 @@ func (ec *executionContext) fieldContext_Mutation_createRackPayment(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createRackPayment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createPricingTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createPricingTemplate,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreatePricingTemplate(ctx, fc.Args["input"].(model.CreatePricingTemplateInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				role, err := ec.unmarshalNString2string(ctx, "SUPER_ADMIN")
+				if err != nil {
+					var zeroVal *model.CreatePricingTemplateResponse
+					return zeroVal, err
+				}
+				if ec.Directives.HasRole == nil {
+					var zeroVal *model.CreatePricingTemplateResponse
+					return zeroVal, errors.New("directive hasRole is not implemented")
+				}
+				return ec.Directives.HasRole(ctx, nil, directive0, role)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalNCreatePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreatePricingTemplateResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createPricingTemplate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transactionId":
+				return ec.fieldContext_CreatePricingTemplateResponse_transactionId(ctx, field)
+			case "message":
+				return ec.fieldContext_CreatePricingTemplateResponse_message(ctx, field)
+			case "status":
+				return ec.fieldContext_CreatePricingTemplateResponse_status(ctx, field)
+			case "traceId":
+				return ec.fieldContext_CreatePricingTemplateResponse_traceId(ctx, field)
+			case "pricingTemplateId":
+				return ec.fieldContext_CreatePricingTemplateResponse_pricingTemplateId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreatePricingTemplateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createPricingTemplate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updatePricingTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updatePricingTemplate,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdatePricingTemplate(ctx, fc.Args["input"].(model.UpdatePricingTemplateInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				role, err := ec.unmarshalNString2string(ctx, "SUPER_ADMIN")
+				if err != nil {
+					var zeroVal *model.UpdatePricingTemplateResponse
+					return zeroVal, err
+				}
+				if ec.Directives.HasRole == nil {
+					var zeroVal *model.UpdatePricingTemplateResponse
+					return zeroVal, errors.New("directive hasRole is not implemented")
+				}
+				return ec.Directives.HasRole(ctx, nil, directive0, role)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalNUpdatePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐUpdatePricingTemplateResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updatePricingTemplate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transactionId":
+				return ec.fieldContext_UpdatePricingTemplateResponse_transactionId(ctx, field)
+			case "message":
+				return ec.fieldContext_UpdatePricingTemplateResponse_message(ctx, field)
+			case "status":
+				return ec.fieldContext_UpdatePricingTemplateResponse_status(ctx, field)
+			case "traceId":
+				return ec.fieldContext_UpdatePricingTemplateResponse_traceId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdatePricingTemplateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updatePricingTemplate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deletePricingTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deletePricingTemplate,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeletePricingTemplate(ctx, fc.Args["input"].(model.DeletePricingTemplateInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				role, err := ec.unmarshalNString2string(ctx, "SUPER_ADMIN")
+				if err != nil {
+					var zeroVal *model.DeletePricingTemplateResponse
+					return zeroVal, err
+				}
+				if ec.Directives.HasRole == nil {
+					var zeroVal *model.DeletePricingTemplateResponse
+					return zeroVal, errors.New("directive hasRole is not implemented")
+				}
+				return ec.Directives.HasRole(ctx, nil, directive0, role)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalNDeletePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐDeletePricingTemplateResponse,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deletePricingTemplate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transactionId":
+				return ec.fieldContext_DeletePricingTemplateResponse_transactionId(ctx, field)
+			case "message":
+				return ec.fieldContext_DeletePricingTemplateResponse_message(ctx, field)
+			case "status":
+				return ec.fieldContext_DeletePricingTemplateResponse_status(ctx, field)
+			case "traceId":
+				return ec.fieldContext_DeletePricingTemplateResponse_traceId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeletePricingTemplateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deletePricingTemplate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8597,6 +9309,122 @@ func (ec *executionContext) fieldContext_Subscription_executeOpen(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _UpdatePricingTemplateResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.UpdatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UpdatePricingTemplateResponse_transactionId,
+		func(ctx context.Context) (any, error) {
+			return obj.TransactionID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UpdatePricingTemplateResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdatePricingTemplateResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.UpdatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UpdatePricingTemplateResponse_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UpdatePricingTemplateResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdatePricingTemplateResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.UpdatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UpdatePricingTemplateResponse_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNResponseStatus2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐResponseStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UpdatePricingTemplateResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ResponseStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdatePricingTemplateResponse_traceId(ctx context.Context, field graphql.CollectedField, obj *model.UpdatePricingTemplateResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UpdatePricingTemplateResponse_traceId,
+		func(ctx context.Context) (any, error) {
+			return obj.TraceID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_UpdatePricingTemplateResponse_traceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdatePricingTemplateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ValidateDiscountCouponResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *model.ValidateDiscountCouponResponse) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10312,6 +11140,50 @@ func (ec *executionContext) unmarshalInputCheckBookingStatusInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreatePricingTemplateInput(ctx context.Context, obj any) (model.CreatePricingTemplateInput, error) {
+	var it model.CreatePricingTemplateInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "cells"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "cells":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cells"))
+			data, err := ec.unmarshalNPricingCellInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Cells = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Context, obj any) (model.CreateRackPaymentInput, error) {
 	var it model.CreateRackPaymentInput
 	if obj == nil {
@@ -10323,7 +11195,7 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeIds", "groupProductBySize"}
+	fieldsInOrder := [...]string{"rackReference", "pricingTemplateId", "notes", "bookingTimeIds", "groupProductBySize", "pricingCells", "installationName", "rackDescription"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10339,7 +11211,7 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 			it.RackReference = data
 		case "pricingTemplateId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingTemplateId"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10365,6 +11237,57 @@ func (ec *executionContext) unmarshalInputCreateRackPaymentInput(ctx context.Con
 				return it, err
 			}
 			it.GroupProductBySize = data
+		case "pricingCells":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingCells"))
+			data, err := ec.unmarshalOPricingCellInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricingCells = data
+		case "installationName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("installationName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InstallationName = data
+		case "rackDescription":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rackDescription"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RackDescription = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDeletePricingTemplateInput(ctx context.Context, obj any) (model.DeletePricingTemplateInput, error) {
+	var it model.DeletePricingTemplateInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"pricingTemplateId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "pricingTemplateId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingTemplateId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricingTemplateID = data
 		}
 	}
 	return it, nil
@@ -10882,6 +11805,101 @@ func (ec *executionContext) unmarshalInputOfflineAccessInput(ctx context.Context
 				return it, err
 			}
 			it.CurrentCode = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPricingCellInput(ctx context.Context, obj any) (model.PricingCellInput, error) {
+	var it model.PricingCellInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bookingTimeId", "size", "price"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bookingTimeId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingTimeId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BookingTimeID = data
+		case "size":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+			data, err := ec.unmarshalNLockerSize2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐLockerSize(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Size = data
+		case "price":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("price"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Price = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdatePricingTemplateInput(ctx context.Context, obj any) (model.UpdatePricingTemplateInput, error) {
+	var it model.UpdatePricingTemplateInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"pricingTemplateId", "name", "description", "cells"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "pricingTemplateId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingTemplateId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricingTemplateID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "cells":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cells"))
+			data, err := ec.unmarshalOPricingCellInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Cells = data
 		}
 	}
 	return it, nil
@@ -11443,6 +12461,65 @@ func (ec *executionContext) _CheckBookingStatusResponse(ctx context.Context, sel
 	return out
 }
 
+var createPricingTemplateResponseImplementors = []string{"CreatePricingTemplateResponse"}
+
+func (ec *executionContext) _CreatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, obj *model.CreatePricingTemplateResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createPricingTemplateResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreatePricingTemplateResponse")
+		case "transactionId":
+			out.Values[i] = ec._CreatePricingTemplateResponse_transactionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._CreatePricingTemplateResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CreatePricingTemplateResponse_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traceId":
+			out.Values[i] = ec._CreatePricingTemplateResponse_traceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pricingTemplateId":
+			out.Values[i] = ec._CreatePricingTemplateResponse_pricingTemplateId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var createRackPaymentResponseImplementors = []string{"CreateRackPaymentResponse"}
 
 func (ec *executionContext) _CreateRackPaymentResponse(ctx context.Context, sel ast.SelectionSet, obj *model.CreateRackPaymentResponse) graphql.Marshaler {
@@ -11476,6 +12553,60 @@ func (ec *executionContext) _CreateRackPaymentResponse(ctx context.Context, sel 
 			}
 		case "paymentRackId":
 			out.Values[i] = ec._CreateRackPaymentResponse_paymentRackId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deletePricingTemplateResponseImplementors = []string{"DeletePricingTemplateResponse"}
+
+func (ec *executionContext) _DeletePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, obj *model.DeletePricingTemplateResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deletePricingTemplateResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeletePricingTemplateResponse")
+		case "transactionId":
+			out.Values[i] = ec._DeletePricingTemplateResponse_transactionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._DeletePricingTemplateResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._DeletePricingTemplateResponse_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traceId":
+			out.Values[i] = ec._DeletePricingTemplateResponse_traceId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11940,6 +13071,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createRackPayment":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createRackPayment(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createPricingTemplate":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createPricingTemplate(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatePricingTemplate":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updatePricingTemplate(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deletePricingTemplate":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deletePricingTemplate(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -13040,6 +14192,60 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 }
 
+var updatePricingTemplateResponseImplementors = []string{"UpdatePricingTemplateResponse"}
+
+func (ec *executionContext) _UpdatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, obj *model.UpdatePricingTemplateResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updatePricingTemplateResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdatePricingTemplateResponse")
+		case "transactionId":
+			out.Values[i] = ec._UpdatePricingTemplateResponse_transactionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._UpdatePricingTemplateResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._UpdatePricingTemplateResponse_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traceId":
+			out.Values[i] = ec._UpdatePricingTemplateResponse_traceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var validateDiscountCouponResponseImplementors = []string{"ValidateDiscountCouponResponse"}
 
 func (ec *executionContext) _ValidateDiscountCouponResponse(ctx context.Context, sel ast.SelectionSet, obj *model.ValidateDiscountCouponResponse) graphql.Marshaler {
@@ -13590,6 +14796,25 @@ func (ec *executionContext) marshalNCheckBookingStatusResponse2ᚖbffᚑgraphql�
 	return ec._CheckBookingStatusResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCreatePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreatePricingTemplateInput(ctx context.Context, v any) (model.CreatePricingTemplateInput, error) {
+	res, err := ec.unmarshalInputCreatePricingTemplateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCreatePricingTemplateResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v model.CreatePricingTemplateResponse) graphql.Marshaler {
+	return ec._CreatePricingTemplateResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreatePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v *model.CreatePricingTemplateResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreatePricingTemplateResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCreateRackPaymentInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐCreateRackPaymentInput(ctx context.Context, v any) (model.CreateRackPaymentInput, error) {
 	res, err := ec.unmarshalInputCreateRackPaymentInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -13607,6 +14832,25 @@ func (ec *executionContext) marshalNCreateRackPaymentResponse2ᚖbffᚑgraphql�
 		return graphql.Null
 	}
 	return ec._CreateRackPaymentResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDeletePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐDeletePricingTemplateInput(ctx context.Context, v any) (model.DeletePricingTemplateInput, error) {
+	res, err := ec.unmarshalInputDeletePricingTemplateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDeletePricingTemplateResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐDeletePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v model.DeletePricingTemplateResponse) graphql.Marshaler {
+	return ec._DeletePricingTemplateResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeletePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐDeletePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v *model.DeletePricingTemplateResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeletePricingTemplateResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNExecuteOpenInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐExecuteOpenInput(ctx context.Context, v any) (model.ExecuteOpenInput, error) {
@@ -13903,6 +15147,26 @@ func (ec *executionContext) marshalNPhysicalStatus2bffᚑgraphqlᚑpaymentᚋgra
 	return v
 }
 
+func (ec *executionContext) unmarshalNPricingCellInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInputᚄ(ctx context.Context, v any) ([]*model.PricingCellInput, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.PricingCellInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPricingCellInput2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNPricingCellInput2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInput(ctx context.Context, v any) (*model.PricingCellInput, error) {
+	res, err := ec.unmarshalInputPricingCellInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNPricingTemplate2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingTemplateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PricingTemplate) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -14053,6 +15317,25 @@ func (ec *executionContext) marshalNUnitMeasurement2bffᚑgraphqlᚑpaymentᚋgr
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdatePricingTemplateInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐUpdatePricingTemplateInput(ctx context.Context, v any) (model.UpdatePricingTemplateInput, error) {
+	res, err := ec.unmarshalInputUpdatePricingTemplateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpdatePricingTemplateResponse2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐUpdatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v model.UpdatePricingTemplateResponse) graphql.Marshaler {
+	return ec._UpdatePricingTemplateResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdatePricingTemplateResponse2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐUpdatePricingTemplateResponse(ctx context.Context, sel ast.SelectionSet, v *model.UpdatePricingTemplateResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UpdatePricingTemplateResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNValidateDiscountCouponInput2bffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐValidateDiscountCouponInput(ctx context.Context, v any) (model.ValidateDiscountCouponInput, error) {
@@ -14307,6 +15590,24 @@ func (ec *executionContext) marshalOPaymentRack2ᚖbffᚑgraphqlᚑpaymentᚋgra
 		return graphql.Null
 	}
 	return ec._PaymentRack(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPricingCellInput2ᚕᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInputᚄ(ctx context.Context, v any) ([]*model.PricingCellInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.PricingCellInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPricingCellInput2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPricingCellInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOPurchaseOrderInfo2ᚖbffᚑgraphqlᚑpaymentᚋgraphᚋmodelᚐPurchaseOrderInfo(ctx context.Context, sel ast.SelectionSet, v *model.PurchaseOrderInfo) graphql.Marshaler {
