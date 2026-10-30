@@ -311,62 +311,6 @@ func (c *PaymentServiceGRPCClient) mockCreateRackPayment(request *dto.CreateRack
 	}
 }
 
-// mockFindExactPricingTemplate simula que nunca hay coincidencia exacta (fuerza el camino de
-// creacion en modo mock, suficiente para desarrollo local sin backend real).
-func (c *PaymentServiceGRPCClient) mockFindExactPricingTemplate(_ *dto.FindExactPricingTemplateRequest) *dto.FindExactPricingTemplateResponse {
-	return &dto.FindExactPricingTemplateResponse{
-		Response: &dto.PaymentManagerGenericResponse{
-			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "sin coincidencia exacta",
-			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
-			TraceId:       "trace-" + time.Now().Format("20060102150405"),
-		},
-		Found: false,
-	}
-}
-
-// mockCreatePricingTemplate simula la creacion de una plantilla nueva
-func (c *PaymentServiceGRPCClient) mockCreatePricingTemplate(request *dto.CreatePricingTemplateRequest) *dto.CreatePricingTemplateResponse {
-	groupProductBySize := make([]dto.GroupProductBySize, 0, len(request.Cells))
-	for i, cell := range request.Cells {
-		groupProductBySize = append(groupProductBySize, dto.GroupProductBySize{Size: cell.Size, GroupProductId: int32(1000 + i)})
-	}
-	return &dto.CreatePricingTemplateResponse{
-		Response: &dto.PaymentManagerGenericResponse{
-			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "pricing template creado correctamente",
-			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
-			TraceId:       "trace-" + time.Now().Format("20060102150405"),
-		},
-		PricingTemplateId:  9999,
-		GroupProductBySize: groupProductBySize,
-	}
-}
-
-// mockUpdatePricingTemplate simula la edicion de una plantilla
-func (c *PaymentServiceGRPCClient) mockUpdatePricingTemplate(_ *dto.UpdatePricingTemplateRequest) *dto.UpdatePricingTemplateResponse {
-	return &dto.UpdatePricingTemplateResponse{
-		Response: &dto.PaymentManagerGenericResponse{
-			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "pricing template editado correctamente",
-			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
-			TraceId:       "trace-" + time.Now().Format("20060102150405"),
-		},
-	}
-}
-
-// mockDeletePricingTemplate simula la eliminacion de una plantilla
-func (c *PaymentServiceGRPCClient) mockDeletePricingTemplate(_ *dto.DeletePricingTemplateRequest) *dto.DeletePricingTemplateResponse {
-	return &dto.DeletePricingTemplateResponse{
-		Response: &dto.PaymentManagerGenericResponse{
-			TransactionId: time.Now().Format("20060102150405"),
-			Message:       "pricing template eliminado correctamente",
-			Status:        dto.PaymentManagerResponseStatus_RESPONSE_STATUS_OK,
-			TraceId:       "trace-" + time.Now().Format("20060102150405"),
-		},
-	}
-}
-
 // mockExecuteOpen simula la apertura de locker
 func (c *PaymentServiceGRPCClient) mockExecuteOpen(request *dto.ExecuteOpenRequest) *dto.ExecuteOpenResponse {
 	return &dto.ExecuteOpenResponse{

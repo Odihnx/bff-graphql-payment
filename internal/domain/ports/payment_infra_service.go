@@ -21,8 +21,4 @@ type PaymentInfraService interface {
 	GetPricingTemplates(ctx context.Context) (*model.PricingTemplateList, error)
 	GetBookingTimes(ctx context.Context) (*model.BookingTimeFullList, error)
 	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error)
-	FindExactPricingTemplate(ctx context.Context, cells []model.PricingCell) (*model.PricingTemplateMatch, error)
-	CreatePricingTemplate(ctx context.Context, name string, description string, cells []model.PricingCell) (*model.CreatePricingTemplateResult, error)
-	UpdatePricingTemplate(ctx context.Context, pricingTemplateID int, name string, description string, cells []model.PricingCell) (*model.UpdatePricingTemplateResult, error)
-	DeletePricingTemplate(ctx context.Context, pricingTemplateID int) (*model.DeletePricingTemplateResult, error)
 }

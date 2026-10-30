@@ -197,35 +197,3 @@ func (m *ServiceValidationMiddleware) CreateRackPayment(ctx context.Context, rac
 	}
 	return m.next.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs, groupProductBySize)
 }
-
-// FindExactPricingTemplate busca un pricing_template cuyo set de celdas calce EXACTO con cells
-func (m *ServiceValidationMiddleware) FindExactPricingTemplate(ctx context.Context, cells []model.PricingCell) (*model.PricingTemplateMatch, error) {
-	if err := m.validateServiceAvailability(ctx); err != nil {
-		return nil, err
-	}
-	return m.next.FindExactPricingTemplate(ctx, cells)
-}
-
-// CreatePricingTemplate crea una plantilla nueva con sus celdas
-func (m *ServiceValidationMiddleware) CreatePricingTemplate(ctx context.Context, name string, description string, cells []model.PricingCell) (*model.CreatePricingTemplateResult, error) {
-	if err := m.validateServiceAvailability(ctx); err != nil {
-		return nil, err
-	}
-	return m.next.CreatePricingTemplate(ctx, name, description, cells)
-}
-
-// UpdatePricingTemplate edita name/description y opcionalmente reemplaza las celdas
-func (m *ServiceValidationMiddleware) UpdatePricingTemplate(ctx context.Context, pricingTemplateID int, name string, description string, cells []model.PricingCell) (*model.UpdatePricingTemplateResult, error) {
-	if err := m.validateServiceAvailability(ctx); err != nil {
-		return nil, err
-	}
-	return m.next.UpdatePricingTemplate(ctx, pricingTemplateID, name, description, cells)
-}
-
-// DeletePricingTemplate elimina una plantilla
-func (m *ServiceValidationMiddleware) DeletePricingTemplate(ctx context.Context, pricingTemplateID int) (*model.DeletePricingTemplateResult, error) {
-	if err := m.validateServiceAvailability(ctx); err != nil {
-		return nil, err
-	}
-	return m.next.DeletePricingTemplate(ctx, pricingTemplateID)
-}

@@ -24,10 +24,4 @@ type PaymentInfraRepository interface {
 	// tamaño puede repetirse si el template tiene mas de un booking_time). Opcional (nil/vacio = no
 	// se toca payment_manager.product, mismo comportamiento que antes de esta extension).
 	CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error)
-	// FindExactPricingTemplate busca un pricing_template cuyo set de celdas calce EXACTO con
-	// cells; nil (sin error) si no hay ninguno.
-	FindExactPricingTemplate(ctx context.Context, cells []model.PricingCell) (*model.PricingTemplateMatch, error)
-	CreatePricingTemplate(ctx context.Context, name string, description string, cells []model.PricingCell) (*model.CreatePricingTemplateResult, error)
-	UpdatePricingTemplate(ctx context.Context, pricingTemplateID int, name string, description string, cells []model.PricingCell) (*model.UpdatePricingTemplateResult, error)
-	DeletePricingTemplate(ctx context.Context, pricingTemplateID int) (*model.DeletePricingTemplateResult, error)
 }

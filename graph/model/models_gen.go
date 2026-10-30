@@ -88,29 +88,12 @@ type CheckBookingStatusResponse struct {
 	Booking       *BookingStatusData `json:"booking,omitempty"`
 }
 
-type CreatePricingTemplateInput struct {
-	Name        string              `json:"name"`
-	Description string              `json:"description"`
-	Cells       []*PricingCellInput `json:"cells"`
-}
-
-type CreatePricingTemplateResponse struct {
-	TransactionID     string         `json:"transactionId"`
-	Message           string         `json:"message"`
-	Status            ResponseStatus `json:"status"`
-	TraceID           string         `json:"traceId"`
-	PricingTemplateID int            `json:"pricingTemplateId"`
-}
-
 type CreateRackPaymentInput struct {
 	RackReference      int                        `json:"rackReference"`
-	PricingTemplateID  *int                       `json:"pricingTemplateId,omitempty"`
+	PricingTemplateID  int                        `json:"pricingTemplateId"`
 	Notes              string                     `json:"notes"`
 	BookingTimeIds     []int                      `json:"bookingTimeIds"`
 	GroupProductBySize []*GroupProductBySizeInput `json:"groupProductBySize,omitempty"`
-	PricingCells       []*PricingCellInput        `json:"pricingCells,omitempty"`
-	InstallationName   *string                    `json:"installationName,omitempty"`
-	RackDescription    *string                    `json:"rackDescription,omitempty"`
 }
 
 type CreateRackPaymentResponse struct {
@@ -119,17 +102,6 @@ type CreateRackPaymentResponse struct {
 	Status        ResponseStatus `json:"status"`
 	TraceID       string         `json:"traceId"`
 	PaymentRackID int            `json:"paymentRackId"`
-}
-
-type DeletePricingTemplateInput struct {
-	PricingTemplateID int `json:"pricingTemplateId"`
-}
-
-type DeletePricingTemplateResponse struct {
-	TransactionID string         `json:"transactionId"`
-	Message       string         `json:"message"`
-	Status        ResponseStatus `json:"status"`
-	TraceID       string         `json:"traceId"`
 }
 
 type ExecuteOpenInput struct {
@@ -313,12 +285,6 @@ type PaymentRack struct {
 	Address     string `json:"address"`
 }
 
-type PricingCellInput struct {
-	BookingTimeID int        `json:"bookingTimeId"`
-	Size          LockerSize `json:"size"`
-	Price         float64    `json:"price"`
-}
-
 type PricingTemplate struct {
 	ID                    int                            `json:"id"`
 	Name                  string                         `json:"name"`
@@ -393,20 +359,6 @@ type Query struct {
 }
 
 type Subscription struct {
-}
-
-type UpdatePricingTemplateInput struct {
-	PricingTemplateID int                 `json:"pricingTemplateId"`
-	Name              string              `json:"name"`
-	Description       string              `json:"description"`
-	Cells             []*PricingCellInput `json:"cells,omitempty"`
-}
-
-type UpdatePricingTemplateResponse struct {
-	TransactionID string         `json:"transactionId"`
-	Message       string         `json:"message"`
-	Status        ResponseStatus `json:"status"`
-	TraceID       string         `json:"traceId"`
 }
 
 type ValidateDiscountCouponInput struct {
