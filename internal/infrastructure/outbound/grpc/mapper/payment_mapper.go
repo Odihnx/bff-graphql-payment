@@ -862,6 +862,209 @@ func (m *PaymentInfraGRPCMapper) FromGRPCCreateRackPaymentResponse(proto *paymen
 	return result
 }
 
+func cellsToDto(cells []model.PricingCell) []dto.PricingCell {
+	result := make([]dto.PricingCell, 0, len(cells))
+	for _, c := range cells {
+		result = append(result, dto.PricingCell{
+			BookingTimeId: int32(c.BookingTimeID),
+			Size:          c.Size,
+			Price:         float32(c.Price),
+		})
+	}
+	return result
+}
+
+// ToPricingCellsPb convierte celdas ya mapeadas a DTO al tipo proto, para armar el request gRPC
+// saliente (el cliente la usa junto con ToFindExact/ToCreate/ToUpdatePricingTemplateRequest).
+func (m *PaymentInfraGRPCMapper) ToPricingCellsPb(cells []dto.PricingCell) []*paymentpb.PricingCell {
+	return cellsToPb(cells)
+}
+
+func cellsToPb(cells []dto.PricingCell) []*paymentpb.PricingCell {
+	result := make([]*paymentpb.PricingCell, 0, len(cells))
+	for _, c := range cells {
+		result = append(result, &paymentpb.PricingCell{
+			BookingTimeId: c.BookingTimeId,
+			Size:          c.Size,
+			Price:         c.Price,
+		})
+	}
+	return result
+}
+
+func groupProductBySizeFromPb(items []*paymentpb.GroupProductBySize) []dto.GroupProductBySize {
+	result := make([]dto.GroupProductBySize, 0, len(items))
+	for _, g := range items {
+		result = append(result, dto.GroupProductBySize{Size: g.Size, GroupProductId: g.GroupProductId})
+	}
+	return result
+}
+
+func groupProductBySizeToDomain(items []dto.GroupProductBySize) []model.GroupProductBySize {
+	result := make([]model.GroupProductBySize, 0, len(items))
+	for _, g := range items {
+		result = append(result, model.GroupProductBySize{Size: g.Size, GroupProductID: int(g.GroupProductId)})
+	}
+	return result
+}
+
+// ToFindExactPricingTemplateRequest mapea las celdas solicitadas al DTO de request
+func (m *PaymentInfraGRPCMapper) ToFindExactPricingTemplateRequest(cells []model.PricingCell) *dto.FindExactPricingTemplateRequest {
+	return &dto.FindExactPricingTemplateRequest{Cells: cellsToDto(cells)}
+}
+
+// FromGRPCFindExactPricingTemplateResponse mapea la respuesta proto al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCFindExactPricingTemplateResponse(proto *paymentpb.FindExactPricingTemplateResponse) *dto.FindExactPricingTemplateResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.FindExactPricingTemplateResponse{
+		Found:              proto.Found,
+		PricingTemplateId:  proto.PricingTemplateId,
+		GroupProductBySize: groupProductBySizeFromPb(proto.GroupProductBySize),
+	}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	return result
+}
+
+// ToPricingTemplateMatchDomain mapea el resultado de FindExact/Create al modelo de dominio
+// compartido (mismo shape, se usa en ambos resolvers de la orquestacion del wizard).
+func (m *PaymentInfraGRPCMapper) ToPricingTemplateMatchDomain(pricingTemplateID int32, groupProductBySize []dto.GroupProductBySize) *model.PricingTemplateMatch {
+	return &model.PricingTemplateMatch{
+		PricingTemplateID:  int(pricingTemplateID),
+		GroupProductBySize: groupProductBySizeToDomain(groupProductBySize),
+	}
+}
+
+// ToCreatePricingTemplateRequest mapea name/description/cells al DTO de request
+func (m *PaymentInfraGRPCMapper) ToCreatePricingTemplateRequest(name string, description string, cells []model.PricingCell) *dto.CreatePricingTemplateRequest {
+	return &dto.CreatePricingTemplateRequest{Name: name, Description: description, Cells: cellsToDto(cells)}
+}
+
+// FromGRPCCreatePricingTemplateResponse mapea la respuesta proto al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCCreatePricingTemplateResponse(proto *paymentpb.CreatePricingTemplateResponse) *dto.CreatePricingTemplateResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.CreatePricingTemplateResponse{
+		PricingTemplateId:  proto.PricingTemplateId,
+		GroupProductBySize: groupProductBySizeFromPb(proto.GroupProductBySize),
+	}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	return result
+}
+
+// ToCreatePricingTemplateResultDomain mapea la respuesta de crear una plantilla a mano al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToCreatePricingTemplateResultDomain(response *dto.CreatePricingTemplateResponse) *model.CreatePricingTemplateResult {
+	if response == nil {
+		return nil
+	}
+	result := &model.CreatePricingTemplateResult{
+		PricingTemplateID:  int(response.PricingTemplateId),
+		GroupProductBySize: groupProductBySizeToDomain(response.GroupProductBySize),
+	}
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+	return result
+}
+
+// ToUpdatePricingTemplateRequest mapea los parametros al DTO de request
+func (m *PaymentInfraGRPCMapper) ToUpdatePricingTemplateRequest(pricingTemplateID int, name string, description string, cells []model.PricingCell) *dto.UpdatePricingTemplateRequest {
+	return &dto.UpdatePricingTemplateRequest{
+		PricingTemplateId: int32(pricingTemplateID),
+		Name:              name,
+		Description:       description,
+		Cells:             cellsToDto(cells),
+	}
+}
+
+// FromGRPCUpdatePricingTemplateResponse mapea la respuesta proto al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCUpdatePricingTemplateResponse(proto *paymentpb.UpdatePricingTemplateResponse) *dto.UpdatePricingTemplateResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.UpdatePricingTemplateResponse{}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	return result
+}
+
+// ToUpdatePricingTemplateResultDomain mapea la respuesta al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToUpdatePricingTemplateResultDomain(response *dto.UpdatePricingTemplateResponse) *model.UpdatePricingTemplateResult {
+	if response == nil {
+		return nil
+	}
+	result := &model.UpdatePricingTemplateResult{}
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+	return result
+}
+
+// ToDeletePricingTemplateRequest mapea el id al DTO de request
+func (m *PaymentInfraGRPCMapper) ToDeletePricingTemplateRequest(pricingTemplateID int) *dto.DeletePricingTemplateRequest {
+	return &dto.DeletePricingTemplateRequest{PricingTemplateId: int32(pricingTemplateID)}
+}
+
+// FromGRPCDeletePricingTemplateResponse mapea la respuesta proto al DTO interno
+func (m *PaymentInfraGRPCMapper) FromGRPCDeletePricingTemplateResponse(proto *paymentpb.DeletePricingTemplateResponse) *dto.DeletePricingTemplateResponse {
+	if proto == nil {
+		return nil
+	}
+	result := &dto.DeletePricingTemplateResponse{}
+	if proto.Response != nil {
+		result.Response = &dto.PaymentManagerGenericResponse{
+			TransactionId: proto.Response.TransactionId,
+			Message:       proto.Response.Message,
+			Status:        dto.PaymentManagerResponseStatus(proto.Response.Status),
+			TraceId:       proto.Response.TraceId,
+		}
+	}
+	return result
+}
+
+// ToDeletePricingTemplateResultDomain mapea la respuesta al modelo de dominio
+func (m *PaymentInfraGRPCMapper) ToDeletePricingTemplateResultDomain(response *dto.DeletePricingTemplateResponse) *model.DeletePricingTemplateResult {
+	if response == nil {
+		return nil
+	}
+	result := &model.DeletePricingTemplateResult{}
+	if response.Response != nil {
+		result.TransactionID = response.Response.TransactionId
+		result.Message = response.Response.Message
+		result.Status = m.mapResponseStatus(response.Response.Status)
+		result.TraceID = response.Response.TraceId
+	}
+	return result
+}
+
 // FromGRPCCheckBookingStatusResponse mapea la respuesta proto de gRPC de booking al DTO interno
 func (m *PaymentInfraGRPCMapper) FromGRPCCheckBookingStatusResponse(protoResp *bookingpb.CheckBookingStatusResponse) *dto.CheckBookingStatusResponse {
 	if protoResp == nil {
