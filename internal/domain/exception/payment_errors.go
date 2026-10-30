@@ -71,4 +71,13 @@ var (
 
 	// ErrExecuteOpenFailed se devuelve cuando falla la ejecución de apertura
 	ErrExecuteOpenFailed = errors.New("execute open failed")
+
+	// ErrInvalidPricingCells se devuelve cuando la lista de celdas (tiempo+tamaño+precio) es inválida
+	ErrInvalidPricingCells = errors.New("invalid pricing cells")
+
+	// ErrInvalidPricingTemplateName se devuelve cuando el nombre de la plantilla es inválido
+	ErrInvalidPricingTemplateName = errors.New("invalid pricing template name")
+
+	// ErrInvalidPricingTemplateID se devuelve cuando el ID de la plantilla es inválido
+	ErrInvalidPricingTemplateID = errors.New("invalid pricing template ID")
 )
