@@ -8,6 +8,7 @@ package resolver
 import (
 	"bff-graphql-payment/graph/generated"
 	"bff-graphql-payment/graph/model"
+	domainmodel "bff-graphql-payment/internal/domain/model"
 	gqlerrors "bff-graphql-payment/internal/infrastructure/inbound/graphql/errors"
 	"bff-graphql-payment/internal/infrastructure/inbound/middleware"
 	"context"
@@ -15,6 +16,7 @@ import (
 	"log"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Odihnx/platform-core/tracing"
@@ -127,20 +129,108 @@ func (r *mutationResolver) CreateRackPayment(ctx context.Context, input model.Cr
 	defer span.End()
 
 	tracing.AddAttributes(span, map[string]string{
-		"graphql.operation.type":    "mutation",
-		"graphql.operation.name":    "createRackPayment",
-		"input.rack_reference":      strconv.Itoa(input.RackReference),
-		"input.pricing_template_id": strconv.Itoa(input.PricingTemplateID),
-		"input.booking_time_ids":    fmt.Sprintf("%v", input.BookingTimeIds),
+		"graphql.operation.type": "mutation",
+		"graphql.operation.name": "createRackPayment",
+		"input.rack_reference":   strconv.Itoa(input.RackReference),
+		"input.booking_time_ids": fmt.Sprintf("%v", input.BookingTimeIds),
 	})
 
-	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, input.PricingTemplateID, input.Notes, input.BookingTimeIds)
+	var pricingTemplateID int
+	var groupProductBySize []domainmodel.GroupProductBySize
+
+	if input.PricingTemplateID != nil {
+		// Camino legacy/compatibilidad: el caller ya trae un pricing_template_id resuelto.
+		pricingTemplateID = *input.PricingTemplateID
+		for _, g := range input.GroupProductBySize {
+			if g == nil {
+				continue
+			}
+			groupProductBySize = append(groupProductBySize, domainmodel.GroupProductBySize{
+				Size:           strings.ToLower(string(g.Size)),
+				GroupProductID: g.GroupProductID,
+			})
+		}
+	} else {
+		if len(input.PricingCells) == 0 {
+			err := fmt.Errorf("pricingCells es obligatorio cuando no se envia pricingTemplateId")
+			tracing.RecordError(span, err)
+			return nil, gqlerrors.New(ctx, err)
+		}
+		resolvedID, resolvedGroupProductBySize, err := r.resolvePricingTemplate(ctx, input)
+		if err != nil {
+			tracing.RecordError(span, err)
+			return nil, gqlerrors.New(ctx, err)
+		}
+		pricingTemplateID = resolvedID
+		groupProductBySize = resolvedGroupProductBySize
+	}
+
+	tracing.AddAttributes(span, map[string]string{"input.pricing_template_id": strconv.Itoa(pricingTemplateID)})
+
+	result, err := r.paymentInfraService.CreateRackPayment(ctx, input.RackReference, pricingTemplateID, input.Notes, input.BookingTimeIds, groupProductBySize)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, gqlerrors.New(ctx, err)
 	}
 
 	return r.mapper.ToCreateRackPaymentResponse(result), nil
+}
+
+// CreatePricingTemplate is the resolver for the createPricingTemplate field.
+func (r *mutationResolver) CreatePricingTemplate(ctx context.Context, input model.CreatePricingTemplateInput) (*model.CreatePricingTemplateResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.CreatePricingTemplate")
+	defer span.End()
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type": "mutation",
+		"graphql.operation.name": "createPricingTemplate",
+		"input.name":             input.Name,
+	})
+
+	result, err := r.paymentInfraService.CreatePricingTemplate(ctx, input.Name, input.Description, pricingCellsFromInput(input.Cells))
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, gqlerrors.New(ctx, err)
+	}
+
+	return r.mapper.ToCreatePricingTemplateResponse(result), nil
+}
+
+// UpdatePricingTemplate is the resolver for the updatePricingTemplate field.
+func (r *mutationResolver) UpdatePricingTemplate(ctx context.Context, input model.UpdatePricingTemplateInput) (*model.UpdatePricingTemplateResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.UpdatePricingTemplate")
+	defer span.End()
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type":    "mutation",
+		"graphql.operation.name":    "updatePricingTemplate",
+		"input.pricing_template_id": strconv.Itoa(input.PricingTemplateID),
+	})
+
+	result, err := r.paymentInfraService.UpdatePricingTemplate(ctx, input.PricingTemplateID, input.Name, input.Description, pricingCellsFromInput(input.Cells))
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, gqlerrors.New(ctx, err)
+	}
+
+	return r.mapper.ToUpdatePricingTemplateResponse(result), nil
+}
+
+// DeletePricingTemplate is the resolver for the deletePricingTemplate field.
+func (r *mutationResolver) DeletePricingTemplate(ctx context.Context, input model.DeletePricingTemplateInput) (*model.DeletePricingTemplateResponse, error) {
+	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.DeletePricingTemplate")
+	defer span.End()
+	tracing.AddAttributes(span, map[string]string{
+		"graphql.operation.type":    "mutation",
+		"graphql.operation.name":    "deletePricingTemplate",
+		"input.pricing_template_id": strconv.Itoa(input.PricingTemplateID),
+	})
+
+	result, err := r.paymentInfraService.DeletePricingTemplate(ctx, input.PricingTemplateID)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, gqlerrors.New(ctx, err)
+	}
+
+	return r.mapper.ToDeletePricingTemplateResponse(result), nil
 }
 
 // RequestOfflineVoucher is the resolver for the requestOfflineVoucher field.

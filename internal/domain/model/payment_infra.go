@@ -291,11 +291,13 @@ type PricingTemplateBookingGroup struct {
 
 // PricingTemplate representa una plantilla de precios
 type PricingTemplate struct {
-	ID            int
-	Name          string
-	Description   string
-	CreatedAt     string
-	BookingGroups []PricingTemplateBookingGroup
+	ID                    int
+	Name                  string
+	Description           string
+	CreatedAt             string
+	BookingGroups         []PricingTemplateBookingGroup
+	ConfiguredLockerCount int
+	ActiveRackCount       int
 }
 
 // PricingTemplateList representa la respuesta de listado de plantillas de precios
@@ -333,4 +335,55 @@ type RackPayment struct {
 	Status        ResponseStatus
 	TraceID       string
 	PaymentRackID int
+}
+
+// GroupProductBySize: un elemento por group_product a dejar configurado en
+// payment_manager.product al crear el rack (un mismo tamaño puede repetirse si el template tiene
+// mas de un booking_time, cada uno con su propio group_product).
+type GroupProductBySize struct {
+	Size           string // "s" / "m" / "l"
+	GroupProductID int
+}
+
+// PricingCell: una combinacion booking_time+size+price elegida por el admin en el wizard (o en el
+// CRUD manual de plantillas) — ver docs/tareas-semanales/2026-W44/02-pricing-template-configurable.md.
+type PricingCell struct {
+	BookingTimeID int
+	Size          string // "s" / "m" / "l"
+	Price         float64
+}
+
+// PricingTemplateMatch es el resultado de resolver (encontrar o crear) un pricing_template a
+// partir de un set de PricingCell: su id y el group_product correspondiente a cada size pedido,
+// listo para pasar a CreateRackPayment sin que el admin vea el concepto de "plantilla".
+type PricingTemplateMatch struct {
+	PricingTemplateID  int
+	GroupProductBySize []GroupProductBySize
+}
+
+// CreatePricingTemplateResult es la respuesta de crear una plantilla (resolver automatico del
+// wizard, o CRUD manual). GroupProductBySize viene resuelto para pasar directo a CreateRackPayment
+// cuando el caller es el resolver automatico (el CRUD manual lo ignora).
+type CreatePricingTemplateResult struct {
+	TransactionID      string
+	Message            string
+	Status             ResponseStatus
+	TraceID            string
+	PricingTemplateID  int
+	GroupProductBySize []GroupProductBySize
+}
+
+// UpdatePricingTemplateResult / DeletePricingTemplateResult: acks simples del CRUD manual.
+type UpdatePricingTemplateResult struct {
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
+}
+
+type DeletePricingTemplateResult struct {
+	TransactionID string
+	Message       string
+	Status        ResponseStatus
+	TraceID       string
 }

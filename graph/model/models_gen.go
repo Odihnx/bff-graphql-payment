@@ -88,11 +88,29 @@ type CheckBookingStatusResponse struct {
 	Booking       *BookingStatusData `json:"booking,omitempty"`
 }
 
+type CreatePricingTemplateInput struct {
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Cells       []*PricingCellInput `json:"cells"`
+}
+
+type CreatePricingTemplateResponse struct {
+	TransactionID     string         `json:"transactionId"`
+	Message           string         `json:"message"`
+	Status            ResponseStatus `json:"status"`
+	TraceID           string         `json:"traceId"`
+	PricingTemplateID int            `json:"pricingTemplateId"`
+}
+
 type CreateRackPaymentInput struct {
-	RackReference     int    `json:"rackReference"`
-	PricingTemplateID int    `json:"pricingTemplateId"`
-	Notes             string `json:"notes"`
-	BookingTimeIds    []int  `json:"bookingTimeIds"`
+	RackReference      int                        `json:"rackReference"`
+	PricingTemplateID  *int                       `json:"pricingTemplateId,omitempty"`
+	Notes              string                     `json:"notes"`
+	BookingTimeIds     []int                      `json:"bookingTimeIds"`
+	GroupProductBySize []*GroupProductBySizeInput `json:"groupProductBySize,omitempty"`
+	PricingCells       []*PricingCellInput        `json:"pricingCells,omitempty"`
+	InstallationName   *string                    `json:"installationName,omitempty"`
+	RackDescription    *string                    `json:"rackDescription,omitempty"`
 }
 
 type CreateRackPaymentResponse struct {
@@ -101,6 +119,17 @@ type CreateRackPaymentResponse struct {
 	Status        ResponseStatus `json:"status"`
 	TraceID       string         `json:"traceId"`
 	PaymentRackID int            `json:"paymentRackId"`
+}
+
+type DeletePricingTemplateInput struct {
+	PricingTemplateID int `json:"pricingTemplateId"`
+}
+
+type DeletePricingTemplateResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
 }
 
 type ExecuteOpenInput struct {
@@ -211,8 +240,13 @@ type GetPurchaseOrderByPoInput struct {
 	TraceID       string `json:"traceId"`
 }
 
+type GroupProductBySizeInput struct {
+	Size           LockerSize `json:"size"`
+	GroupProductID int        `json:"groupProductId"`
+}
+
 type LockerConnectivity struct {
-	// El equipo informó salud (K4) en los últimos 12 min.
+	// El equipo informó salud (K4) dentro del umbral del emisor (5 min con salud cada 2 min, K3 v1.3).
 	Online bool `json:"online"`
 	// null si el equipo nunca informó.
 	LastSeenAt *string `json:"lastSeenAt,omitempty"`
@@ -279,12 +313,20 @@ type PaymentRack struct {
 	Address     string `json:"address"`
 }
 
+type PricingCellInput struct {
+	BookingTimeID int        `json:"bookingTimeId"`
+	Size          LockerSize `json:"size"`
+	Price         float64    `json:"price"`
+}
+
 type PricingTemplate struct {
-	ID            int                            `json:"id"`
-	Name          string                         `json:"name"`
-	Description   string                         `json:"description"`
-	CreatedAt     string                         `json:"createdAt"`
-	BookingGroups []*PricingTemplateBookingGroup `json:"bookingGroups"`
+	ID                    int                            `json:"id"`
+	Name                  string                         `json:"name"`
+	Description           string                         `json:"description"`
+	CreatedAt             string                         `json:"createdAt"`
+	BookingGroups         []*PricingTemplateBookingGroup `json:"bookingGroups"`
+	ConfiguredLockerCount int                            `json:"configuredLockerCount"`
+	ActiveRackCount       int                            `json:"activeRackCount"`
 }
 
 type PricingTemplateBookingGroup struct {
@@ -353,6 +395,20 @@ type Query struct {
 type Subscription struct {
 }
 
+type UpdatePricingTemplateInput struct {
+	PricingTemplateID int                 `json:"pricingTemplateId"`
+	Name              string              `json:"name"`
+	Description       string              `json:"description"`
+	Cells             []*PricingCellInput `json:"cells,omitempty"`
+}
+
+type UpdatePricingTemplateResponse struct {
+	TransactionID string         `json:"transactionId"`
+	Message       string         `json:"message"`
+	Status        ResponseStatus `json:"status"`
+	TraceID       string         `json:"traceId"`
+}
+
 type ValidateDiscountCouponInput struct {
 	CouponCode string `json:"couponCode"`
 	RackID     int    `json:"rackId"`
@@ -369,6 +425,63 @@ type ValidateDiscountCouponResponse struct {
 	DiscountType       string         `json:"discountType"`
 	DiscountAmount     int            `json:"discountAmount"`
 	Applies            bool           `json:"applies"`
+}
+
+type LockerSize string
+
+const (
+	LockerSizeS LockerSize = "S"
+	LockerSizeM LockerSize = "M"
+	LockerSizeL LockerSize = "L"
+)
+
+var AllLockerSize = []LockerSize{
+	LockerSizeS,
+	LockerSizeM,
+	LockerSizeL,
+}
+
+func (e LockerSize) IsValid() bool {
+	switch e {
+	case LockerSizeS, LockerSizeM, LockerSizeL:
+		return true
+	}
+	return false
+}
+
+func (e LockerSize) String() string {
+	return string(e)
+}
+
+func (e *LockerSize) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LockerSize(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LockerSize", str)
+	}
+	return nil
+}
+
+func (e LockerSize) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *LockerSize) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e LockerSize) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type OpenStatus string

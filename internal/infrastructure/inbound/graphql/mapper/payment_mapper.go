@@ -371,11 +371,13 @@ func (m *PaymentInfraGraphQLMapper) ToPricingTemplatesResponse(list *domainModel
 			})
 		}
 		templates = append(templates, &model.PricingTemplate{
-			ID:            pt.ID,
-			Name:          pt.Name,
-			Description:   pt.Description,
-			CreatedAt:     pt.CreatedAt,
-			BookingGroups: bookingGroups,
+			ID:                    pt.ID,
+			Name:                  pt.Name,
+			Description:           pt.Description,
+			CreatedAt:             pt.CreatedAt,
+			BookingGroups:         bookingGroups,
+			ConfiguredLockerCount: pt.ConfiguredLockerCount,
+			ActiveRackCount:       pt.ActiveRackCount,
 		})
 	}
 
@@ -427,6 +429,46 @@ func (m *PaymentInfraGraphQLMapper) ToCreateRackPaymentResponse(rackPayment *dom
 		Status:        m.mapResponseStatus(rackPayment.Status),
 		TraceID:       rackPayment.TraceID,
 		PaymentRackID: rackPayment.PaymentRackID,
+	}
+}
+
+// ToCreatePricingTemplateResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToCreatePricingTemplateResponse(result *domainModel.CreatePricingTemplateResult) *model.CreatePricingTemplateResponse {
+	if result == nil {
+		return nil
+	}
+	return &model.CreatePricingTemplateResponse{
+		TransactionID:     result.TransactionID,
+		Message:           result.Message,
+		Status:            m.mapResponseStatus(result.Status),
+		TraceID:           result.TraceID,
+		PricingTemplateID: result.PricingTemplateID,
+	}
+}
+
+// ToUpdatePricingTemplateResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToUpdatePricingTemplateResponse(result *domainModel.UpdatePricingTemplateResult) *model.UpdatePricingTemplateResponse {
+	if result == nil {
+		return nil
+	}
+	return &model.UpdatePricingTemplateResponse{
+		TransactionID: result.TransactionID,
+		Message:       result.Message,
+		Status:        m.mapResponseStatus(result.Status),
+		TraceID:       result.TraceID,
+	}
+}
+
+// ToDeletePricingTemplateResponse convierte el modelo de dominio a respuesta GraphQL
+func (m *PaymentInfraGraphQLMapper) ToDeletePricingTemplateResponse(result *domainModel.DeletePricingTemplateResult) *model.DeletePricingTemplateResponse {
+	if result == nil {
+		return nil
+	}
+	return &model.DeletePricingTemplateResponse{
+		TransactionID: result.TransactionID,
+		Message:       result.Message,
+		Status:        m.mapResponseStatus(result.Status),
+		TraceID:       result.TraceID,
 	}
 }
 

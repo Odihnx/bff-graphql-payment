@@ -416,7 +416,7 @@ func (s *PaymentInfraService) GetBookingTimes(ctx context.Context) (*model.Booki
 }
 
 // CreateRackPayment crea un payment_rack y lo asocia a un booking_time
-func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int) (*model.RackPayment, error) {
+func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReference int, pricingTemplateID int, notes string, bookingTimeIDs []int, groupProductBySize []model.GroupProductBySize) (*model.RackPayment, error) {
 	ctx, span := tracing.StartSpan(ctx, "application.CreateRackPayment")
 	defer span.End()
 
@@ -438,12 +438,100 @@ func (s *PaymentInfraService) CreateRackPayment(ctx context.Context, rackReferen
 		return nil, err
 	}
 
-	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs)
+	result, err := s.repo.CreateRackPayment(ctx, rackReference, pricingTemplateID, notes, bookingTimeIDs, groupProductBySize)
 	if err != nil {
 		tracing.RecordError(span, err)
 		return nil, err
 	}
 
+	return result, nil
+}
+
+// FindExactPricingTemplate busca un pricing_template cuyo set de celdas calce EXACTO con cells;
+// resultado nil (sin error) si no hay ninguno — el caller (resolver) decide si crear uno nuevo.
+func (s *PaymentInfraService) FindExactPricingTemplate(ctx context.Context, cells []model.PricingCell) (*model.PricingTemplateMatch, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.FindExactPricingTemplate")
+	defer span.End()
+
+	if len(cells) == 0 {
+		err := exception.ErrInvalidPricingCells
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	result, err := s.repo.FindExactPricingTemplate(ctx, cells)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	return result, nil
+}
+
+// CreatePricingTemplate crea una plantilla nueva (resolver automatico del wizard, o CRUD manual).
+func (s *PaymentInfraService) CreatePricingTemplate(ctx context.Context, name string, description string, cells []model.PricingCell) (*model.CreatePricingTemplateResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.CreatePricingTemplate")
+	defer span.End()
+
+	if strings.TrimSpace(name) == "" {
+		err := exception.ErrInvalidPricingTemplateName
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	if len(cells) == 0 {
+		err := exception.ErrInvalidPricingCells
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	result, err := s.repo.CreatePricingTemplate(ctx, name, description, cells)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdatePricingTemplate renombra siempre; si cells viene no-vacio, reemplaza sus group_product
+// asociados (payment-manager rechaza esto si el template tiene racks activos).
+func (s *PaymentInfraService) UpdatePricingTemplate(ctx context.Context, pricingTemplateID int, name string, description string, cells []model.PricingCell) (*model.UpdatePricingTemplateResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.UpdatePricingTemplate")
+	defer span.End()
+
+	if pricingTemplateID <= 0 {
+		err := exception.ErrInvalidPricingTemplateID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	if strings.TrimSpace(name) == "" {
+		err := exception.ErrInvalidPricingTemplateName
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	result, err := s.repo.UpdatePricingTemplate(ctx, pricingTemplateID, name, description, cells)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+	return result, nil
+}
+
+// DeletePricingTemplate elimina una plantilla (payment-manager rechaza esto si tiene racks activos).
+func (s *PaymentInfraService) DeletePricingTemplate(ctx context.Context, pricingTemplateID int) (*model.DeletePricingTemplateResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "application.DeletePricingTemplate")
+	defer span.End()
+
+	if pricingTemplateID <= 0 {
+		err := exception.ErrInvalidPricingTemplateID
+		tracing.RecordError(span, err)
+		return nil, err
+	}
+
+	result, err := s.repo.DeletePricingTemplate(ctx, pricingTemplateID)
+	if err != nil {
+		tracing.RecordError(span, err)
+		return nil, err
+	}
 	return result, nil
 }
 
