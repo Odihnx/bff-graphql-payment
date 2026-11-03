@@ -12,6 +12,7 @@ import (
 type Resolver struct {
 	paymentInfraService ports.PaymentInfraService
 	mapper              *mapper.PaymentInfraGraphQLMapper
+	localAccessService  ports.LocalAccessService // apertura sin conexión (K3); ver local_access.go
 }
 
 // NewResolver crea un nuevo resolver con dependencias

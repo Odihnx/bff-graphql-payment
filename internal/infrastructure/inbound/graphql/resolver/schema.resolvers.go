@@ -143,6 +143,11 @@ func (r *mutationResolver) CreateRackPayment(ctx context.Context, input model.Cr
 	return r.mapper.ToCreateRackPaymentResponse(result), nil
 }
 
+// RequestOfflineVoucher is the resolver for the requestOfflineVoucher field.
+func (r *mutationResolver) RequestOfflineVoucher(ctx context.Context, input model.OfflineAccessInput) (*model.OfflineVoucher, error) {
+	return r.requestOfflineVoucher(ctx, input)
+}
+
 // GetPaymentInfraByQRValue is the resolver for the getPaymentInfraByQrValue field.
 func (r *queryResolver) GetPaymentInfraByQRValue(ctx context.Context, input model.GetPaymentInfraByQRValueInput) (*model.PaymentInfraResponse, error) {
 	ctx, span := tracing.StartSpan(ctx, "graphql.query.GetPaymentInfraByQRValue")
@@ -376,6 +381,11 @@ func (r *queryResolver) GetBookingTimes(ctx context.Context) (*model.GetBookingT
 	}
 
 	return r.mapper.ToBookingTimesResponse(result), nil
+}
+
+// LockerConnectivity is the resolver for the lockerConnectivity field.
+func (r *queryResolver) LockerConnectivity(ctx context.Context, input model.OfflineAccessInput) (*model.LockerConnectivity, error) {
+	return r.lockerConnectivity(ctx, input)
 }
 
 // ExecuteOpen is the resolver for the executeOpen field.

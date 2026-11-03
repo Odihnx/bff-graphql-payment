@@ -242,6 +242,11 @@ func getConfig() config.Config {
 	}
 
 	// Booking Service gRPC configuration (concatenate HOST:PORT like legacy)
+	// Emisor de accesos locales (apertura sin conexión, K3 de concepts-apertura-local)
+	if h, p := os.Getenv("HOST_API_LOCAL_ACCESS"), os.Getenv("PORT_API_LOCAL_ACCESS"); h != "" && p != "" {
+		cfg.GRPC.LocalAccessServiceAddress = h + ":" + p
+	}
+
 	hostBooking := os.Getenv("HOST_API_BOOKING")
 	portBooking := os.Getenv("PORT_API_BOOKING")
 	if hostBooking != "" && portBooking != "" {

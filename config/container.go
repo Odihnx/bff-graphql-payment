@@ -64,8 +64,19 @@ func NewContainer(config Config) (*Container, error) {
 		config.ControlGateway.BypassOnError,
 	)
 
+	// Apertura sin conexión (K3): cliente lazy del emisor; mock con los ejemplos de K3.
+	localAccessClient, err := client.NewLocalAccessGRPCClient(
+		config.GRPC.LocalAccessServiceAddress,
+		config.GRPC.PaymentServiceTimeout,
+		config.General.UseMock,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create local access client: %w", err)
+	}
+
 	// Inicializar resolvers GraphQL
-	container.GraphQLResolver = resolver.NewResolver(container.PaymentInfraService)
+	container.GraphQLResolver = resolver.NewResolver(container.PaymentInfraService).
+		WithLocalAccess(service.NewLocalAccessService(localAccessClient))
 
 	return container, nil
 }
