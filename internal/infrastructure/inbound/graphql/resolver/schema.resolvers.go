@@ -123,58 +123,6 @@ func (r *mutationResolver) GenerateCoupon(ctx context.Context, input model.Gener
 	return r.mapper.ToGenerateCouponResponse(generation), nil
 }
 
-// pricingCellsFromInput convierte el input GraphQL de celdas (tiempo+tamaño+precio) al modelo de
-// dominio compartido por el resolver automatico del wizard y el CRUD manual de plantillas.
-func pricingCellsFromInput(cells []*model.PricingCellInput) []domainmodel.PricingCell {
-	result := make([]domainmodel.PricingCell, 0, len(cells))
-	for _, c := range cells {
-		if c == nil {
-			continue
-		}
-		result = append(result, domainmodel.PricingCell{
-			BookingTimeID: c.BookingTimeID,
-			Size:          strings.ToLower(string(c.Size)),
-			Price:         c.Price,
-		})
-	}
-	return result
-}
-
-// resolvePricingTemplate implementa el resolver automatico del wizard de rack: busca entre las
-// plantillas existentes una que calce EXACTO con las celdas pedidas; si no hay ninguna, crea una
-// nueva (invisible al admin) nombrada a partir de la instalacion/rack. El admin nunca ve el
-// concepto de "plantilla" — ver docs/tareas-semanales/2026-W44/02-pricing-template-configurable.md.
-func (r *mutationResolver) resolvePricingTemplate(ctx context.Context, input model.CreateRackPaymentInput) (int, []domainmodel.GroupProductBySize, error) {
-	cells := pricingCellsFromInput(input.PricingCells)
-
-	match, err := r.paymentInfraService.FindExactPricingTemplate(ctx, cells)
-	if err != nil {
-		return 0, nil, err
-	}
-	if match != nil {
-		return match.PricingTemplateID, match.GroupProductBySize, nil
-	}
-
-	installationName := ""
-	if input.InstallationName != nil {
-		installationName = *input.InstallationName
-	}
-	rackDescription := ""
-	if input.RackDescription != nil {
-		rackDescription = *input.RackDescription
-	}
-	name := strings.TrimSpace(installationName + " · " + rackDescription)
-	if name == "·" || name == "" {
-		name = fmt.Sprintf("Rack %d", input.RackReference)
-	}
-
-	created, err := r.paymentInfraService.CreatePricingTemplate(ctx, name, "Plantilla generada automáticamente para este rack", cells)
-	if err != nil {
-		return 0, nil, err
-	}
-	return created.PricingTemplateID, created.GroupProductBySize, nil
-}
-
 // CreateRackPayment is the resolver for the createRackPayment field.
 func (r *mutationResolver) CreateRackPayment(ctx context.Context, input model.CreateRackPaymentInput) (*model.CreateRackPaymentResponse, error) {
 	ctx, span := tracing.StartSpan(ctx, "graphql.mutation.CreateRackPayment")
